@@ -5,7 +5,7 @@
 #include <fstream>
 #include <thirdparty/glm/glm/glm.hpp>
 
-namespace CHR_Editor
+namespace CH_Editor
 {
 	Shader::Shader(const std::string& vertex_shader_data, const std::string& fragment_shader_data, bool read_from_file)
 	{

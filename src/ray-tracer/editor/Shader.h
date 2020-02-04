@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-namespace CHR_Editor
+namespace CH_Editor
 {
 	class Shader
 	{
