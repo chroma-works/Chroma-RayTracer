@@ -46,9 +46,20 @@ source_group ("main\\" FILES
     ${main_sources}
 )
 
+set (editor_sources
+	src/ray-tracer/editor/Logger.h
+	src/ray-tracer/editor/Logger.cpp
+	src/ray-tracer/editor/Shader.h
+	src/ray-tracer/editor/Shader.cpp
+)
+source_group ("editor\\" FILES
+    ${editor_sources}
+)
+
 add_executable (chroma-ray-tracer
     ${main_sources}
     ${thirdparty_sources}
+	${editor_sources}
 )
 
 # Find and link to OpenGL
