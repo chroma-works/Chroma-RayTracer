@@ -1,12 +1,13 @@
-#include <thirdparty\glad\include\glad\glad.h>
-#include <thirdparty/glfw-3.3/include/GLFW/glfw3.h>
+//#include <thirdparty\glad\include\glad\glad.h>
+//#include <thirdparty/glfw-3.3/include/GLFW/glfw3.h>
 
 #include <iostream>
+#include <ray-tracer/main/Window.h>
 #include <ray-tracer/editor/Logger.h>
 #include <ray-tracer/editor/Shader.h>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+/*void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);*/
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -28,37 +29,11 @@ const std::string fragmentShaderSource = "#version 330 core\n"
 int main()
 {
 	CH_Editor::Logger::Init();
-	// glfw: initialize and configure
-	// ------------------------------
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// glfw window creation
-	// --------------------
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer", NULL, NULL);
-	if (window == NULL)
-	{
-		CH_FATAL("Failed to create GLFW window");
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	// glad: load all OpenGL function pointers
-	// ---------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
-
+	CH_INFO("Chroma Ray Tracer v.0.1");
 
 	// build and compile our shader program
 	// ------------------------------------
-
+	Window window = Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	CH_Editor::Shader* shader = CH_Editor::Shader::ReadAndBuildShaderFromSource(vertexShaderSource, fragmentShaderSource);
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
@@ -105,29 +80,24 @@ int main()
 
 	// render loop
 	// -----------
-	while (!glfwWindowShouldClose(window))
+	while (!window.ShouldClose())
 	{
 		// input
-		// -----
-		processInput(window);
 
 		// render
 		// ------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// draw our first triangle
 		//glUseProgram(shaderProgram);
 		shader->Bind();
 		glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
+
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glBindVertexArray(0); // no need to unbind it every time 
 
-		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-		// -------------------------------------------------------------------------------
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		window.OnUpdate();
 	}
 
 	// optional: de-allocate all resources once they've outlived their purpose:
@@ -140,21 +110,4 @@ int main()
 	// ------------------------------------------------------------------
 	glfwTerminate();
 	return 0;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-}
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	// make sure the viewport matches the new window dimensions; note that width and 
-	// height will be significantly larger than specified on retina displays.
-	glViewport(0, 0, width, height);
 }
