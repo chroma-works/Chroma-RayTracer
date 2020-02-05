@@ -29,7 +29,7 @@ int main()
 	CH_Editor::Logger::Init();
 	CH_INFO("Chroma Ray Tracer v.0.1");
 
-	Window* window = new  Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
+	CH_Editor::Window* window = new  CH_Editor::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	//init editor
 	CH_Editor::Editor editor(window);
 
