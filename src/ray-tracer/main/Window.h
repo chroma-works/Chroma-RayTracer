@@ -5,8 +5,6 @@
 #include <iostream>
 #include <ray-tracer/editor/Logger.h>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
 
 class Window
 {
@@ -30,8 +28,8 @@ public:
 	inline bool ShouldClose() const { return  glfwWindowShouldClose(m_window_handle); }
 
 	void OnUpdate();
-private:
 	GLFWwindow* m_window_handle;
+private:
 	bool m_vsync;
 
 	struct WindowData

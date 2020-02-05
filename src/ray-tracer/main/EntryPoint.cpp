@@ -2,16 +2,14 @@
 //#include <thirdparty/glfw-3.3/include/GLFW/glfw3.h>
 
 #include <iostream>
+#include <ray-tracer/editor/Editor.h>
 #include <ray-tracer/main/Window.h>
 #include <ray-tracer/editor/Logger.h>
 #include <ray-tracer/editor/Shader.h>
 
-/*void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);*/
-
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1440;
 
 const std::string vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -31,9 +29,12 @@ int main()
 	CH_Editor::Logger::Init();
 	CH_INFO("Chroma Ray Tracer v.0.1");
 
+	Window* window = new  Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
+	//init editor
+	CH_Editor::Editor editor(window);
+
 	// build and compile our shader program
 	// ------------------------------------
-	Window window = Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	CH_Editor::Shader* shader = CH_Editor::Shader::ReadAndBuildShaderFromSource(vertexShaderSource, fragmentShaderSource);
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
@@ -80,14 +81,12 @@ int main()
 
 	// render loop
 	// -----------
-	while (!window.ShouldClose())
+	while (!window->ShouldClose())
 	{
 		// input
 
 		// render
 		// ------
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// draw our first triangle
 		//glUseProgram(shaderProgram);
@@ -97,7 +96,11 @@ int main()
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glBindVertexArray(0); // no need to unbind it every time 
 
-		window.OnUpdate();
+		//window->OnUpdate();
+		editor.OnUpdate();
+
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	// optional: de-allocate all resources once they've outlived their purpose:

@@ -29,6 +29,10 @@ set (thirdparty_sources
     src/thirdparty/imgui/imconfig.h
     src/thirdparty/imgui/imgui.cpp
     src/thirdparty/imgui/imgui.h
+	src/thirdparty/imgui/imgui_impl_opengl3.h
+	src/thirdparty/imgui/imgui_impl_opengl3.cpp
+	src/thirdparty/imgui/imgui_impl_glfw.h
+	src/thirdparty/imgui/imgui_impl_glfw.cpp
     src/thirdparty/imgui/imgui_demo.cpp
     src/thirdparty/imgui/imgui_draw.cpp
     src/thirdparty/imgui/imgui_internal.h
@@ -49,6 +53,8 @@ source_group ("main\\" FILES
 )
 
 set (editor_sources
+	src/ray-tracer/editor/Editor.h
+	src/ray-tracer/editor/Editor.cpp
 	src/ray-tracer/editor/Logger.h
 	src/ray-tracer/editor/Logger.cpp
 	src/ray-tracer/editor/Shader.h
