@@ -1,22 +1,39 @@
 #include "Editor.h"
-
+#include <thirdparty/glm/glm/glm.hpp>
+#include <string.h>
 
 
 namespace CH_Editor
 {
+	CH_Editor::Editor* s_instance = 0;
 	Editor::Editor(Window* win)
 	{
-		m_window = win;
+		if (!s_instance)
+		{
+			s_instance = this;
 
-		ImGui::CreateContext();
-		ImGui_ImplGlfw_InitForOpenGL(m_window->m_window_handle, true);
-		ImGui_ImplOpenGL3_Init("#version 130");
+			m_window = win;
+			m_render = false;
 
-		InitSkin();
+			ImGui::CreateContext();
+			ImGui_ImplGlfw_InitForOpenGL(m_window->m_window_handle, true);
+			ImGui_ImplOpenGL3_Init("#version 130");
+			InitSkin();
 
-		// Start the Dear ImGui frame
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
+		}
+		else
+			CH_ERROR("Failed to create an instance of Editor");
+	}
+
+	Editor* Editor::getInstance()
+	{
+		if (s_instance != 0)
+		{
+			return s_instance;
+		}
+		else
+			CH_ERROR("Editor is Null use constructor to create an instance");
+		return s_instance;
 	}
 
 	Editor::~Editor()
@@ -32,72 +49,64 @@ namespace CH_Editor
 
 	void Editor::OnDraw()
 	{
-
-		static float f = 0.0f;
-		static int counter = 0;
+		// Start the Dear ImGui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
 
 		ImGui::NewFrame();
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
+		DrawInspector();
+		DrawRayTracedFrame();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 	void Editor::InitSkin()
 	{
+		const ImVec4 DARK_ORANGE = ImVec4(0.65f, 0.33f, 0.13f, 1.0f);
+		const ImVec4 LIGHT_BLUE = ImVec4(0.5f, 0.7f, 0.7f, 1.00f) * 1.2;
+		const ImVec4 DARK_CYAN = ImVec4(0.1f, 0.2f, 0.2f, 1.00f);
+		const ImVec4 DARKER_PURPLE = ImVec4(0.16f, 0.13f, 0.18f, 1.00f);
+		const ImVec4 DARK_PURPLE = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+
 		ImGui::StyleColorsDark();
 
 		ImGuiStyle& style = ImGui::GetStyle();
 
-		style.WindowRounding = 0.0f;
+		style.WindowRounding = 4.0f;
 		//style.FramePadding = ImVec2(4, style.FramePadding.y);
-	 //   style.WindowBorderSize = 1;
-	 //   style.FrameBorderSize = 1;
+		style.WindowBorderSize = 0.2;
+		style.FrameBorderSize = 0.02;
 
-		return;
 
-		style.Colors[ImGuiCol_Text] = ImVec4(0.9f, 0.9f, 0.9f, 1.00f);
-		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
-		style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-		style.Colors[ImGuiCol_PopupBg] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
-		style.Colors[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
-		style.Colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-		style.Colors[ImGuiCol_FrameBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-		style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-		style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.4f, 0.4f, 0.4f, 1.00f);
-		style.Colors[ImGuiCol_TitleBg] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
-		style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
-		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
-		style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
-		style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-		style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.4f, 0.4f, 0.4f, 1.00f);
-		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
+		style.Colors[ImGuiCol_Text] = LIGHT_BLUE;
+		style.Colors[ImGuiCol_TextDisabled] = LIGHT_BLUE * 0.7f;
+		style.Colors[ImGuiCol_WindowBg] = DARK_CYAN;
+		style.Colors[ImGuiCol_ChildWindowBg] = DARK_CYAN * 1.2f;
+		style.Colors[ImGuiCol_PopupBg] = DARK_CYAN * 1.2f;
+		style.Colors[ImGuiCol_Border] = DARKER_PURPLE;
+		style.Colors[ImGuiCol_BorderShadow] = DARK_ORANGE;//DARK_PURPLE * 0.5;
+		style.Colors[ImGuiCol_FrameBg] = DARK_PURPLE * 0.35f;
+		style.Colors[ImGuiCol_FrameBgHovered] = DARK_PURPLE * 0.38f;
+		style.Colors[ImGuiCol_FrameBgActive] = DARK_PURPLE * 0.4f;
+		style.Colors[ImGuiCol_TitleBg] = DARK_PURPLE;
+		style.Colors[ImGuiCol_TitleBgCollapsed] = DARK_PURPLE * 0.6;
+		style.Colors[ImGuiCol_TitleBgActive] = DARK_PURPLE * 1.1;
+		style.Colors[ImGuiCol_MenuBarBg] = DARK_PURPLE;
+		style.Colors[ImGuiCol_ScrollbarBg] = DARK_PURPLE * 0.35f;
+		style.Colors[ImGuiCol_ScrollbarGrab] = DARK_ORANGE;
+		style.Colors[ImGuiCol_ScrollbarGrabHovered] = DARK_ORANGE * 1.1f;
+		style.Colors[ImGuiCol_ScrollbarGrabActive] = DARK_ORANGE * 1.2f;
 		//style.Colors[ImGuiCol_PopupBg] = ImVec4(0.3f, 0.3f, 0.3f, 0.99f);
-		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.6f, 0.6f, 0.6f, 0.99f);
-		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.6f, 0.6f, 0.6f, 0.99f);
-		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 0.99f);
-		style.Colors[ImGuiCol_Button] = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
-		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
-		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
+		style.Colors[ImGuiCol_CheckMark] = DARK_ORANGE;
+		style.Colors[ImGuiCol_SliderGrab] = DARK_ORANGE;
+		style.Colors[ImGuiCol_SliderGrabActive] = DARK_ORANGE * 1.1f;
+		style.Colors[ImGuiCol_Button] = DARK_ORANGE;
+		style.Colors[ImGuiCol_ButtonHovered] = DARK_ORANGE * 1.1;
+		style.Colors[ImGuiCol_ButtonActive] = DARK_ORANGE * 1.2;
 
-		style.Colors[ImGuiCol_Header] = ImVec4(0.9f, 0.5f, 0.0f, 1.0f);
-		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.9f, 0.5f, 0.0f, 1.0f);
-		style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.9f, 0.5f, 0.0f, 1.0f);
-
-		style.Colors[ImGuiCol_Header] = ImVec4(0.17f, 0.57f, 0.69f, 1.0f);
-		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.17f, 0.57f, 0.69f, 1.0f);
-		style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.17f, 0.57f, 0.69f, 1.0f);
+		style.Colors[ImGuiCol_Header] = ImVec4(0.2f, 0.3f, 0.3f, 1.0f);
+		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.35f, 0.35f, 1.0f);
+		style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.3f, 0.4f, 0.4f, 1.0f);
 
 		style.Colors[ImGuiCol_Column] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
 		style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
@@ -105,14 +114,12 @@ namespace CH_Editor
 		style.Colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
 		style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
 		style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-		/*style.Colors[ImGuiCol_Button] = ImVec4(0.59f, 0.59f, 0.59f, 0.50f);
-		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);
-		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);*/
+		
 		style.Colors[ImGuiCol_PlotLines] = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
 		style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
 		style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
 		style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-		style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.8f, 0.4f, 0.0f, 1.0f);
+		style.Colors[ImGuiCol_TextSelectedBg] = DARK_ORANGE;
 		style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 	}
 
@@ -120,12 +127,10 @@ namespace CH_Editor
 	{
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 
-		//ImGui::GetStyle().WindowTitleAlign = ImVec2(0.025f, 0.5f);
-		ImGui::SetNextWindowSize(ImVec2(350, 560), ImGuiCond_FirstUseEver);
 		ImGui::Begin("Inspector", 0, flags);
 
-		/*ImGui::SetWindowSize(ImVec2(240, 240));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
-		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 240, 20));
+		ImGui::SetWindowSize(ImVec2(240, 240));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
+		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 240, 0));
 
 		/*if (selected_scene_object)
 		{
@@ -207,7 +212,31 @@ namespace CH_Editor
 
 		}*/
 
-		//ImGui::Button("Add Component");
+		ImGui::Button("Remove Component");
+		ImGui::End();
+	}
+	void Editor::DrawRayTracedFrame()
+	{
+		float f = 5.0f;
+		glm::ivec2 DUMMY_RES = glm::ivec2(1080, 720);
+		if (flag)
+		{
+			flag = false;
+			ImGui::SetNextWindowSize(ImVec2(820, 480));
+		}
+		ImGui::Begin("Ray Tracer", 0, ImGuiWindowFlags_None);
+		ImGui::Text( "Ray Traced Frame");
+		float cw = ImGui::GetContentRegionAvailWidth() * 0.7f;
+
+
+		ImGui::Image((ImTextureID)(intptr_t)200, ImVec2(cw, cw * DUMMY_RES.y / DUMMY_RES.x));
+		ImGui::SameLine();
+
+		ImGui::BeginChild("Settings", ImVec2(0, 0));
+			ImGui::InputInt2("Resolution", (int*)&DUMMY_RES.x);
+			if (ImGui::Button("Toggle Render"))
+				m_render = !m_render;
+		ImGui::EndChild();
 		ImGui::End();
 	}
 }
