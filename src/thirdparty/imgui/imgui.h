@@ -188,6 +188,24 @@ struct ImVec4
     float     x, y, z, w;
     ImVec4()  { x = y = z = w = 0.0f; }
     ImVec4(float _x, float _y, float _z, float _w) { x = _x; y = _y; z = _z; w = _w; }
+
+    friend ImVec4 operator* (float s, const ImVec4& vec)
+    {
+        ImVec4 res;
+        res.x = vec.x * s;
+        res.y = vec.y * s;
+        res.z = vec.z * s;
+        return res;
+    }
+    friend ImVec4& operator* (const ImVec4& vec, float s)
+    {
+        ImVec4 res;
+        res.x = vec.x * s;
+        res.y = vec.y * s;
+        res.z = vec.z * s;
+        res.w = vec.w;
+        return res;
+}
 #ifdef IM_VEC4_CLASS_EXTRA
     IM_VEC4_CLASS_EXTRA     // Define additional constructors and implicit cast operators in imconfig.h to convert back and forth between your math types and ImVec4.
 #endif
