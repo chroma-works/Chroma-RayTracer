@@ -23,6 +23,8 @@ add_subdirectory(src/thirdparty/glfw-3.3)
 add_subdirectory(src/thirdparty/spdlog-1.3.1)
 
 set (thirdparty_sources
+	src/thirdparty/tinyxml2/tinyxml2.h
+	src/thirdparty/tinyxml2/tinyxml2.cpp
     src/thirdparty/glad/include/glad/glad.h
     src/thirdparty/glad/include/KHR/khrplatform.h
     src/thirdparty/glad/src/glad.c
@@ -37,6 +39,8 @@ set (thirdparty_sources
     src/thirdparty/imgui/imgui_draw.cpp
     src/thirdparty/imgui/imgui_internal.h
     src/thirdparty/imgui/imgui_widgets.cpp
+	src/thirdparty/stb_image/stb_image.h
+	src/thirdparty/OBJ_loader/OBJ_Loader.h
 )
 
 source_group ("thirdparty\\" FILES
@@ -47,6 +51,12 @@ set (main_sources
 	src/ray-tracer/main/Camera.h
 	src/ray-tracer/main/Camera.cpp
 	src/ray-tracer/main/EntryPoint.cpp
+	src/ray-tracer/main/Material.h
+	src/ray-tracer/main/Light.h
+	src/ray-tracer/main/Scene.h
+	src/ray-tracer/main/Scene.cpp
+	src/ray-tracer/main/SceneObject.h
+	src/ray-tracer/main/SceneObject.cpp
 	src/ray-tracer/main/Window.h
 	src/ray-tracer/main/Window.cpp
 )
@@ -55,21 +65,38 @@ source_group ("main\\" FILES
 )
 
 set (editor_sources
+	src/ray-tracer/editor/AssetImporter.h
+	src/ray-tracer/editor/AssetImporter.cpp
+	src/ray-tracer/editor/Buffer.h
 	src/ray-tracer/editor/Editor.h
 	src/ray-tracer/editor/Editor.cpp
 	src/ray-tracer/editor/Logger.h
 	src/ray-tracer/editor/Logger.cpp
 	src/ray-tracer/editor/Shader.h
 	src/ray-tracer/editor/Shader.cpp
+	src/ray-tracer/editor/Texture.h
+	src/ray-tracer/editor/Texture.cpp
 )
 source_group ("editor\\" FILES
     ${editor_sources}
 )
 
+set (opengl_sources
+    src/ray-tracer/openGL/openGLBuffer.h
+    src/ray-tracer/openGL/openGLBuffer.cpp
+    src/ray-tracer/openGL/openGLVertexArrayObject.h
+    src/ray-tracer/openGL/openGLVertexArrayObject.cpp
+)
+
+source_group ("opengl\\" FILES
+    ${opengl_sources}
+)
+
 add_executable (chroma-ray-tracer
-    ${main_sources}
-    ${thirdparty_sources}
 	${editor_sources}
+    ${main_sources}
+	${opengl_sources}
+    ${thirdparty_sources}
 )
 
 # Find and link to OpenGL
