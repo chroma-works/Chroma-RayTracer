@@ -44,9 +44,11 @@ source_group ("thirdparty\\" FILES
 )
 
 set (main_sources
-     src/ray-tracer/main/EntryPoint.cpp
-	 src/ray-tracer/main/Window.h
-	 src/ray-tracer/main/Window.cpp
+	src/ray-tracer/main/Camera.h
+	src/ray-tracer/main/Camera.cpp
+	src/ray-tracer/main/EntryPoint.cpp
+	src/ray-tracer/main/Window.h
+	src/ray-tracer/main/Window.cpp
 )
 source_group ("main\\" FILES
     ${main_sources}
