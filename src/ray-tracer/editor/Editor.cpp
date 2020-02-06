@@ -3,9 +3,9 @@
 #include <string.h>
 
 
-namespace CH_Editor
+namespace Chroma
 {
-	CH_Editor::Editor* s_instance = 0;
+	Chroma::Editor* s_instance = 0;
 	Editor::Editor(Window* win)
 	{
 		if (!s_instance)

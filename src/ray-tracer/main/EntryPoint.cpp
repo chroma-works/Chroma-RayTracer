@@ -2,10 +2,14 @@
 //#include <thirdparty/glfw-3.3/include/GLFW/glfw3.h>
 
 #include <iostream>
+#include <ray-tracer/editor/AssetImporter.h>
 #include <ray-tracer/editor/Editor.h>
 #include <ray-tracer/main/Window.h>
 #include <ray-tracer/editor/Logger.h>
 #include <ray-tracer/editor/Shader.h>
+
+#include <thirdparty/tinyxml2/tinyxml2.h>
+#include <ray-tracer\main\Scene.h>
 
 // settings
 const unsigned int SCR_WIDTH = 1920;
@@ -26,59 +30,72 @@ const std::string fragmentShaderSource = "#version 330 core\n"
 
 int main()
 {
-	CH_Editor::Logger::Init();
+	Chroma::Logger::Init();
 	CH_INFO("Chroma Ray Tracer v.0.1");
 
-	CH_Editor::Window* window = new  CH_Editor::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
+	Chroma::Window* window = new  Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	//init editor
-	CH_Editor::Editor editor(window);
+	Chroma::Editor editor(window);
 
 	// build and compile our shader program
 	// ------------------------------------
-	CH_Editor::Shader* shader = CH_Editor::Shader::ReadAndBuildShaderFromSource(vertexShaderSource, fragmentShaderSource);
+	// Create and compile our GLSL program from the shaders
+	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
-	// set up vertex data (and buffer(s)) and configure vertex attributes
-	// ------------------------------------------------------------------
-	float vertices[] = {
-		 0.5f,  0.5f, 0.0f,  // top right
-		 0.5f, -0.5f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  // bottom left
-		-0.5f,  0.5f, 0.0f   // top left 
-	};
-	unsigned int indices[] = {  // note that we start from 0!
-		0, 1, 3,  // first Triangle
-		1, 2, 3   // second Triangle
-	};
-	unsigned int VBO, VAO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
+	//Model import
+	Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/rabbit.obj");
+	Chroma::Material* mat = new Chroma::Material("u_Material",
+		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
+	std::shared_ptr<Chroma::SceneObject> rabbit = std::make_shared<Chroma::SceneObject>(*r_mesh, "rabbit");
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	//rabbit->SetTexture(*texture);
+	rabbit->SetMaterial(*mat);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	Chroma::Mesh* b_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/box.obj");
+	Chroma::Texture* texture = new Chroma::Texture("../../assets/textures/crate.jpg");
+	std::shared_ptr<Chroma::SceneObject> box = std::make_shared<Chroma::SceneObject>(*b_mesh, "box");
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	box->SetTexture(*texture);
+	box->SetMaterial(*mat);
 
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	std::shared_ptr<Chroma::Scene> scene;
 
-	// remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	scene = std::make_shared<Chroma::Scene>("The scene", shader);
+	scene->AddSceneObject("rabbit", rabbit);
+	scene->AddSceneObject("box", box);
 
-	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-	glBindVertexArray(0);
+	glEnable(GL_DEPTH_TEST);
 
+	Chroma::Camera* cam = new Chroma::Camera(1.0f * 1280,
+		1.0f * 720, 0.1f, 300.0f, 45.0f);
+	//OrthographicCamera cam2(-0.8f, 0.8f, -0.9, 0.9, -10, 10);
+	cam->SetPos({ -0.0f, 0.0f, 50.0f });
+	cam->SetUp({ -0.0f, 1.0f, 0.0f });
+	cam->SetGaze(cam->GetPos() + glm::vec3(0.0, 0.0, -1.0f));
+	scene->AddCamera("pers-cam", cam);
 
-	// uncomment this call to draw in wireframe polygons.
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	std::shared_ptr<Chroma::DirectionalLight> dl = std::make_shared<Chroma::DirectionalLight>(glm::vec3(-30.0f, 0.0f, -40.0f),
+		glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));
 
+	scene->AddLight("directional l", dl);
+
+	glm::vec4 dir({ 0.0f, 0.0f, 0.0f, 1.0f });
+
+	rabbit->SetScale({ .4f, .4f, .4f });
+	rabbit->SetPosition({ 0.0f, -9.0f, 0.0f });
+	rabbit->SetRotation(glm::quat({ glm::radians(-90.0f), glm::radians(90.0f), glm::radians(0.0f) }));
+
+	box->SetScale({ .9f, .9f, .9f });
+	box->SetPosition({ 0.0f, 0.0f, 0.0f });
+	box->RotateAngleAxis(glm::radians(180.0), glm::vec3(0.0, 0.0, 1.0));
+
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile("../../assets/scenes/simple.xml");
+
+	/*tinyxml2::XMLText* textNode = doc.FirstChildElement("Scene")->FirstChildElement("Cameras")->FirstChild()->FirstChildElement("Position")->FirstChild()->ToText();
+	CH_TRACE(textNode->Value());*/
+
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	// render loop
 	// -----------
 	while (!window->ShouldClose())
@@ -87,27 +104,12 @@ int main()
 
 		// render
 		// ------
-
-		// draw our first triangle
-		//glUseProgram(shaderProgram);
-		shader->Bind();
-		glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		// glBindVertexArray(0); // no need to unbind it every time 
-
-		//window->OnUpdate();
+		//cam->SetPos(cam->GetPos() + glm::vec3(0.0, 0.0, .1f));
 		editor.OnUpdate();
-
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
+		scene->Render();
 
-	// optional: de-allocate all resources once they've outlived their purpose:
-	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
+	}
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
