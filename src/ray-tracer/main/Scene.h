@@ -23,19 +23,28 @@ namespace Chroma
 
 
 		void AddLight(std::string name, std::shared_ptr<DirectionalLight> li);
+		void AddLight(std::string name, std::shared_ptr<PointLight> li);
+		void AddLight(std::string name, std::shared_ptr<SpotLight> li);
 
 		inline std::shared_ptr<DirectionalLight> GetDirectionalLight(std::string name) { return m_dir_lights[name]; } //TODO: add null check
+		inline std::shared_ptr<PointLight> GetPointLight(std::string name) { return m_point_lights[name]; }
+		inline std::shared_ptr<SpotLight> GetSpotlLight(std::string name) { return m_spot_lights[name]; }
 
 
 		void Render(DrawMode = DrawMode::TRI);
 
+		glm::vec4 m_sky_color = {0.15f * 0.3, 0.15f * 0.3, 0.2f * 0.3, 1.0f };
 	private:
+		friend class Editor;
 		std::string m_name;
 
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
 		std::map<std::string, Camera*> m_cameras;
 
 		std::map<std::string, std::shared_ptr<DirectionalLight>> m_dir_lights;
+		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;
+		std::map<std::string, std::shared_ptr<SpotLight>> m_spot_lights;
+
 
 		class SceneData
 		{

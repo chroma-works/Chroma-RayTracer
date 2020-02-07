@@ -37,6 +37,20 @@ namespace Chroma
 		m_dir_lights[name] = li;
 		m_scene_data->m_shader->AddLight(li);
 	}
+
+	void Scene::AddLight(std::string name, std::shared_ptr<PointLight> li)
+	{
+		m_point_lights[name] = li;
+		m_scene_data->m_shader->AddLight(li);
+	}
+
+	void Scene::AddLight(std::string name, std::shared_ptr<SpotLight> li)
+	{
+		m_spot_lights[name] = li;
+		m_scene_data->m_shader->AddLight(li);
+	}
+
+
 	void Scene::Render(DrawMode mode)
 	{
 		m_scene_data->SetView(m_cameras.begin()->second->GetViewMatrix());
@@ -45,13 +59,15 @@ namespace Chroma
 		for (std::pair<std::string, std::shared_ptr<SceneObject>> element : m_scene_objects)
 		{
 			std::shared_ptr<SceneObject> scn_obj = element.second;
+			if (scn_obj->IsVisibleInEditor())
+			{
+				m_scene_data->SetModel(scn_obj->GetModelMatrix());
+				m_scene_data->SetMaterial(scn_obj->GetMaterial());
 
-			m_scene_data->SetModel(scn_obj->GetModelMatrix());
-			m_scene_data->SetMaterial(scn_obj->GetMaterial());
-
-			m_scene_data->m_shader->UpdateUniforms();
-			m_scene_data->m_shader->Bind();
-			scn_obj->Draw(mode);
+				m_scene_data->m_shader->UpdateUniforms();
+				m_scene_data->m_shader->Bind();
+				scn_obj->Draw(mode);
+			}
 		}
 	}
 }

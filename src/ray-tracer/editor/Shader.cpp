@@ -109,7 +109,7 @@ namespace Chroma
 		AddUniform(shininess);
 	}
 
-	void Shader::AddLight(std::shared_ptr<Chroma::DirectionalLight> lig)
+	void Shader::AddLight(std::shared_ptr<DirectionalLight> lig)
 	{
 		if (num_dir_lights < MAX_NUM_LIGHTS)
 		{
@@ -138,6 +138,104 @@ namespace Chroma
 		}
 		else
 			CH_WARN("Adding ligth failed:\n\t Maximum number of DirectionalLights(" + std::to_string(MAX_NUM_LIGHTS) + ") has been reached");
+	}
+
+	void Shader::AddLight(std::shared_ptr<PointLight> lig)
+	{
+		if (num_point_lights < MAX_NUM_LIGHTS)
+		{
+			Uniform position(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].position", ShaderDataType::Float3);
+			position.data = (void*)&lig->position;
+			AddUniform(position);
+
+			Uniform constant(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].constant", ShaderDataType::Float);
+			constant.data = (void*)&lig->constant; //i hate you so fucking much
+			AddUniform(constant);
+
+			Uniform linear(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].linear", ShaderDataType::Float);
+			linear.data = (void*)&lig->linear;
+			AddUniform(linear);
+
+			Uniform quadratic(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].quadratic", ShaderDataType::Float);
+			quadratic.data = (void*)&lig->quadratic;
+			AddUniform(quadratic);
+
+			Uniform ambient(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].ambient", ShaderDataType::Float3);
+			ambient.data = (void*)&lig->ambient;
+			AddUniform(ambient);
+
+			Uniform diffuse(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].diffuse", ShaderDataType::Float3);
+			diffuse.data = (void*)&lig->diffuse;
+			AddUniform(diffuse);
+
+			Uniform specular(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].specular", ShaderDataType::Float3);
+			specular.data = (void*)&lig->specular;
+			AddUniform(specular);
+			//m_point_lights.push_back(lig);
+			num_point_lights++;
+			//update # of lights
+			Bind();
+			int location = glGetUniformLocation(m_renderer_id, "u_NumPointLights");//TODO: make the name not hardcoded
+			glUniform1i(location, num_point_lights);
+			Unbind();
+		}
+		else
+			CH_WARN("Adding ligth failed:\n\t Maximum number of PointLights(" + std::to_string(MAX_NUM_LIGHTS) + ") has been reached");
+	}
+
+	void Shader::AddLight(std::shared_ptr<SpotLight> lig)
+	{
+		if (num_spot_lights < MAX_NUM_LIGHTS)
+		{
+			Uniform position(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].position", ShaderDataType::Float3);
+			position.data = (void*)&lig->position;
+			AddUniform(position);
+
+			Uniform direction(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].direction", ShaderDataType::Float3);
+			direction.data = (void*)&lig->direction;
+			AddUniform(direction);
+
+			Uniform cutOff(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].cutOff", ShaderDataType::Float);
+			cutOff.data = (void*)&lig->cutOff;
+			AddUniform(cutOff);
+
+			Uniform outerCutOff(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].outerCutOff", ShaderDataType::Float);
+			outerCutOff.data = (void*)&lig->outerCutOff;
+			AddUniform(outerCutOff);
+
+			Uniform constant(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].constant", ShaderDataType::Float);
+			constant.data = (void*)&lig->constant;
+			AddUniform(constant);
+
+			Uniform linear(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].linear", ShaderDataType::Float);
+			linear.data = (void*)&lig->linear;
+			AddUniform(linear);
+
+			Uniform quadratic(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].quadratic", ShaderDataType::Float);
+			quadratic.data = (void*)&lig->quadratic;
+			AddUniform(quadratic);
+
+			Uniform ambient(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].ambient", ShaderDataType::Float3);
+			ambient.data = (void*)&lig->ambient;
+			AddUniform(ambient);
+
+			Uniform diffuse(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].diffuse", ShaderDataType::Float3);
+			diffuse.data = (void*)&lig->diffuse;
+			AddUniform(diffuse);
+
+			Uniform specular(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].specular", ShaderDataType::Float3);
+			specular.data = (void*)&lig->specular;
+			AddUniform(specular);
+			//m_spot_lights.push_back(lig);
+			num_spot_lights++;
+			//update # of lights
+			Bind();
+			int location = glGetUniformLocation(m_renderer_id, "u_NumSpotLights");//TODO: make the name not hardcoded
+			glUniform1i(location, num_spot_lights);
+			Unbind();
+		}
+		else
+			CH_WARN("Adding ligth failed:\n\t Maximum number of Spotligths(" + std::to_string(MAX_NUM_LIGHTS) + ") has been reached");
 	}
 
 	void Shader::UpdateUniforms()

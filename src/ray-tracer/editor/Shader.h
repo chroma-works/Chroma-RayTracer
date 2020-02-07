@@ -46,7 +46,9 @@ namespace Chroma
 		void Unbind() const;
 		void CreateUniform(std::string name, ShaderDataType type, void* data);
 		void CreateUniform(Material* mat);
-		void AddLight(std::shared_ptr<Chroma::DirectionalLight> lig);
+		void AddLight(std::shared_ptr<DirectionalLight> lig);
+		void AddLight(std::shared_ptr<PointLight> lig);
+		void AddLight(std::shared_ptr<SpotLight> lig);
 		void UpdateUniforms();
 
 		//Apply RULE OF THREE
