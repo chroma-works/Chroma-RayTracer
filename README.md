@@ -25,7 +25,7 @@ Snapshot from Scene editor UI  &  Snapshot from Ray tracer window(since it uses 
  
 
 <img src= "resources/editor.PNG" height="260">  
-Example render of a utah teapot and create
+Example render of a utah teapot and a create
 
 
 ## References
