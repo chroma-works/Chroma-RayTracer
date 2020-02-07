@@ -130,7 +130,7 @@ namespace Chroma
 	private:
 		void RecalculateModelMatrix();
 
-		bool m_visible_in_editor = false;
+		bool m_visible_in_editor = true;
 		bool m_visible = true;
 		bool m_pickable = true;
 
