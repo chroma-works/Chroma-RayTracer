@@ -1,18 +1,18 @@
 #include "Editor.h"
 #include <thirdparty/glm/glm/glm.hpp>
-#include <string.h>
 
 
 namespace Chroma
 {
 	Chroma::Editor* s_instance = 0;
-	Editor::Editor(Window* win)
+	Editor::Editor(Window* win, Scene* scene)
 	{
 		if (!s_instance)
 		{
 			s_instance = this;
 
 			m_window = win;
+			m_scene = scene;
 			m_render = false;
 
 			ImGui::CreateContext();
@@ -44,6 +44,7 @@ namespace Chroma
 	void Editor::OnUpdate()
 	{
 		OnDraw();
+		HandleKeyBoardNavigation();
 		m_window->OnUpdate();
 	}
 
@@ -56,6 +57,7 @@ namespace Chroma
 		ImGui::NewFrame();
 		DrawInspector();
 		DrawRayTracedFrame();
+		DrawSceneInfo();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -129,96 +131,138 @@ namespace Chroma
 
 		ImGui::Begin("Inspector", 0, flags);
 
-		ImGui::SetWindowSize(ImVec2(240, 240));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
+		ImGui::SetWindowSize(ImVec2(240, 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
 		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 240, 0));
 
-		/*if (selected_scene_object)
+		if (selected_item_type != SELECTION_TYPE::none)
 		{
-			ImGui::Checkbox("", &selected_scene_object->m_is_visible);
-
-			ImGui::SameLine();
-
-			ImGui::Text("%s", selected_scene_object->name.c_str());
-
+			ImGui::Text("%s", selected_name.c_str());
 			ImGui::Separator();
+		}
+		if (selected_item_type == SELECTION_TYPE::obj)
+		{
+			bool tmp = m_scene->m_scene_objects[selected_name]->IsVisibleInEditor();
+			ImGui::Checkbox("Editor visibility", &tmp);
+			m_scene->m_scene_objects[selected_name]->HideInEditor(tmp);
 
+			bool tmp2 = m_scene->m_scene_objects[selected_name]->IsVisible();
+			ImGui::Checkbox("Ray Tracer visibility", &tmp2);
+			m_scene->m_scene_objects[selected_name]->SetVisible(tmp2);
+			ImGui::Separator();
 			ImGui::Text("Transform");
 
-			if (ImGui::Button("P##1"))selected_scene_object->pos = glm::vec3();
+			if (ImGui::Button("P##1"))m_scene->m_scene_objects[selected_name]->SetPosition(glm::vec3());
 			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(selected_scene_object->pos.x), 0.05f, 0, 0, "%.3f");
+			glm::vec3 tmp_pos = m_scene->m_scene_objects[selected_name]->GetPosition();
+			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
+			m_scene->m_scene_objects[selected_name]->SetPosition(tmp_pos);
 
-			if (ImGui::Button("R##2"))selected_scene_object->rot = glm::vec3();
+			if (ImGui::Button("R##2"))m_scene->m_scene_objects[selected_name]->SetRotation(glm::vec3());
 			ImGui::SameLine();
-			ImGui::DragFloat3("##5", &(selected_scene_object->rot.x), 0.25f, 0, 0, "%.3f");
+			glm::vec3 tmp_rot = glm::eulerAngles(m_scene->m_scene_objects[selected_name]->GetRotation());
+			ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.05f");
+			m_scene->m_scene_objects[selected_name]->SetRotation(glm::quat(tmp_rot));
 
-			if (ImGui::Button("S##3"))selected_scene_object->scale = glm::vec3(1, 1, 1);
+			if (ImGui::Button("S##3")) m_scene->m_scene_objects[selected_name]->SetScale(glm::vec3(1, 1, 1));
 			ImGui::SameLine();
-			ImGui::DragFloat3("##6", &(selected_scene_object->scale.x), 0.05f, 0, 0, "%.3f");
+			glm::vec3 tmp_sca = m_scene->m_scene_objects[selected_name]->GetScale();
+			ImGui::DragFloat3("##6", &(tmp_sca.x), 0.05f, 0, 0, "%.3f");
+			m_scene->m_scene_objects[selected_name]->SetScale(tmp_sca);
+			ImGui::Separator();
+		}
+		else if (selected_item_type == SELECTION_TYPE::cam)
+		{
+			ImGui::Text("Transform");
+
+			if (ImGui::Button("P##1"))m_scene->m_cameras[selected_name]->SetPos(glm::vec3());
+			ImGui::SameLine();
+			glm::vec3 tmp_pos = m_scene->m_cameras[selected_name]->GetPos();
+			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
+			m_scene->m_cameras[selected_name]->SetPos(tmp_pos);
+
+			if (ImGui::Button("G##2"))m_scene->m_cameras[selected_name]->SetGaze(glm::vec3());
+			ImGui::SameLine();
+			glm::vec3 tmp_gaze = m_scene->m_cameras[selected_name]->GetGaze();
+			ImGui::DragFloat3("##5", &(tmp_gaze.x), 0.05f, 0, 0, "%.3f");
+			m_scene->m_cameras[selected_name]->SetGaze(tmp_gaze);
+
+			if (ImGui::Button("U##3"))m_scene->m_cameras[selected_name]->SetUp(glm::vec3(0.0, 1.0, 0.0));
+			ImGui::SameLine();
+			glm::vec3 tmp_up = m_scene->m_cameras[selected_name]->GetUp();
+			ImGui::DragFloat3("##6", &(tmp_up.x), 0.05f, 0, 0, "%.3f");
+			m_scene->m_cameras[selected_name]->SetUp(tmp_up);
+		}
+		else if (selected_item_type == SELECTION_TYPE::p_light)
+		{
+			ImGui::Text("Transform");
+			if (ImGui::Button("P##1"))m_scene->m_point_lights[selected_name]->position = glm::vec3();
+			ImGui::SameLine();
+			ImGui::DragFloat3("##4", &(m_scene->m_point_lights[selected_name]->position.x), 0.05f, 0, 0, "%.3f");
 
 			ImGui::Separator();
 
-			if (selected_scene_object->light)
-			{
-				ImGui::Text("Light");
-				ImGui::ColorEdit3("Color", &selected_scene_object->light->color.x);
-				ImGui::DragFloat("Intensity", &selected_scene_object->light->intensity);
-				ImGui::Separator();
-			}
+			ImGui::Text("Light");
+			ImGui::ColorEdit3("Ambient Color", &m_scene->m_point_lights[selected_name]->ambient.x);
+			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_point_lights[selected_name]->diffuse.x);
+			ImGui::ColorEdit3("Specular Color", &m_scene->m_point_lights[selected_name]->specular.x);
+		}
+		else if (selected_item_type == SELECTION_TYPE::d_light)
+		{
+			ImGui::Text("Transform");
+			if (ImGui::Button("D##1"))m_scene->m_dir_lights[selected_name]->direction = glm::vec3();
+			ImGui::SameLine();
+			ImGui::DragFloat3("##4", &(m_scene->m_dir_lights[selected_name]->direction.x), 0.05f, 0, 0, "%.3f");
 
-			if (selected_scene_object->mesh)
-			{
-				ImGui::Text("Mesh");
+			ImGui::Separator();
 
-				ImGui::Text("Vertex count: %d", selected_scene_object->mesh->m_vertex_count);
+			ImGui::Text("Light");
+			ImGui::ColorEdit3("Ambient Color", &m_scene->m_dir_lights[selected_name]->ambient.x);
+			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_dir_lights[selected_name]->diffuse.x);
+			ImGui::ColorEdit3("Specular Color", &m_scene->m_dir_lights[selected_name]->specular.x);
+		}
+		else if (selected_item_type == SELECTION_TYPE::s_light)
+		{
+			ImGui::Text("Transform");
+			if (ImGui::Button("P##1"))m_scene->m_spot_lights[selected_name]->position = glm::vec3();
+			ImGui::SameLine();
+			ImGui::DragFloat3("##5", &(m_scene->m_spot_lights[selected_name]->position.x), 0.05f, 0, 0, "%.3f");
+			if (ImGui::Button("D##2"))m_scene->m_spot_lights[selected_name]->direction = glm::vec3();
+			ImGui::SameLine();
+			ImGui::DragFloat3("##6", &(m_scene->m_spot_lights[selected_name]->direction.x), 0.05f, 0, 0, "%.3f");
 
-				//if (ImGui::Button("Center Pivot Point"))
-				//{
-				//	selected_scene_object->mesh->CenterPivot();
-				//	selected_scene_object->mesh->isDirty = true;
-				//}
+			ImGui::Separator();
 
-				ImGui::Checkbox("Ignore Tetrahedralization", &selected_scene_object->mesh->m_ignore_tetrahedralization);
-				ImGui::Checkbox("Structure Mesh", &selected_scene_object->mesh->m_structure_mesh);
+			ImGui::Text("Light");
+			ImGui::ColorEdit3("Ambient Color", &m_scene->m_spot_lights[selected_name]->ambient.x);
+			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_spot_lights[selected_name]->diffuse.x);
+			ImGui::ColorEdit3("Specular Color", &m_scene->m_spot_lights[selected_name]->specular.x);
 
-				ImGui::Separator();
-			}
+			ImGui::Separator();
 
-			if (selected_scene_object->material)
-			{
-				ImGui::Text("Material");
-				ImGui::ColorEdit3("Diffuse", &selected_scene_object->material->diffuse.r);
+			if (ImGui::Button("C##3"))m_scene->m_spot_lights[selected_name]->cutOff = 0.1;
+			ImGui::SameLine();
+			ImGui::DragFloat("##7", &(m_scene->m_spot_lights[selected_name]->cutOff), 0.05f, 0, 0, "%.3f");
+			if (ImGui::Button("O##4"))m_scene->m_spot_lights[selected_name]->outerCutOff = 0.5;
+			ImGui::SameLine();
+			ImGui::DragFloat("##8", &(m_scene->m_spot_lights[selected_name]->outerCutOff), 0.05f, 0, 0, "%.3f");
+		}
 
-				ImGui::Separator();
 
-				Material* material = selected_scene_object->material;
-
-				if (material->texture)
-				{
-					std::unordered_map<Texture*, GLuint>::const_iterator result = graphics->texture_handles.find(material->texture);
-
-					if (result != graphics->texture_handles.end())
-					{
-						float aspect = (float)material->texture->w / material->texture->h;
-
-						ImVec2 size(ImGui::GetContentRegionAvailWidth(), ImGui::GetContentRegionAvailWidth() / aspect);
-
-						ImGui::Image((ImTextureID)(intptr_t)result->second, size);
-					}
-				}
-			}
-
-			//ImGui::ShowStyleEditor();
-
-		}*/
-
-		ImGui::Button("Remove Component");
+		if (ImGui::Button("Remove Component") && selected_item_type!=SELECTION_TYPE::cam) 
+		{ 
+			m_scene->m_scene_objects.erase(selected_name);
+			/*m_scene->m_dir_lights.erase(selected_name);
+			m_scene->m_point_lights.erase(selected_name);
+			m_scene->m_spot_lights.erase(selected_name);*/
+			selected_item_type = SELECTION_TYPE::none;
+		};
 		ImGui::End();
 	}
 	void Editor::DrawRayTracedFrame()
 	{
 		float f = 5.0f;
 		glm::ivec2 DUMMY_RES = glm::ivec2(1080, 720);
+		static bool flag = true;
 		if (flag)
 		{
 			flag = false;
@@ -238,5 +282,143 @@ namespace Chroma
 				m_render = !m_render;
 		ImGui::EndChild();
 		ImGui::End();
+	}
+	void Editor::DrawSceneInfo()
+	{
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+
+		ImGui::Begin("Scene", 0, flags);
+
+		ImGui::SetWindowSize(ImVec2(240, m_window->GetHeight() - 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
+		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 240, 480));
+
+		int i = 0;
+		static bool flag = true;
+		if(flag)
+			ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::CollapsingHeader("Objects"))
+		{
+			for (auto element : m_scene->m_scene_objects)
+			{
+				std::string name = element.first;
+				ImGui::PushID(i);
+
+				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
+				{
+					selected_item_type = SELECTION_TYPE::obj;
+					selected_name = name;
+				}
+				i++;
+				ImGui::PopID();
+			}
+		}
+		if (flag)
+			ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::CollapsingHeader("Point Lights"))
+		{
+			i = 0;
+			for (auto element : m_scene->m_point_lights)
+			{
+				std::string name = element.first;
+				ImGui::PushID(i);
+
+				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
+				{
+					selected_item_type = SELECTION_TYPE::p_light;
+					selected_name = name;
+				}
+				i++;
+				ImGui::PopID();
+			}
+		}
+		if (flag)
+			ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::CollapsingHeader("Directional Lights"))
+		{
+			i = 0;
+			for (auto element : m_scene->m_dir_lights)
+			{
+				std::string name = element.first;
+				ImGui::PushID(i);
+
+				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
+				{
+					selected_item_type = SELECTION_TYPE::d_light;
+					selected_name = name;
+				}
+				i++;
+				ImGui::PopID();
+			}
+		}
+		if (flag)
+			ImGui::SetNextTreeNodeOpen(true);
+		if (ImGui::CollapsingHeader("Spot Lights"))
+		{
+			i = 0;
+			for (auto element : m_scene->m_spot_lights)
+			{
+				std::string name = element.first;
+				ImGui::PushID(i);
+
+				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
+				{
+					selected_item_type = SELECTION_TYPE::s_light;
+					selected_name = name;
+				}
+				i++;
+				ImGui::PopID();
+			}
+		}
+		if (flag)
+		{
+			ImGui::SetNextTreeNodeOpen(true);
+			flag = false;
+		}
+		if (ImGui::CollapsingHeader("Cameras"))
+		{
+			i = 0;
+			for (auto element : m_scene->m_cameras)
+			{
+				std::string name = element.first;
+				ImGui::PushID(i);
+
+				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
+				{
+					selected_item_type = SELECTION_TYPE::cam;
+					selected_name = name;
+				}
+				i++;
+				ImGui::PopID();
+			}
+		}
+
+		ImGui::End();
+	}
+	void Editor::HandleKeyBoardNavigation()
+	{
+		auto cam = m_scene->m_cameras.begin()->second;
+		glm::vec3 forward = glm::normalize(cam->GetGaze() - cam->GetPos());
+		glm::vec3 right = glm::cross(forward, glm::normalize(cam->GetUp()));
+
+		if (ImGui::GetIO().KeysDown[GLFW_KEY_W])
+		{
+			cam->SetPos(cam->GetPos() + forward * m_camera_move_speed);
+		}
+
+		else if (ImGui::GetIO().KeysDown[GLFW_KEY_S])
+		{
+			cam->SetPos(cam->GetPos() - forward * m_camera_move_speed);
+		}
+
+		if (ImGui::GetIO().KeysDown[GLFW_KEY_A])
+		{
+			cam->SetPos(cam->GetPos() - glm::normalize(right) * m_camera_move_speed);
+		}
+
+		else if (ImGui::GetIO().KeysDown[GLFW_KEY_D])
+		{
+			cam->SetPos(cam->GetPos() + glm::normalize(right) * m_camera_move_speed);
+		}
+		cam->SetGaze(cam->GetPos() + forward);
 	}
 }
