@@ -35,7 +35,7 @@ int main()
 
 	Chroma::Window* window = new  Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	//init editor
-	Chroma::Editor editor(window);
+	Chroma::Editor editor(window, nullptr);
 
 	// build and compile our shader program
 	// ------------------------------------
@@ -44,12 +44,14 @@ int main()
 
 	//Model import
 	Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/rabbit.obj");
+	Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
 	Chroma::Material* mat = new Chroma::Material("u_Material",
 		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
 	std::shared_ptr<Chroma::SceneObject> rabbit = std::make_shared<Chroma::SceneObject>(*r_mesh, "rabbit");
 
 	//rabbit->SetTexture(*texture);
 	rabbit->SetMaterial(*mat);
+	rabbit->SetTexture(*text);
 
 	Chroma::Mesh* b_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/box.obj");
 	Chroma::Texture* texture = new Chroma::Texture("../../assets/textures/crate.jpg");
@@ -74,10 +76,18 @@ int main()
 	cam->SetGaze(cam->GetPos() + glm::vec3(0.0, 0.0, -1.0f));
 	scene->AddCamera("pers-cam", cam);
 
+	std::shared_ptr<Chroma::PointLight> pl = std::make_shared<Chroma::PointLight>(glm::vec3(0.0f, 0.0f, 40.0f), glm::vec3(0.1f, 0.1f, 0.1f),
+		glm::vec3(0.6f, 0.5f, 0.6f), glm::vec3(1.0f, 1.0f, 1.0f));
+
 	std::shared_ptr<Chroma::DirectionalLight> dl = std::make_shared<Chroma::DirectionalLight>(glm::vec3(-30.0f, 0.0f, -40.0f),
 		glm::vec3(0.1f, 0.1f, 0.1f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-	scene->AddLight("directional l", dl);
+	std::shared_ptr<Chroma::SpotLight> sl = std::make_shared<Chroma::SpotLight>(glm::vec3(-20.0f, 0.0f, 40.0f), glm::vec3(0.0f, 0.0f, -1.0f),
+		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+	scene->AddLight("point 1", pl);
+	scene->AddLight("spot 1", sl);
+	scene->AddLight("directional 1", dl);
 
 	glm::vec4 dir({ 0.0f, 0.0f, 0.0f, 1.0f });
 
@@ -86,8 +96,10 @@ int main()
 	rabbit->SetRotation(glm::quat({ glm::radians(-90.0f), glm::radians(90.0f), glm::radians(0.0f) }));
 
 	box->SetScale({ .9f, .9f, .9f });
-	box->SetPosition({ 0.0f, 0.0f, 0.0f });
+	box->SetPosition({ 35.0f, 0.0f, 0.0f });
 	box->RotateAngleAxis(glm::radians(180.0), glm::vec3(0.0, 0.0, 1.0));
+
+	editor.SetScene(scene.get());
 
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile("../../assets/scenes/simple.xml");
@@ -95,7 +107,7 @@ int main()
 	/*tinyxml2::XMLText* textNode = doc.FirstChildElement("Scene")->FirstChildElement("Cameras")->FirstChild()->FirstChildElement("Position")->FirstChild()->ToText();
 	CH_TRACE(textNode->Value());*/
 
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClearColor(scene->m_sky_color.x, scene->m_sky_color.y, scene->m_sky_color.z, scene->m_sky_color.w);
 	// render loop
 	// -----------
 	while (!window->ShouldClose())
