@@ -17,6 +17,7 @@ Although I have not made any advancements regarding "Ray-tracing" I have retrofi
 Please keep in mind that footages given below are NOT ray traced in any shape or form. They are rendered using OpenGL3.  
 Here is a video:  
 [Alper Ş @stlkr_v1's tweet](https://twitter.com/stlkr_v1/status/1225586675490971648, "Alper Ş @stlkr_v1's tweet")  
+
 <img src= "resources/ui.PNG" height="270">    <img src= "resources/rf.PNG" width="396" >  
 Snapshot from Scene editor UI  &  Snapshot from Ray tracer window(since it uses GPU texture memory when left uninitialized it fetches some random texture).  
   
