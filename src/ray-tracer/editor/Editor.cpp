@@ -160,7 +160,7 @@ namespace Chroma
 			if (ImGui::Button("R##2"))m_scene->m_scene_objects[selected_name]->SetRotation(glm::vec3());
 			ImGui::SameLine();
 			glm::vec3 tmp_rot = glm::eulerAngles(m_scene->m_scene_objects[selected_name]->GetRotation());
-			ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.05f");
+			ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.3f");
 			m_scene->m_scene_objects[selected_name]->SetRotation(glm::quat(tmp_rot));
 
 			if (ImGui::Button("S##3")) m_scene->m_scene_objects[selected_name]->SetScale(glm::vec3(1, 1, 1));
@@ -172,13 +172,19 @@ namespace Chroma
 		}
 		else if (selected_item_type == SELECTION_TYPE::cam)
 		{
+			bool tmp = m_scene->active_cam_name.compare(selected_name) == 0;
+			ImGui::Checkbox("Editor Camera", &tmp);
+			m_scene->active_cam_name = tmp ? selected_name : m_scene->active_cam_name;
+
+			ImGui::Separator();
+
 			ImGui::Text("Transform");
 
-			if (ImGui::Button("P##1"))m_scene->m_cameras[selected_name]->SetPos(glm::vec3());
+			if (ImGui::Button("P##1"))m_scene->m_cameras[selected_name]->SetPosition(glm::vec3());
 			ImGui::SameLine();
-			glm::vec3 tmp_pos = m_scene->m_cameras[selected_name]->GetPos();
+			glm::vec3 tmp_pos = m_scene->m_cameras[selected_name]->GetPosition();
 			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_cameras[selected_name]->SetPos(tmp_pos);
+			m_scene->m_cameras[selected_name]->SetPosition(tmp_pos);
 
 			if (ImGui::Button("G##2"))m_scene->m_cameras[selected_name]->SetGaze(glm::vec3());
 			ImGui::SameLine();
@@ -191,6 +197,11 @@ namespace Chroma
 			glm::vec3 tmp_up = m_scene->m_cameras[selected_name]->GetUp();
 			ImGui::DragFloat3("##6", &(tmp_up.x), 0.05f, 0, 0, "%.3f");
 			m_scene->m_cameras[selected_name]->SetUp(tmp_up);
+
+			ImGui::Separator();
+			char* tmp_buf = strdup(m_scene->m_cameras[selected_name]->GetImageName().c_str());
+			ImGui::InputText("Image Name", tmp_buf, 20, 0);
+			m_scene->m_cameras[selected_name]->SetImageName(tmp_buf);
 		}
 		else if (selected_item_type == SELECTION_TYPE::p_light)
 		{
@@ -202,9 +213,9 @@ namespace Chroma
 			ImGui::Separator();
 
 			ImGui::Text("Light");
-			ImGui::ColorEdit3("Ambient Color", &m_scene->m_point_lights[selected_name]->ambient.x);
-			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_point_lights[selected_name]->diffuse.x);
-			ImGui::ColorEdit3("Specular Color", &m_scene->m_point_lights[selected_name]->specular.x);
+			ImGui::ColorEdit3("Ambient Color", &m_scene->m_point_lights[selected_name]->ambient.x, ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_point_lights[selected_name]->diffuse.x, ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit3("Specular Color", &m_scene->m_point_lights[selected_name]->specular.x, ImGuiColorEditFlags_Float);
 		}
 		else if (selected_item_type == SELECTION_TYPE::d_light)
 		{
@@ -396,29 +407,29 @@ namespace Chroma
 	}
 	void Editor::HandleKeyBoardNavigation()
 	{
-		auto cam = m_scene->m_cameras.begin()->second;
-		glm::vec3 forward = glm::normalize(cam->GetGaze() - cam->GetPos());
+		auto cam = m_scene->m_cameras[m_scene->active_cam_name];
+		glm::vec3 forward = glm::normalize(cam->GetGaze() - cam->GetPosition());
 		glm::vec3 right = glm::cross(forward, glm::normalize(cam->GetUp()));
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_W])
 		{
-			cam->SetPos(cam->GetPos() + forward * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() + forward * m_camera_move_speed);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_S])
 		{
-			cam->SetPos(cam->GetPos() - forward * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() - forward * m_camera_move_speed);
 		}
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_A])
 		{
-			cam->SetPos(cam->GetPos() - glm::normalize(right) * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() - glm::normalize(right) * m_camera_move_speed);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_D])
 		{
-			cam->SetPos(cam->GetPos() + glm::normalize(right) * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_camera_move_speed);
 		}
-		cam->SetGaze(cam->GetPos() + forward);
+		cam->SetGaze(cam->GetPosition() + forward);
 	}
 }
