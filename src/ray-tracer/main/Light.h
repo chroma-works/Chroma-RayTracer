@@ -40,6 +40,11 @@ namespace Chroma
 			: position(pos), ambient(amb), diffuse(diff), specular(spec), constant(cons), linear(lin), quadratic(quad),
 			shader_var_name(name)
 		{}
+
+		PointLight(const PointLight& other)
+			: position(other.position), ambient(other.ambient), diffuse(other.diffuse), specular(other.specular), constant(other.constant), linear(other.linear), quadratic(other.quadratic),
+			shader_var_name(other.shader_var_name)
+		{}
 	};
 
 	struct SpotLight {
