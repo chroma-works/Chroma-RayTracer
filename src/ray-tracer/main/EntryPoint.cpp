@@ -8,7 +8,6 @@
 #include <ray-tracer/editor/Logger.h>
 #include <ray-tracer/editor/Shader.h>
 
-#include <thirdparty/tinyxml2/tinyxml2.h>
 #include <ray-tracer\main\Scene.h>
 
 // settings
@@ -43,15 +42,15 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	//Model import
-	Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/rabbit.obj");
+	Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/utah_teapot.obj");
 	Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
 	Chroma::Material* mat = new Chroma::Material("u_Material",
 		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
-	std::shared_ptr<Chroma::SceneObject> rabbit = std::make_shared<Chroma::SceneObject>(*r_mesh, "rabbit");
+	std::shared_ptr<Chroma::SceneObject> teapot = std::make_shared<Chroma::SceneObject>(*r_mesh, "teapot");
 
 	//rabbit->SetTexture(*texture);
-	rabbit->SetMaterial(*mat);
-	rabbit->SetTexture(*text);
+	teapot->SetMaterial(*mat);
+	teapot->SetTexture(*text);
 
 	Chroma::Mesh* b_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/box.obj");
 	Chroma::Texture* texture = new Chroma::Texture("../../assets/textures/crate.jpg");
@@ -62,8 +61,8 @@ int main()
 
 	std::shared_ptr<Chroma::Scene> scene;
 
-	scene = std::make_shared<Chroma::Scene>("The scene", shader);
-	scene->AddSceneObject("rabbit", rabbit);
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/simple.xml")));//std::make_shared<Chroma::Scene>("The scene", shader);
+	scene->AddSceneObject("teapot", teapot);
 	scene->AddSceneObject("box", box);
 
 	glEnable(GL_DEPTH_TEST);
@@ -71,9 +70,9 @@ int main()
 	Chroma::Camera* cam = new Chroma::Camera(1.0f * 1280,
 		1.0f * 720, 0.1f, 300.0f, 45.0f);
 	//OrthographicCamera cam2(-0.8f, 0.8f, -0.9, 0.9, -10, 10);
-	cam->SetPos({ -0.0f, 0.0f, 50.0f });
+	cam->SetPosition({ -0.0f, 0.0f, 50.0f });
 	cam->SetUp({ -0.0f, 1.0f, 0.0f });
-	cam->SetGaze(cam->GetPos() + glm::vec3(0.0, 0.0, -1.0f));
+	cam->SetGaze(cam->GetPosition() + glm::vec3(0.0, 0.0, -1.0f));
 	scene->AddCamera("pers-cam", cam);
 
 	std::shared_ptr<Chroma::PointLight> pl = std::make_shared<Chroma::PointLight>(glm::vec3(0.0f, 0.0f, 40.0f), glm::vec3(0.1f, 0.1f, 0.1f),
@@ -91,18 +90,15 @@ int main()
 
 	glm::vec4 dir({ 0.0f, 0.0f, 0.0f, 1.0f });
 
-	rabbit->SetScale({ .4f, .4f, .4f });
-	rabbit->SetPosition({ 0.0f, -9.0f, 0.0f });
-	rabbit->SetRotation(glm::quat({ glm::radians(-90.0f), glm::radians(90.0f), glm::radians(0.0f) }));
+	teapot->SetScale({ 10.0f, 10.0f, 10.0f });
+	teapot->SetPosition({ 0.0f, -9.0f, 0.0f });
+	teapot->SetRotation(glm::quat({ glm::radians(0.0f), glm::radians(45.0f), glm::radians(0.0f) }));
 
 	box->SetScale({ .9f, .9f, .9f });
 	box->SetPosition({ 35.0f, 0.0f, 0.0f });
-	box->RotateAngleAxis(glm::radians(180.0), glm::vec3(0.0, 0.0, 1.0));
+	box->RotateAngleAxis(glm::radians(0.0), glm::vec3(0.0, 0.0, 1.0));
 
 	editor.SetScene(scene.get());
-
-	tinyxml2::XMLDocument doc;
-	doc.LoadFile("../../assets/scenes/simple.xml");
 
 	/*tinyxml2::XMLText* textNode = doc.FirstChildElement("Scene")->FirstChildElement("Cameras")->FirstChild()->FirstChildElement("Position")->FirstChild()->ToText();
 	CH_TRACE(textNode->Value());*/
