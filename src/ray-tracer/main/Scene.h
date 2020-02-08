@@ -40,6 +40,7 @@ namespace Chroma
 
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
 		std::map<std::string, Camera*> m_cameras;
+		std::string active_cam_name = "";
 
 		std::map<std::string, std::shared_ptr<DirectionalLight>> m_dir_lights;
 		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;
@@ -48,7 +49,6 @@ namespace Chroma
 
 		class SceneData
 		{
-			//friend class Scene;
 		public:
 			SceneData(Shader* shader)
 				:m_shader(shader)
@@ -94,6 +94,7 @@ namespace Chroma
 			glm::mat4* m_normal_mat = new glm::mat4(1.0f);
 			Material* m_material = new Material();
 			glm::vec3* m_cam_pos = new glm::vec3(0.0f);
+
 		};
 		SceneData* m_scene_data;
 	};
