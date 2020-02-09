@@ -146,7 +146,7 @@ namespace Chroma
 			m_scene->m_scene_objects[selected_name]->HideInEditor(tmp);
 
 			bool tmp2 = m_scene->m_scene_objects[selected_name]->IsVisible();
-			ImGui::Checkbox("Ray Tracer visibility", &tmp2);
+			ImGui::Checkbox("RT visibility", &tmp2);
 			m_scene->m_scene_objects[selected_name]->SetVisible(tmp2);
 			ImGui::Separator();
 			ImGui::Text("Transform");
@@ -213,9 +213,23 @@ namespace Chroma
 			ImGui::Separator();
 
 			ImGui::Text("Light");
+			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
+
 			ImGui::ColorEdit3("Ambient Color", &m_scene->m_point_lights[selected_name]->ambient.x, ImGuiColorEditFlags_Float);
 			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_point_lights[selected_name]->diffuse.x, ImGuiColorEditFlags_Float);
 			ImGui::ColorEdit3("Specular Color", &m_scene->m_point_lights[selected_name]->specular.x, ImGuiColorEditFlags_Float);
+			
+
+			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
+			glm::vec3 tmp = m_scene->m_point_lights[selected_name]->intensity;
+			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			{
+				m_scene->m_point_lights[selected_name]->SetIntensity(tmp);
+				/*glm::vec3 tmp = m_scene->m_point_lights[selected_name]->intensity / 1000.0f;
+				m_scene->m_point_lights[selected_name]->ambient =
+					m_scene->m_point_lights[selected_name]->diffuse =
+					m_scene->m_point_lights[selected_name]->specular = tmp;*/
+			}
 		}
 		else if (selected_item_type == SELECTION_TYPE::d_light)
 		{
@@ -227,9 +241,23 @@ namespace Chroma
 			ImGui::Separator();
 
 			ImGui::Text("Light");
+			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
 			ImGui::ColorEdit3("Ambient Color", &m_scene->m_dir_lights[selected_name]->ambient.x);
 			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_dir_lights[selected_name]->diffuse.x);
 			ImGui::ColorEdit3("Specular Color", &m_scene->m_dir_lights[selected_name]->specular.x);
+
+			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
+			glm::vec3 tmp = m_scene->m_dir_lights[selected_name]->intensity;
+			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			{
+				m_scene->m_dir_lights[selected_name]->SetIntensity(tmp);
+				/*glm::vec3 tmp = m_scene->m_dir_lights[selected_name]->intensity / 1000.0f;
+				m_scene->m_dir_lights[selected_name]->ambient =
+					m_scene->m_dir_lights[selected_name]->diffuse =
+					m_scene->m_dir_lights[selected_name]->specular = tmp;*/
+			}
+
+
 		}
 		else if (selected_item_type == SELECTION_TYPE::s_light)
 		{
@@ -243,6 +271,8 @@ namespace Chroma
 
 			ImGui::Separator();
 
+			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
+
 			ImGui::Text("Light");
 			ImGui::ColorEdit3("Ambient Color", &m_scene->m_spot_lights[selected_name]->ambient.x);
 			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_spot_lights[selected_name]->diffuse.x);
@@ -250,12 +280,22 @@ namespace Chroma
 
 			ImGui::Separator();
 
-			if (ImGui::Button("C##3"))m_scene->m_spot_lights[selected_name]->cutOff = 0.1;
+			if (ImGui::Button("Cut-off##3"))m_scene->m_spot_lights[selected_name]->cutOff = 0.1;
 			ImGui::SameLine();
 			ImGui::DragFloat("##7", &(m_scene->m_spot_lights[selected_name]->cutOff), 0.05f, 0, 0, "%.3f");
-			if (ImGui::Button("O##4"))m_scene->m_spot_lights[selected_name]->outerCutOff = 0.5;
+			if (ImGui::Button("O.Cut-off##4"))m_scene->m_spot_lights[selected_name]->outerCutOff = 0.5;
 			ImGui::SameLine();
 			ImGui::DragFloat("##8", &(m_scene->m_spot_lights[selected_name]->outerCutOff), 0.05f, 0, 0, "%.3f");
+
+			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
+			glm::vec3 tmp = m_scene->m_spot_lights[selected_name]->intensity;
+			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			{
+				m_scene->m_spot_lights[selected_name]->SetIntensity(tmp);
+				/*m_scene->m_spot_lights[selected_name]->ambient =
+					m_scene->m_spot_lights[selected_name]->diffuse =
+					m_scene->m_spot_lights[selected_name]->specular = tmp;*/
+			}
 		}
 
 
@@ -302,6 +342,11 @@ namespace Chroma
 
 		ImGui::SetWindowSize(ImVec2(240, m_window->GetHeight() - 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
 		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 240, 480));
+
+
+		ImGui::Text("RT Ambient");
+		ImGui::SameLine();
+		ImGui::DragFloat3("", &m_scene->m_ambient_l.x, 1.0f, 0.0f, 1000.0f);
 
 		int i = 0;
 		static bool flag = true;

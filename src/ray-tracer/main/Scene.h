@@ -34,6 +34,7 @@ namespace Chroma
 		void Render(DrawMode = DrawMode::TRI);
 
 		glm::vec4 m_sky_color = {0.15f * 0.3, 0.15f * 0.3, 0.2f * 0.3, 1.0f };
+		glm::vec3 m_ambient_l = { 0.0, 0.0, 0.0f };
 	private:
 		friend class Editor;
 		std::string m_name;
