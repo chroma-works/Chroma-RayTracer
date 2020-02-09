@@ -3,6 +3,7 @@
 #include <thirdparty/OBJ_loader/OBJ_Loader.h>
 #include <ray-tracer/editor/Logger.h>
 #include <iostream>
+#include <sstream>
 #include <string> 
 
 
@@ -84,7 +85,9 @@ namespace Chroma
 
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile(file_path.c_str());
-		
+		std::vector<Material> materials;
+		std::vector<glm::vec3> vertices;
+
 		tinyxml2::XMLNode* node = doc.RootElement()->FirstChild();
 		while (node != doc.RootElement()->LastChild())
 		{
@@ -176,10 +179,17 @@ namespace Chroma
 				tinyxml2::XMLNode* child_node = node->FirstChild();
 				while (child_node)//iterate over lights
 				{
-					PointLight* p_l = new PointLight( {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0});
-					std::string lig_name;
-					if (std::string(child_node->Value()).compare(P_LIG) == 0 )
+					if (std::string(child_node->Value()).compare(AM_LIG) == 0)
 					{
+						std::string data = child_node->FirstChild()->Value();
+
+						sscanf(data.c_str(), "%f %f %f", &scene->m_ambient_l.x, &scene->m_ambient_l.y, &scene->m_ambient_l.z);
+
+					}
+					else if (std::string(child_node->Value()).compare(P_LIG) == 0 )
+					{
+						PointLight* p_l = new PointLight({ 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 });
+						std::string lig_name;
 						lig_name = "point_light" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
 
@@ -193,33 +203,73 @@ namespace Chroma
 							else if (std::string(lig_prop->Value()).compare(INTEN) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &p_l->ambient.x, &p_l->ambient.y, &p_l->ambient.z);
-								sscanf(data.c_str(), "%f %f %f", &p_l->diffuse.x, &p_l->diffuse.y, &p_l->diffuse.z);
-								sscanf(data.c_str(), "%f %f %f", &p_l->specular.x, &p_l->specular.y, &p_l->specular.z);
+								glm::vec3 tmp;
+								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
+
+								p_l->SetIntensity(tmp);
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
+						scene->AddLight(lig_name, std::make_shared<PointLight>(*p_l));
 
 					}
-					else if (std::string(child_node->Value()).compare(AM_LIG) == 0)
-					{
-						lig_name = "ambient_light";
-						std::string data = child_node->FirstChild()->Value();
-						p_l->position = { 1000, 1000, 1000 };
-
-						sscanf(data.c_str(), "%f %f %f", &p_l->ambient.x, &p_l->ambient.y, &p_l->ambient.z);
-						/*sscanf(data.c_str(), "%f %f %f", &p_l->diffuse.x, &p_l->diffuse.y, &p_l->diffuse.z);
-						sscanf(data.c_str(), "%f %f %f", &p_l->specular.x, &p_l->specular.y, &p_l->specular.z);*/
-
-						p_l->constant = 0.001;
-						p_l->linear = 0.001;
-						p_l->quadratic = 0.001;
-					}
-
-
-					scene->AddLight(lig_name, std::make_shared<PointLight>(*p_l));
 					child_node = child_node->NextSibling();
 				}
+			}
+			else if (std::string(node->Value()).compare(MATS) == 0)
+			{
+				tinyxml2::XMLNode* child_node = node->FirstChild();
+				while (child_node)//iterate over Materials
+				{
+					Material mat;
+					tinyxml2::XMLNode* material_prop = child_node->FirstChild();
+					while (material_prop)
+					{
+						if (std::string(material_prop->Value()).compare(AM_REF) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f %f %f", &mat.ambient.x, &mat.ambient.y, &mat.ambient.z);
+						}
+						else if (std::string(material_prop->Value()).compare(DIF_REF) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f %f %f", &mat.diffuse.x, &mat.diffuse.y, &mat.diffuse.z);
+						}
+						else if (std::string(material_prop->Value()).compare(SPEC_REF) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f %f %f", &mat.specular.x, &mat.specular.y, &mat.specular.z);
+						}
+						else if (std::string(material_prop->Value()).compare(PHONG_EX) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &mat.shininess);
+						}
+						material_prop = material_prop->NextSibling();
+					}
+
+					child_node = child_node->NextSibling();
+					materials.push_back(mat);
+				}
+
+			}
+			else if (std::string(node->Value()).compare(VRTX_DATA) == 0)
+			{
+				tinyxml2::XMLNode* child_node = node->FirstChild();
+
+				std::string data = child_node->Value();
+				std::string line;
+				std::istringstream stream(data);
+
+				while (std::getline(stream, line)) {//read vertices line by line
+					glm::vec3 vertex;
+					sscanf(line.c_str(), "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
+					vertices.push_back(vertex);
+				}
+			}
+			else if (std::string(node->Value()).compare(OBJ) == 0)
+			{
+
 			}
 			/*if(node->FirstChild()->ToText())
 				CH_TRACE(node->FirstChild()->ToText()->Value());*/
