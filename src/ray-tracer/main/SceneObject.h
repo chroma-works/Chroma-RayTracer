@@ -21,6 +21,8 @@ namespace Chroma
                                                     void AddTo##NAME_P(TYPE val) { VAR.push_back(val);}\
                                                     void ResizeSpaceFrom##NAME_P(unsigned int size) {VAR.resize(size);}\
                                                     void Set##NAME_S##At(unsigned int index, TYPE val) {VAR.at(index) = val;}
+	enum class RT_INTR_METHOD {mesh, triangle, sphere};
+
 	class Mesh
 	{
 	public:
@@ -84,7 +86,7 @@ namespace Chroma
 		SceneObject(Mesh mesh, std::string name,
 			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f));
+			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f), RT_INTR_METHOD rt_intersect = RT_INTR_METHOD::mesh);
 		//~SceneObject();
 
 
@@ -124,8 +126,14 @@ namespace Chroma
 
 		inline Material GetMaterial() { return m_material; }
 
+		inline RT_INTR_METHOD GetRTIntersectionMethod() { return m_method; }
+
+		inline std::string GetName() { return m_name; }
+		inline void SetName(std::string n) { m_name = n; }
+
 		void Draw(DrawMode mode);
 
+		float m_radius;
 
 	private:
 		void RecalculateModelMatrix();
@@ -146,6 +154,8 @@ namespace Chroma
 		Material m_material = Material();
 
 		Mesh m_mesh; //TODO: multiple mesh ?
+
+		RT_INTR_METHOD m_method;
 
 		Chroma::OpenGLVertexArrayObject m_vao;
 		std::vector<std::shared_ptr<Chroma::VertexBuffer>> m_vertex_buffers;

@@ -89,7 +89,7 @@ namespace Chroma
 		std::vector<glm::vec3> vertices;
 
 		tinyxml2::XMLNode* node = doc.RootElement()->FirstChild();
-		while (node != doc.RootElement()->LastChild())
+		while (node)
 		{
 			if (std::string(node->Value()).compare(BCK_COLOR) == 0)
 			{
@@ -188,9 +188,9 @@ namespace Chroma
 					}
 					else if (std::string(child_node->Value()).compare(P_LIG) == 0 )
 					{
-						PointLight* p_l = new PointLight({ 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 });
+						PointLight p_l = PointLight({ 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 });
 						std::string lig_name;
-						lig_name = "point_light" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						lig_name = "point_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
 
 						while (lig_prop)//iterate over each light properties
@@ -198,19 +198,19 @@ namespace Chroma
 							if (std::string(lig_prop->Value()).compare(POS) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &p_l->position.x, &p_l->position.y, &p_l->position.z);
+								sscanf(data.c_str(), "%f %f %f", &p_l.position.x, &p_l.position.y, &p_l.position.z);
 							}
 							else if (std::string(lig_prop->Value()).compare(INTEN) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								glm::vec3 tmp;
+								glm::vec3 tmp({ 10,10,10 });
 								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
 
-								p_l->SetIntensity(tmp);
+								p_l.SetIntensity(tmp);
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
-						scene->AddLight(lig_name, std::make_shared<PointLight>(*p_l));
+						scene->AddLight(lig_name, std::make_shared<PointLight>(p_l));
 
 					}
 					child_node = child_node->NextSibling();
@@ -269,10 +269,102 @@ namespace Chroma
 			}
 			else if (std::string(node->Value()).compare(OBJ) == 0)
 			{
+				
+				tinyxml2::XMLNode* child_node = node->FirstChild();
+				while (child_node)
+				{
+					if(std::string(child_node->Value()).compare(MESH) == 0)
+					{ 
+						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						while (object_prop)
+						{
+							object_prop = object_prop->NextSibling();
+						}
+					}
+					else if (std::string(child_node->Value()).compare(TRI) == 0)
+					{
+						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						while (object_prop)
+						{
+							std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+							Mesh* mesh = nullptr;
+							object_prop = object_prop->NextSibling();
+							int mat_ind = 0;
+							while (object_prop)
+							{
+								if (std::string(object_prop->Value()).compare(MAT) == 0)
+								{
+									std::string data = object_prop->FirstChild()->Value();
+									sscanf(data.c_str(), "%d", &mat_ind);
+									mat_ind = mat_ind - 1;
+								}
+								else if (std::string(object_prop->Value()).compare(IND) == 0)
+								{
+									int indices[3];
+									std::string data = object_prop->FirstChild()->Value();
+									sscanf(data.c_str(), "%d %d %d", &indices[0], &indices[1], &indices[2]);
+									std::vector<glm::vec3> mesh_verts;
+									std::vector<glm::vec2> mesh_uvs;
+									std::vector<glm::vec3> mesh_normals;
+									std::vector<unsigned int> mesh_indices;
+									for (int i = 0; i < 3; i++)
+									{
+										mesh_verts.push_back(vertices[indices[i]]);
+										mesh_normals.push_back(glm::cross(vertices[indices[(i)%3]], vertices[indices[(i+1) % 3]]));
+										mesh_indices.push_back(i);
+									}
+									mesh_uvs.push_back({ 0.0f, 0.0f });
+									mesh_uvs.push_back({ 1.0f, 0.0f });
+									mesh_uvs.push_back({ 0.0f, 1.0f });
+									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), 3);
+									mesh->m_indices = mesh_indices;
+								}
+								object_prop = object_prop->NextSibling();
+							}
+							SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), RT_INTR_METHOD::triangle);
+							scene_obj->SetMaterial(materials[mat_ind]);
+							scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
+						}
+					}
+					else if (std::string(child_node->Value()).compare(SPHR) == 0)
+					{
+						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						SceneObject* scene_obj = new SceneObject(Mesh(), name, glm::vec3(), glm::vec3(), glm::vec3(), RT_INTR_METHOD::sphere);
 
+						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						while (object_prop)
+						{
+							if (std::string(object_prop->Value()).compare(MAT) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								int ind;
+								sscanf(data.c_str(), "%d", &ind);
+								ind = ind - 1;
+								scene_obj->SetMaterial(materials[ind]);
+							}
+							else if (std::string(object_prop->Value()).compare("Center") == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								int ind;
+								sscanf(data.c_str(), "%d", &ind);
+								ind = ind - 1;
+								scene_obj->SetPosition(vertices[ind]);
+							}
+							else if (std::string(object_prop->Value()).compare(RAD) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								float r;
+								sscanf(data.c_str(), "%f", &r);
+								scene_obj->SetScale(glm::vec3(r/2,r/2,r/2));
+								scene_obj->m_radius = r;
+							}
+							object_prop = object_prop->NextSibling();
+						}
+						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
+					}
+					child_node = child_node->NextSibling();
+				}
 			}
-			/*if(node->FirstChild()->ToText())
-				CH_TRACE(node->FirstChild()->ToText()->Value());*/
 			node = node->NextSibling();
 		}
 

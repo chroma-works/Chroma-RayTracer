@@ -3,6 +3,7 @@
 #include <thirdparty/glad/include/glad/glad.h>
 #include <thirdparty/glm/glm/gtc/matrix_transform.hpp>
 #include <thirdparty/glm/glm/gtx/quaternion.hpp>
+#include <ray-tracer/editor/AssetImporter.h>
 
 
 namespace Chroma
@@ -65,10 +66,20 @@ namespace Chroma
 	}
 
 
-	SceneObject::SceneObject(Mesh mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale)
-		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(glm::quat(rot)), m_scale(scale)
+	SceneObject::SceneObject(Mesh mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, RT_INTR_METHOD method)
+		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(glm::quat(rot)), m_scale(scale), m_method(method), m_radius(0.0f)
 	{
-		m_texture = Chroma::Texture("../assets/textures/white.png");//Set texture to white to avoid all black shaded objects
+		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid all black shaded objects
+
+		if (m_method == RT_INTR_METHOD::sphere)
+		{
+			if (m_mesh.GetVertexCount() != 0)
+			{
+				CH_WARN("Using sphere.obj file instead of provided mesh");
+			}
+			m_mesh = *AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj");
+			m_radius = 1.0f;
+		}
 
 		//Vertex positions buffer
 		std::shared_ptr<Chroma::OpenGLVertexBuffer> position_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)m_mesh.m_vertex_positions.data(),

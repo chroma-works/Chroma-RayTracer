@@ -3,7 +3,7 @@
 #include <string>
 #include <thirdparty/glm/glm/glm.hpp>
 
-#define SET_INTENSITY(a,d,s, intensity) void SetIntensity(glm::vec3 inten){intensity = inten; a=s=d=(intensity/1000.0f);}
+#define SET_INTENSITY(a,d,s, intensity) void SetIntensity(glm::vec3 inten){intensity = inten; a=s=d=(glm::clamp(inten, 0.0f, 255.0f));}
 
 namespace Chroma
 {
@@ -20,13 +20,13 @@ namespace Chroma
 		glm::vec3 diffuse;
 		glm::vec3 specular;
 
-		glm::vec3 intensity = { 0,0,0 };
+		glm::vec3 intensity;
 
 		SET_INTENSITY(ambient, diffuse, specular, intensity)
 
 		DirectionalLight(glm::vec3 dir, glm::vec3 amb,
 			glm::vec3 diff, glm::vec3 spec, std::string name = "u_DirLights")
-			: direction(dir), ambient(amb), diffuse(diff), specular(spec), shader_var_name(name)
+			: direction(dir), ambient(amb), diffuse(diff), specular(spec), shader_var_name(name), intensity({ 0.0f, 0.0f, 0.0f })
 		{}
 	};
 
@@ -44,7 +44,7 @@ namespace Chroma
 		glm::vec3 diffuse;
 		glm::vec3 specular;
 
-		glm::vec3 intensity = {0,0,0};
+		glm::vec3 intensity;
 
 		SET_INTENSITY(ambient, diffuse, specular, intensity)
 
@@ -52,12 +52,12 @@ namespace Chroma
 			glm::vec3 diff, glm::vec3 spec, float cons = 1.0f, float lin = 0.01f, float quad = 0.0001f,
 			std::string name = "u_PointLights")
 			: position(pos), ambient(amb), diffuse(diff), specular(spec), constant(cons), linear(lin), quadratic(quad),
-			shader_var_name(name)
+			shader_var_name(name), intensity({0.0f, 0.0f, 0.0f})
 		{}
 
 		PointLight(const PointLight& other)
 			: position(other.position), ambient(other.ambient), diffuse(other.diffuse), specular(other.specular), constant(other.constant), linear(other.linear), quadratic(other.quadratic),
-			shader_var_name(other.shader_var_name)
+			shader_var_name(other.shader_var_name), intensity(other.intensity)
 		{}
 	};
 
@@ -85,7 +85,7 @@ namespace Chroma
 			glm::vec3 diff, glm::vec3 spec, float cons = 1.0f, float lin = 0.01f, float quad = 0.0001f,
 			float cut = 0.976296f, float outerCut = 0.963630f, std::string name = "u_SpotLights")
 			: position(pos), direction(dir), ambient(amb), diffuse(diff), specular(spec), constant(cons), linear(lin), quadratic(quad),
-			cutOff(cut), outerCutOff(outerCut), shader_var_name(name)
+			cutOff(cut), outerCutOff(outerCut), shader_var_name(name), intensity({ 0.0f, 0.0f, 0.0f })
 		{}
 	};
 
