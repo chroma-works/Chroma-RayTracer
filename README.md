@@ -3,7 +3,7 @@
 ### Author:Alper Şahıstan([STLKRv1](https://github.com/STLKRv1)) 
 
 <p align="center">
-<img src= "resources/logo_w.png" height="160">
+<img src= "resources/logo_w.png" height="100">
  </p>
 
 ## Introduction  
