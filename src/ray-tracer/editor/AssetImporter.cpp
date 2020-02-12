@@ -112,7 +112,7 @@ namespace Chroma
 				while (child_node)//iterate over cameras
 				{
 					Camera* cam = new Camera(1.0f * 1280,
-						1.0f * 720, 0.1f, 300.0f, 45.0f); //Standart Camera(raster pipeline parameters)
+						1.0f * 720, 0.1f, 300.0f, 60.0f); //Standart Camera(raster pipeline parameters)
 					std::string cam_name = "camera_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 					tinyxml2::XMLNode* cam_prop = child_node->FirstChild();
 
@@ -168,9 +168,6 @@ namespace Chroma
 
 
 					scene->AddCamera(cam_name, cam);
-					CH_TRACE(cam_name);
-
-
 					child_node = child_node->NextSibling();
 				}
 			}
@@ -263,8 +260,12 @@ namespace Chroma
 
 				while (std::getline(stream, line)) {//read vertices line by line
 					glm::vec3 vertex;
-					sscanf(line.c_str(), "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
-					vertices.push_back(vertex);
+					std::istringstream iss(line);
+					iss >> vertex.x >> vertex.y >> vertex.z;
+					//sscanf(line.c_str(), "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
+
+					if (iss)
+						vertices.push_back(vertex);
 				}
 			}
 			else if (std::string(node->Value()).compare(OBJ) == 0)
@@ -276,55 +277,132 @@ namespace Chroma
 					if(std::string(child_node->Value()).compare(MESH) == 0)
 					{ 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						std::string name = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						Mesh* mesh = nullptr;
+						int mat_ind = 0;
 						while (object_prop)
 						{
+							if (std::string(object_prop->Value()).compare(MAT) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d", &mat_ind);
+								mat_ind = mat_ind - 1;
+							}
+							else if (std::string(object_prop->Value()).compare(FACES) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								std::vector<glm::vec3> mesh_verts;
+								std::vector<glm::vec2> mesh_uvs;
+								std::vector<glm::vec3> mesh_normals;
+								std::vector<unsigned int> num_shared_faces;
+								std::vector<unsigned int> mesh_indices;
+								std::vector<unsigned int> marked_indices;
+
+								std::string line;
+								std::istringstream stream(data);
+
+								while (std::getline(stream, line)) //read faces line by line
+								{
+
+									unsigned int ind[3];
+									std::istringstream iss(line);
+									iss >> ind[0] >> ind[1] >> ind[2];
+
+									if (iss) {
+
+										glm::vec3 a = (vertices[ind[0] - 1] - vertices[ind[1] - 1]);
+										glm::vec3 b = (vertices[ind[0] - 1] - vertices[ind[2] - 1]);
+										std::ostringstream ss;
+										ss << "a: " << a.x << ", " << a.y << ", " << a.z;
+										std::string s(ss.str());
+										//CH_TRACE(s);
+										std::ostringstream ss2;
+										ss2 << "b: " << b.x << ", " << b.y << ", " << b.z;
+										s = (ss2.str());
+										//CH_TRACE(s);
+
+										glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
+
+										for (int j = 0; j < 3; j++)
+										{
+											bool flag = true;
+											int i = 0;
+											for (; (i < marked_indices.size()) && flag; i++)
+											{
+												flag = marked_indices[i] != (ind[j]); // check if that index is marked
+											}
+											if (flag)//if not marked
+											{
+												marked_indices.push_back(ind[j]);//mark the index
+												mesh_verts.push_back(vertices[ind[j] - 1]);//push the relevant vertex
+												mesh_normals.push_back(normal);// push face normal
+												mesh_indices.push_back(mesh_verts.size() - 1);//push the index
+												num_shared_faces.push_back(1);//this vertex has 1 face for now
+											}
+											else //if marked
+											{
+												mesh_normals[i-1] += normal; //sum face normal to cumulative sum
+												mesh_indices.push_back(mesh_indices[i-1]);//find the relevant index and push it again
+												num_shared_faces[mesh_indices[i-1]]++;//increment the number of faces for that vertex
+											}
+										}
+									}
+									for (int i = 0; i < num_shared_faces.size(); i++)
+									{
+										mesh_normals[i] = mesh_normals[i] / (float)num_shared_faces[i];//average vert. normals for shared faces
+									}
+									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices.size() / 3);
+									mesh->m_indices = mesh_indices;
+								}
+							}
 							object_prop = object_prop->NextSibling();
 						}
+						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), RT_INTR_METHOD::mesh);
+						scene_obj->SetMaterial(materials[mat_ind]);
+						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
 					else if (std::string(child_node->Value()).compare(TRI) == 0)
 					{
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						Mesh* mesh = nullptr;
+						int mat_ind = 0;
 						while (object_prop)
 						{
-							std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-							Mesh* mesh = nullptr;
-							object_prop = object_prop->NextSibling();
-							int mat_ind = 0;
-							while (object_prop)
+							if (std::string(object_prop->Value()).compare(MAT) == 0)
 							{
-								if (std::string(object_prop->Value()).compare(MAT) == 0)
-								{
-									std::string data = object_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%d", &mat_ind);
-									mat_ind = mat_ind - 1;
-								}
-								else if (std::string(object_prop->Value()).compare(IND) == 0)
-								{
-									int indices[3];
-									std::string data = object_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%d %d %d", &indices[0], &indices[1], &indices[2]);
-									std::vector<glm::vec3> mesh_verts;
-									std::vector<glm::vec2> mesh_uvs;
-									std::vector<glm::vec3> mesh_normals;
-									std::vector<unsigned int> mesh_indices;
-									for (int i = 0; i < 3; i++)
-									{
-										mesh_verts.push_back(vertices[indices[i]]);
-										mesh_normals.push_back(glm::cross(vertices[indices[(i)%3]], vertices[indices[(i+1) % 3]]));
-										mesh_indices.push_back(i);
-									}
-									mesh_uvs.push_back({ 0.0f, 0.0f });
-									mesh_uvs.push_back({ 1.0f, 0.0f });
-									mesh_uvs.push_back({ 0.0f, 1.0f });
-									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), 3);
-									mesh->m_indices = mesh_indices;
-								}
-								object_prop = object_prop->NextSibling();
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d", &mat_ind);
+								mat_ind = mat_ind - 1;
 							}
-							SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), RT_INTR_METHOD::triangle);
-							scene_obj->SetMaterial(materials[mat_ind]);
-							scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
+							else if (std::string(object_prop->Value()).compare(IND) == 0)
+							{
+								int indices[3];
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d %d %d", &indices[0], &indices[1], &indices[2]);
+								std::vector<glm::vec3> mesh_verts;
+								std::vector<glm::vec2> mesh_uvs;
+								std::vector<glm::vec3> mesh_normals;
+								std::vector<unsigned int> mesh_indices;
+								for (int i = 0; i < 3; i++)
+								{
+									indices[i]--;
+ 									mesh_verts.push_back(vertices[indices[i]]);
+									glm::vec3 normal = glm::normalize(glm::cross((vertices[indices[(i) % 3]] - vertices[indices[(i + 1) % 3]]), (vertices[indices[(i) % 3]] - vertices[indices[(i + 2) % 3]])));
+									mesh_normals.push_back(normal);
+									mesh_indices.push_back(i);
+								}
+								mesh_uvs.push_back({ 0.0f, 0.0f });
+								mesh_uvs.push_back({ 1.0f, 0.0f });
+								mesh_uvs.push_back({ 0.0f, 1.0f });
+								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), 3);
+								mesh->m_indices = mesh_indices;
+							}
+							object_prop = object_prop->NextSibling();
 						}
+						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), RT_INTR_METHOD::triangle);
+						scene_obj->SetMaterial(materials[mat_ind]);
+						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
 					else if (std::string(child_node->Value()).compare(SPHR) == 0)
 					{
