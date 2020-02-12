@@ -1,4 +1,4 @@
-# Chroma Ray Tracer Development Blog <img src= "resources/logo_solo.png" height="80">
+# Chroma Ray Tracer Development Blog <img src= "resources/logo_solo.png" height="60">
 ### Author:Alper Şahıstan([STLKRv1](https://github.com/STLKRv1)) 
 
 ## Introduction  
