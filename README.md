@@ -47,7 +47,7 @@ Here is a video:
  
 
 <img src= "resources/editor.PNG" height="260">  
-**Figure 2:** Example render of a utah teapot and a create
+**Figure 2:** Example render of a Utah teapot and a crate
 
 
 ## Week 2
