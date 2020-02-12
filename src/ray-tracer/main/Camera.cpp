@@ -13,7 +13,7 @@ namespace Chroma
 	}
 	void Camera::RecalculateViewMatrix()
 	{
-		m_view_matrix = glm::lookAt(m_pos, m_gaze, m_up);
+		m_view_matrix = glm::lookAt(m_pos, m_gaze + m_pos, m_up);
 		m_view_projection_matrix = m_projection_matrix * m_view_matrix;
 	}
 }

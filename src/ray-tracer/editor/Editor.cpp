@@ -459,22 +459,25 @@ namespace Chroma
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_W])
 		{
 			cam->SetPosition(cam->GetPosition() + forward * m_camera_move_speed);
+			cam->SetGaze(cam->GetPosition() + forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_S])
 		{
 			cam->SetPosition(cam->GetPosition() - forward * m_camera_move_speed);
+			cam->SetGaze(cam->GetPosition() + forward);
 		}
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_A])
 		{
 			cam->SetPosition(cam->GetPosition() - glm::normalize(right) * m_camera_move_speed);
+			cam->SetGaze(cam->GetPosition() + forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_D])
 		{
 			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_camera_move_speed);
+			cam->SetGaze(cam->GetPosition() + forward);
 		}
-		cam->SetGaze(cam->GetPosition() + forward);
 	}
 }
