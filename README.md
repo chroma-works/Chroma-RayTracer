@@ -28,10 +28,10 @@ Here is a video:
 
 
 ## Week 2
-Asset importer for the scene files has been completed. It simply parses the xml file to construct the scene specified by it. Figure 3 displays the scene called "simple.xml" as rendered in the forward rendering pipeline(NOT ray traced).
+Asset importer for the scene files has been completed. It simply parses the xml file to construct the scene specified by it. Figure 3 displays the scene called "[simple.xml](assets/scenes/simple.xml)" as rendered in the Raster based rendering pipeline(NOT ray traced).
 
 <img src= "resources/scene_import.gif">  
-**Figure 3:** Example render of a utah teapot and a create  
+**Figure 3:** Raster based render of the scene from editor.  
            
 ## References
 <a id="1">[1]</a>
