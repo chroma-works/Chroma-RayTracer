@@ -1,0 +1,5 @@
+@import "{{ site.theme }}";
+
+header h1:before {
+  display: none
+}
