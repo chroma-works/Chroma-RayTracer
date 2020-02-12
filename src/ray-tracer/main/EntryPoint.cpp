@@ -62,8 +62,8 @@ int main()
 	std::shared_ptr<Chroma::Scene> scene;
 
 	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/simple.xml")));//std::make_shared<Chroma::Scene>("The scene", shader);
-	scene->AddSceneObject("teapot", teapot);
-	scene->AddSceneObject("box", box);
+	/*scene->AddSceneObject("teapot", teapot);
+	scene->AddSceneObject("box", box);*/
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -73,7 +73,7 @@ int main()
 	cam->SetPosition({ -0.0f, 0.0f, 50.0f });
 	cam->SetUp({ -0.0f, 1.0f, 0.0f });
 	cam->SetGaze(cam->GetPosition() + glm::vec3(0.0, 0.0, -1.0f));
-	scene->AddCamera("pers-cam", cam);
+	//scene->AddCamera("pers-cam", cam);
 
 	std::shared_ptr<Chroma::PointLight> pl = std::make_shared<Chroma::PointLight>(glm::vec3(0.0f, 0.0f, 40.0f), glm::vec3(0.1f, 0.1f, 0.1f),
 		glm::vec3(0.6f, 0.5f, 0.6f), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -84,9 +84,9 @@ int main()
 	std::shared_ptr<Chroma::SpotLight> sl = std::make_shared<Chroma::SpotLight>(glm::vec3(-20.0f, 0.0f, 40.0f), glm::vec3(0.0f, 0.0f, -1.0f),
 		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-	scene->AddLight("point 1", pl);
-	scene->AddLight("spot 1", sl);
-	scene->AddLight("directional 1", dl);
+	//scene->AddLight("point 1", pl);
+	//scene->AddLight("spot 1", sl);
+	//scene->AddLight("directional 1", dl);
 
 	glm::vec4 dir({ 0.0f, 0.0f, 0.0f, 1.0f });
 
@@ -108,11 +108,6 @@ int main()
 	// -----------
 	while (!window->ShouldClose())
 	{
-		// input
-
-		// render
-		// ------
-		//cam->SetPos(cam->GetPos() + glm::vec3(0.0, 0.0, .1f));
 		editor.OnUpdate();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		scene->Render();
