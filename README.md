@@ -4,6 +4,24 @@
 ## Introduction  
 This repository is meant to contain a simple implementation of the ray tracing algorithm. Hopefully will surpass its humble conception. This page will also be used as a blog to update on the development process. Developed for CENG795 course at METU(2019-2020 Spring Semester).
 
+## Build instructions for Windows  
+### Requires:
+* Visual Stuido(VS) 17+
+* CMake 3.15.0+
+### Instructions
+After downloading and unzipping the repo open Cmake and fill the fields:  
+**Where is the source:** unzipped/folders/directory/Chroma-RayTracer  
+**Where to build binaries:** unzipped/folders/directory/Chroma-RayTracer/build  
+then click configure where you will set your Visual studio version as the **"Generator for this project"*** and *x64* as **"Optional platform generator"**. Also select **"Use default native compilers"** option if it is not already selected.  
+**Configure** then **Generate**.  
+Then open the chroma-ray-tracer.sln file generated using VS located in the ./Chroma-RayTracer/build folder.  
+Finally **Build** solution using VS.  
+
+**Note:** After building the project, if it fails to run due to missing .exe file try setting the location of the .exe file by:  
+Solution explorer -> chroma-ray-tracer -> (right click ->) properties -> General -> Output Directory -> 
+* if Configuration: Debug -> unzipped/folders/directory/Chroma-RayTracer/bin/Debug  
+* if Configuration: Release -> unzipped/folders/directory/Chroma-RayTracer/bin/Release
+
 ## Week 1
 Although I have not made any advancements regarding "Ray-tracing" I have retrofitted my old classes from my old renderer[[1]](#1) to build a simple editor. This editor can;
 * Load .obj files
