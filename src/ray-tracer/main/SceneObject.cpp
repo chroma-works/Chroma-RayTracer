@@ -14,7 +14,7 @@ namespace Chroma
 		m_bound_max = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
 	}
 
-	Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> texcoords, std::vector<glm::vec3> colors, unsigned int face_count)
+	Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> texcoords, std::vector<glm::vec3> colors, unsigned int face_count, bool cntr_piv)
 	{
 		m_vertex_positions = vertices;
 		m_vertex_normals = normals;
@@ -28,7 +28,8 @@ namespace Chroma
 		m_bound_max = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
 
 		CalculateBounds();
-		CenterToPivot();
+		if(cntr_piv)
+			CenterToPivot();
 	}
 
 	void Mesh::CenterToPivot()

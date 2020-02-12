@@ -28,7 +28,7 @@ namespace Chroma
 	public:
 		Mesh();
 		Mesh(std::vector<glm::vec3> m_vertices, std::vector<glm::vec3> m_normals,
-			std::vector<glm::vec2> m_texcoords, std::vector<glm::vec3> m_colors, unsigned int face_count);
+			std::vector<glm::vec2> m_texcoords, std::vector<glm::vec3> m_colors, unsigned int face_count, bool cntr_piv = false);
 
 		inline unsigned int GetFaceCount() const { return m_face_count; }
 		inline unsigned int GetVertexCount() const { return m_vertex_count; }
