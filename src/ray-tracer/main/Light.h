@@ -3,7 +3,7 @@
 #include <string>
 #include <thirdparty/glm/glm/glm.hpp>
 
-#define SET_INTENSITY(a,d,s, intensity) void SetIntensity(glm::vec3 inten){intensity = inten; a=s=d=(glm::clamp(inten, 0.0f, 255.0f));}
+#define SET_INTENSITY(a,d,s, intensity) void SetIntensity(glm::vec3 inten){intensity = inten; a=s=d=(glm::clamp(inten/255.0f, 0.0f, 1.0f));}
 
 namespace Chroma
 {
