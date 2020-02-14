@@ -14,23 +14,10 @@
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1440;
 
-const std::string vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
-const std::string fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-"}\n\0";
-
 int main()
 {
 	Chroma::Logger::Init();
-	CH_INFO("Chroma Ray Tracer v.0.1");
+	CH_INFO("Chroma Ray Tracer v.0.8");
 
 	Chroma::Window* window = new  Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	//init editor
@@ -61,7 +48,7 @@ int main()
 
 	std::shared_ptr<Chroma::Scene> scene;
 
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/simple.xml")));//std::make_shared<Chroma::Scene>("The scene", shader);
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/simple.xml"))); //std::make_shared<Chroma::Scene>("The scene", shader);
 	/*scene->AddSceneObject("teapot", teapot);
 	scene->AddSceneObject("box", box);*/
 
