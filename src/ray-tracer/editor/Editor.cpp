@@ -509,30 +509,8 @@ namespace Chroma
 			glm::vec4 m_d;
 			m_d = glm::vec4(ImGui::GetMouseDragDelta().x, ImGui::GetMouseDragDelta().y, 0.1, 1.0);
 
-			//convert to world coords
-			/*glm::mat4 inv_mat = glm::inverse(cam->GetProjectionMatrix() * cam->GetViewMatrix());
-			glm::vec4 delta = m_d * inv_mat;
-			delta.w = 1.0 / delta.w;
-
-			delta.x *= delta.w;
-			delta.y *= delta.w;
-			delta.z *= delta.w;
-
-			cam->SetGaze(glm::normalize(cam->GetGaze() + glm::vec3(delta) * m_camera_rotate_speed));
-
-			m_d = glm::vec4();*/
-
-			/*if (firstMouse)
-			{
-				lastX = xpos;
-				lastY = ypos;
-				firstMouse = false;
-			}*/
-
-			float xoffset = ImGui::GetMouseDragDelta(0, 1.0).x; //xpos - lastX;
-			float yoffset = ImGui::GetMouseDragDelta(0, 1.0).y; //lastY - ypos;
-			/*lastX = xpos;
-			lastY = ypos;*/
+			float xoffset = ImGui::GetMouseDragDelta(0, 1.0).x; 
+			float yoffset = ImGui::GetMouseDragDelta(0, 1.0).y; 
 
 			float sensitivity = m_camera_rotate_speed*0.05;
 			xoffset *= sensitivity;
@@ -548,10 +526,6 @@ namespace Chroma
 
 			glm::vec3 gaze = cam->GetPosition() + glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
 			cam->SetGaze(gaze);
-			/*direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-			direction.y = sin(glm::radians(pitch));
-			direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-			cameraFront = glm::normalize(direction);*/
 		}
 
 		if(ImGui::GetIO().KeyAlt)
