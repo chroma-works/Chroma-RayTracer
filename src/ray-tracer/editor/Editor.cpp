@@ -524,7 +524,7 @@ namespace Chroma
 			if (pitch < -89.0f)
 				pitch = -89.0f;
 
-			glm::vec3 gaze = cam->GetPosition() + glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
+			glm::vec3 gaze =  glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
 			cam->SetGaze(gaze);
 		}
 
