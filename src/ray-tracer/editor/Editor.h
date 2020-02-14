@@ -33,7 +33,8 @@ namespace Chroma
 		bool m_render;
 		Scene* m_scene;
 
-		const float m_camera_move_speed = 0.8;
+		float m_camera_move_speed = 0.8;
+		float m_camera_rotate_speed = 0.005;
 
 		/*Camera* selected_cam;
 		SceneObject* selected_obj;
@@ -46,6 +47,7 @@ namespace Chroma
 		void DrawInspector();
 		void DrawRayTracedFrame();
 		void DrawSceneInfo();
+		void DrawEditorInfo();
 		void HandleKeyBoardNavigation();
 	};
 

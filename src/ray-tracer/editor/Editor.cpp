@@ -1,6 +1,13 @@
 #include "Editor.h"
 #include <thirdparty/glm/glm/glm.hpp>
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+
+static float wheel_y_offset = 0.8;
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	wheel_y_offset += yoffset * 0.05;
+}
 
 namespace Chroma
 {
@@ -18,6 +25,8 @@ namespace Chroma
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(m_window->m_window_handle, true);
 			ImGui_ImplOpenGL3_Init("#version 130");
+			//set scroll back
+			glfwSetScrollCallback(m_window->m_window_handle, scroll_callback);
 			InitSkin();
 
 		}
@@ -58,6 +67,7 @@ namespace Chroma
 		DrawInspector();
 		DrawRayTracedFrame();
 		DrawSceneInfo();
+		DrawEditorInfo();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -190,13 +200,13 @@ namespace Chroma
 			ImGui::SameLine();
 			glm::vec3 tmp_gaze = m_scene->m_cameras[selected_name]->GetGaze();
 			ImGui::DragFloat3("##5", &(tmp_gaze.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_cameras[selected_name]->SetGaze(tmp_gaze);
+			m_scene->m_cameras[selected_name]->SetGaze(glm::normalize(tmp_gaze));
 
 			if (ImGui::Button("U##3"))m_scene->m_cameras[selected_name]->SetUp(glm::vec3(0.0, 1.0, 0.0));
 			ImGui::SameLine();
 			glm::vec3 tmp_up = m_scene->m_cameras[selected_name]->GetUp();
 			ImGui::DragFloat3("##6", &(tmp_up.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_cameras[selected_name]->SetUp(tmp_up);
+			m_scene->m_cameras[selected_name]->SetUp(glm::normalize(tmp_up));
 
 			ImGui::Separator();
 			char* tmp_buf = strdup(m_scene->m_cameras[selected_name]->GetImageName().c_str());
@@ -450,34 +460,104 @@ namespace Chroma
 
 		ImGui::End();
 	}
+	void Editor::DrawEditorInfo()
+	{
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | 
+			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
+		ImGui::Begin("Editor Info", 0, flags);
+		ImGui::SetWindowPos(ImVec2(5, 5));
+		ImGui::Text("Camera Movement Speed: %f", m_camera_move_speed);
+		ImGui::SetWindowPos(ImVec2(5, 10));
+		ImGui::Text("Camera Rotation Speed: %f", m_camera_rotate_speed);
+		ImGui::End();
+	}
+	float yaw = -90.0f;
+	float pitch = 90.0f;
 	void Editor::HandleKeyBoardNavigation()
 	{
 		auto cam = m_scene->m_cameras[m_scene->active_cam_name];
-		glm::vec3 forward = glm::normalize(cam->GetGaze() - cam->GetPosition());
+		glm::vec3 forward = glm::normalize(cam->GetGaze());
 		glm::vec3 right = glm::cross(forward, glm::normalize(cam->GetUp()));
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_W])
 		{
 			cam->SetPosition(cam->GetPosition() + forward * m_camera_move_speed);
-			cam->SetGaze(cam->GetPosition() + forward);
+			cam->SetGaze( forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_S])
 		{
 			cam->SetPosition(cam->GetPosition() - forward * m_camera_move_speed);
-			cam->SetGaze(cam->GetPosition() + forward);
+			cam->SetGaze(forward);
 		}
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_A])
 		{
 			cam->SetPosition(cam->GetPosition() - glm::normalize(right) * m_camera_move_speed);
-			cam->SetGaze(cam->GetPosition() + forward);
+			cam->SetGaze( forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_D])
 		{
 			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_camera_move_speed);
-			cam->SetGaze(cam->GetPosition() + forward);
+			cam->SetGaze(forward);
 		}
+
+		if (ImGui::GetIO().KeyAlt && ImGui::IsMouseDragging(0) &&
+			ImGui::GetMouseDragDelta().x != 0.0 && ImGui::GetMouseDragDelta().y != 0.0)
+		{
+			glm::vec4 m_d;
+			m_d = glm::vec4(ImGui::GetMouseDragDelta().x, ImGui::GetMouseDragDelta().y, 0.1, 1.0);
+
+			//convert to world coords
+			/*glm::mat4 inv_mat = glm::inverse(cam->GetProjectionMatrix() * cam->GetViewMatrix());
+			glm::vec4 delta = m_d * inv_mat;
+			delta.w = 1.0 / delta.w;
+
+			delta.x *= delta.w;
+			delta.y *= delta.w;
+			delta.z *= delta.w;
+
+			cam->SetGaze(glm::normalize(cam->GetGaze() + glm::vec3(delta) * m_camera_rotate_speed));
+
+			m_d = glm::vec4();*/
+
+			/*if (firstMouse)
+			{
+				lastX = xpos;
+				lastY = ypos;
+				firstMouse = false;
+			}*/
+
+			float xoffset = ImGui::GetMouseDragDelta(0, 1.0).x; //xpos - lastX;
+			float yoffset = ImGui::GetMouseDragDelta(0, 1.0).y; //lastY - ypos;
+			/*lastX = xpos;
+			lastY = ypos;*/
+
+			float sensitivity = m_camera_rotate_speed*0.05;
+			xoffset *= sensitivity;
+			yoffset *= sensitivity;
+
+			yaw += xoffset;
+			pitch += yoffset;
+
+			if (pitch > 89.0f)
+				pitch = 89.0f;
+			if (pitch < -89.0f)
+				pitch = -89.0f;
+
+			glm::vec3 gaze = cam->GetPosition() + glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
+			cam->SetGaze(gaze);
+			/*direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+			direction.y = sin(glm::radians(pitch));
+			direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+			cameraFront = glm::normalize(direction);*/
+		}
+
+		if(ImGui::GetIO().KeyAlt)
+			m_camera_rotate_speed = glm::max(0.0f, m_camera_rotate_speed + wheel_y_offset * 0.1f);
+		else
+			m_camera_move_speed = glm::max(0.0f, m_camera_move_speed + wheel_y_offset);
+		wheel_y_offset = 0.0f;
 	}
 }
