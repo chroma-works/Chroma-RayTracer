@@ -19,5 +19,7 @@ namespace Chroma
 		glm::ivec2 m_resolution = { 800,800 };
 
 		Image* m_rendered_image;
+
+		bool intersect(SceneObject obj, Ray ray);
 	};
 }
