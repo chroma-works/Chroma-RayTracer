@@ -55,6 +55,11 @@ Asset importer for the scene files has been completed. It simply parses the xml 
 
 <img src= "resources/scene_import.gif">  
 **Figure 3:** Raster based render of the scene from editor.  
+
+Finally, everything is set. I have started working on the Ray Tracer. Some attemps are made Sphere-Ray intersection has been implemented and seems to be working. However rays are not allined properly. **Figure 4** includes a screenshot of the sphere in the scene. It should be noted that Ray Tracer currently just casts rays and paint the pixels if they hit. Nothing fancy yet.
+
+<img src= "resources/fail1.png">  
+**Figure 3:** 300x300 image of a ray traced sphere. Failed to properly set ray directions to the near plane. No lighting calculations are made. Just hit tests.  
            
 ## References
 <a id="1">[1]</a>
