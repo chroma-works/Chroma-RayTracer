@@ -20,8 +20,11 @@ int main()
 	CH_INFO("Chroma Ray Tracer v.0.8");
 
 	Chroma::Window* window = new  Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
+	Chroma::RayTracer* rt = new Chroma::RayTracer();
 	//init editor
 	Chroma::Editor editor(window, nullptr);
+
+	editor.SetRayTracer(rt);
 
 	// build and compile our shader program
 	// ------------------------------------
