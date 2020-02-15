@@ -300,10 +300,14 @@ namespace Chroma
 
 								std::string line;
 								std::istringstream stream(data);
+								mesh_verts = vertices;
+								mesh_normals.reserve(vertices.size());
+								mesh_normals.resize(vertices.size());
+								num_shared_faces.reserve(vertices.size());
+								num_shared_faces.resize(vertices.size());
 
 								while (std::getline(stream, line)) //read faces line by line
 								{
-
 									unsigned int ind[3];
 									std::istringstream iss(line);
 									iss >> ind[0] >> ind[1] >> ind[2];
@@ -323,9 +327,23 @@ namespace Chroma
 
 										glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
 
+										normal = (glm::cross(-a, -b));
+
 										for (int j = 0; j < 3; j++)
 										{
-											bool flag = true;
+											mesh_indices.push_back(ind[j] - 1);
+											if (std::isnan(mesh_normals[ind[j] - 1].x))
+											{
+												mesh_normals[ind[j] - 1] = (normal);
+												num_shared_faces[ind[j] - 1] = 1;
+											}
+											else
+											{
+												mesh_normals[ind[j] - 1] += normal;
+												num_shared_faces[ind[j] - 1]++;
+											}
+
+											/*bool flag = true;
 											int i = 0;
 											for (; (i < marked_indices.size()) && flag; i++)
 											{
@@ -344,12 +362,13 @@ namespace Chroma
 												mesh_normals[i-1] += normal; //sum face normal to cumulative sum
 												mesh_indices.push_back(mesh_indices[i-1]);//find the relevant index and push it again
 												num_shared_faces[mesh_indices[i-1]]++;//increment the number of faces for that vertex
-											}
+											}*/
+
 										}
 									}
 									for (int i = 0; i < num_shared_faces.size(); i++)
 									{
-										mesh_normals[i] = mesh_normals[i] / (float)num_shared_faces[i];//average vert. normals for shared faces
+										mesh_normals[i] = glm::normalize(mesh_normals[i]); /// (float)num_shared_faces[i];//average vert. normals for shared faces
 									}
 									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices.size() / 3);
 									mesh->m_indices = mesh_indices;
