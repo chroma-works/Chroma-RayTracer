@@ -12,5 +12,7 @@ namespace Chroma
 		Ray(glm::vec3 orig = glm::vec3(0, 0, 0), glm::vec3 dir = glm::vec3(0, 0, 0))
 			:origin(orig), direction(dir)
 		{}
+
+		glm::vec3 PointAt(float t) { return origin + t * direction; }
 	};
 }
