@@ -19,7 +19,8 @@ namespace Chroma
 		void AddCamera(std::string name, Camera* cam);
 
 		std::shared_ptr<SceneObject> GetSceneObject(std::string name) { return m_scene_objects[name]; }
-		Camera* GetCamera(std::string name) { return m_cameras[name]; }
+		inline Camera* GetCamera(std::string name) { return m_cameras[name]; }
+		//inline Camera* GetActiveCamera() { return m_cameras[active_cam_name]; }
 
 
 		void AddLight(std::string name, std::shared_ptr<DirectionalLight> li);
@@ -31,7 +32,7 @@ namespace Chroma
 		inline std::shared_ptr<SpotLight> GetSpotlLight(std::string name) { return m_spot_lights[name]; }
 
 
-		void Render(DrawMode = DrawMode::TRI);
+		void Render(Camera* cam, DrawMode = DrawMode::TRI);
 
 		glm::vec4 m_sky_color = {0.15f * 0.3, 0.15f * 0.3, 0.2f * 0.3, 1.0f };
 		glm::vec3 m_ambient_l = { 0.0, 0.0, 0.0f };
@@ -43,7 +44,6 @@ namespace Chroma
 
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
 		std::map<std::string, Camera*> m_cameras;
-		std::string active_cam_name = "";
 
 		std::map<std::string, std::shared_ptr<DirectionalLight>> m_dir_lights;
 		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;

@@ -37,6 +37,9 @@ namespace Chroma
 		bool m_render;
 		Scene* m_scene;
 
+		std::string act_editor_cam_name = "";
+		std::string act_rt_cam_name = "";
+
 		float m_camera_move_speed = 0.8;
 		float m_camera_rotate_speed = 0.005;
 		unsigned int rendered_frame_texture_id;

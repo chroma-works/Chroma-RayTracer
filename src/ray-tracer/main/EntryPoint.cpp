@@ -21,15 +21,18 @@ int main()
 
 	Chroma::Window* window = new  Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	Chroma::RayTracer* rt = new Chroma::RayTracer();
-	//init editor
-	Chroma::Editor editor(window, nullptr);
-
-	editor.SetRayTracer(rt);
 
 	// build and compile our shader program
 	// ------------------------------------
 	// Create and compile our GLSL program from the shaders
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
+
+	std::shared_ptr<Chroma::Scene> scene;
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/simple.xml")));
+	//init editor
+	Chroma::Editor editor(window, scene.get());
+
+	editor.SetRayTracer(rt);
 
 	//Model import
 	Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/utah_teapot.obj");
@@ -49,9 +52,7 @@ int main()
 	box->SetTexture(*texture);
 	box->SetMaterial(*mat);
 
-	std::shared_ptr<Chroma::Scene> scene;
-
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/simple.xml"))); //std::make_shared<Chroma::Scene>("The scene", shader);
+	 //std::make_shared<Chroma::Scene>("The scene", shader);
 	/*scene->AddSceneObject("teapot", teapot);
 	scene->AddSceneObject("box", box);*/
 
@@ -99,9 +100,6 @@ int main()
 	while (!window->ShouldClose())
 	{
 		editor.OnUpdate();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		scene->Render();
-
 	}
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.

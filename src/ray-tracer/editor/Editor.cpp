@@ -22,6 +22,9 @@ namespace Chroma
 			m_scene = scene;
 			m_render = false;
 
+			act_editor_cam_name = m_scene->m_cameras.begin()->first;
+			act_rt_cam_name = act_editor_cam_name;
+
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(m_window->m_window_handle, true);
 			ImGui_ImplOpenGL3_Init("#version 130");
@@ -55,6 +58,8 @@ namespace Chroma
 		OnDraw();
 		HandleKeyBoardNavigation();
 		m_window->OnUpdate();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		m_scene->Render(m_scene->GetCamera(act_editor_cam_name));
 	}
 
 	void Editor::OnDraw()
@@ -182,9 +187,9 @@ namespace Chroma
 		}
 		else if (selected_item_type == SELECTION_TYPE::cam)
 		{
-			bool tmp = m_scene->active_cam_name.compare(selected_name) == 0;
+			bool tmp = act_editor_cam_name.compare(selected_name) == 0;
 			ImGui::Checkbox("Editor Camera", &tmp);
-			m_scene->active_cam_name = tmp ? selected_name : m_scene->active_cam_name;
+			act_editor_cam_name = tmp ? selected_name : act_editor_cam_name;
 
 			ImGui::Separator();
 
@@ -340,6 +345,12 @@ namespace Chroma
 		ImGui::InputInt2("Resolution", (int*)&res.x);
 		if (ImGui::Button("Toggle Render"))
 			m_render = !m_render;
+		if (ImGui::Button("Save Frame"))
+		{
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName() + ".png";
+			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+		}
+
 		ImGui::EndChild();
 
 		if (res != ray_tracer->m_resolution)
@@ -352,7 +363,7 @@ namespace Chroma
 		}
 		if (m_render)
 		{
-			ray_tracer->Render(*m_scene);
+			ray_tracer->Render(m_scene->m_cameras[act_rt_cam_name],  *m_scene);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 		}
@@ -486,10 +497,10 @@ namespace Chroma
 		ImGui::End();
 	}
 	float yaw = -90.0f;
-	float pitch = 90.0f;
+	float pitch = 180.0f;
 	void Editor::HandleKeyBoardNavigation()
 	{
-		auto cam = m_scene->m_cameras[m_scene->active_cam_name];
+		auto cam = m_scene->m_cameras[act_editor_cam_name];
 		glm::vec3 forward = glm::normalize(cam->GetGaze());
 		glm::vec3 right = glm::cross(forward, glm::normalize(cam->GetUp()));
 

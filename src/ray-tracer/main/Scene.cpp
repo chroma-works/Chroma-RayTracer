@@ -29,12 +29,6 @@ namespace Chroma
 
 	void Scene::AddCamera(std::string name, Camera* cam)
 	{
-		static bool flag = true;
-		if (flag)//default set first cam added as active cam
-		{
-			flag = false;
-			active_cam_name = name;
-		}
 		m_cameras[name] = cam;
 	}
 
@@ -57,11 +51,15 @@ namespace Chroma
 	}
 
 
-	void Scene::Render(DrawMode mode)
+	void Scene::Render(Camera* cam, DrawMode mode)
 	{
-		m_scene_data->SetView(m_cameras[active_cam_name]->GetViewMatrix());
-		m_scene_data->SetProj(m_cameras[active_cam_name]->GetProjectionMatrix());
-		m_scene_data->SetCamPos(m_cameras[active_cam_name]->GetPosition());
+		if (!cam)
+			cam = m_cameras.begin()->second;
+		if (!cam)
+			CH_FATAL("Failed to render no valid Camera Provided!");
+		m_scene_data->SetView(cam->GetViewMatrix());
+		m_scene_data->SetProj(cam->GetProjectionMatrix());
+		m_scene_data->SetCamPos(cam->GetPosition());
 		for (std::pair<std::string, std::shared_ptr<SceneObject>> element : m_scene_objects)
 		{
 			std::shared_ptr<SceneObject> scn_obj = element.second;

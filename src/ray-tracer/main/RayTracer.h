@@ -11,7 +11,7 @@ namespace Chroma
 	public:
 		RayTracer();
 
-		void Render(Scene& scene);
+		void Render(Camera* cam, Scene& scene);
 		void SetResoultion(const glm::ivec2& resolution);
 
 	private:
