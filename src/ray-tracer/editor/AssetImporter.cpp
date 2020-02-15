@@ -99,12 +99,12 @@ namespace Chroma
 			else if (std::string(node->Value()).compare(S_RAY_EPS) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				CH_TRACE(data);
+				sscanf(data.c_str(), "%f", &scene->m_shadow_eps);
 			}
 			else if (std::string(node->Value()).compare(I_TEST_EPS) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				CH_TRACE(data);
+				sscanf(data.c_str(), "%f", &scene->m_intersect_eps);
 			}
 			else if (std::string(node->Value()).compare(CAMS) == 0)
 			{

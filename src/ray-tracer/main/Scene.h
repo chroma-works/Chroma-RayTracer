@@ -35,6 +35,8 @@ namespace Chroma
 
 		glm::vec4 m_sky_color = {0.15f * 0.3, 0.15f * 0.3, 0.2f * 0.3, 1.0f };
 		glm::vec3 m_ambient_l = { 0.0, 0.0, 0.0f };
+		float m_shadow_eps = 1e-3 ;
+		float m_intersect_eps = 1e-6;
 	private:
 		friend class Editor;
 		std::string m_name;
