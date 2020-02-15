@@ -347,8 +347,9 @@ namespace Chroma
 			m_render = !m_render;
 		if (ImGui::Button("Save Frame"))
 		{
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName() + ".png";
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
 			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+			CH_INFO("Image Saved to" + file_name);
 		}
 
 		ImGui::EndChild();
