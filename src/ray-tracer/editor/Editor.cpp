@@ -321,27 +321,41 @@ namespace Chroma
 	}
 	void Editor::DrawRayTracedFrame()
 	{
-		float f = 5.0f;
-		glm::ivec2 DUMMY_RES = glm::ivec2(1080, 720);
+		static glm::ivec2 res = ray_tracer->m_resolution;
 		static bool flag = true;
 		if (flag)
 		{
 			flag = false;
 			ImGui::SetNextWindowSize(ImVec2(820, 480));
+			glGenTextures(1, &rendered_frame_texture_id);
 		}
 		ImGui::Begin("Ray Tracer", 0, ImGuiWindowFlags_None);
 		ImGui::Text( "Ray Traced Frame");
-		float cw = ImGui::GetContentRegionAvailWidth() * 0.7f;
+		float cw = ImGui::GetContentRegionAvailWidth() * 0.65f;
 
-
-		ImGui::Image((ImTextureID)(intptr_t)200, ImVec2(cw, cw * DUMMY_RES.y / DUMMY_RES.x));
+		ImGui::Image((ImTextureID)(intptr_t)rendered_frame_texture_id, ImVec2(cw, cw * ray_tracer->m_resolution.y / ray_tracer->m_resolution.x));
 		ImGui::SameLine();
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
-			ImGui::InputInt2("Resolution", (int*)&DUMMY_RES.x);
-			if (ImGui::Button("Toggle Render"))
-				m_render = !m_render;
+		ImGui::InputInt2("Resolution", (int*)&res.x);
+		if (ImGui::Button("Toggle Render"))
+			m_render = !m_render;
 		ImGui::EndChild();
+
+		if (res != ray_tracer->m_resolution)
+		{
+			ray_tracer->SetResoultion(res);
+			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, 0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+		if (m_render)
+		{
+			ray_tracer->Render(*m_scene);
+			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+		}
 		ImGui::End();
 	}
 	void Editor::DrawSceneInfo()

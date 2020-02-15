@@ -2,8 +2,9 @@
 #include <thirdparty/imgui/imgui.h>
 #include "thirdparty/imgui/imgui_impl_glfw.h"
 #include "thirdparty/imgui/imgui_impl_opengl3.h"
-#include <ray-tracer/main/Window.h>
+#include <ray-tracer/main/RayTracer.h>
 #include <ray-tracer/main/Scene.h>
+#include <ray-tracer/main/Window.h>
 #include <string.h>
 
 
@@ -21,6 +22,7 @@ namespace Chroma
 		void operator=(Editor const&) = delete;
 
 		inline void SetScene(Scene* scene) { m_scene = scene; }
+		inline void SetRayTracer(RayTracer* rt) { ray_tracer = rt; }
 
 		void OnUpdate();
 		void OnDraw();
@@ -29,12 +31,15 @@ namespace Chroma
 
 		enum class SELECTION_TYPE{none, obj, cam, p_light, d_light, s_light};
 
+		RayTracer* ray_tracer;
+
 		Window* m_window;
 		bool m_render;
 		Scene* m_scene;
 
 		float m_camera_move_speed = 0.8;
 		float m_camera_rotate_speed = 0.005;
+		unsigned int rendered_frame_texture_id;
 
 		/*Camera* selected_cam;
 		SceneObject* selected_obj;
