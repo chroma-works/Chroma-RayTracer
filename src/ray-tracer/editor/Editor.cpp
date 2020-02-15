@@ -365,8 +365,11 @@ namespace Chroma
 		if (m_render)
 		{
 			ray_tracer->Render(m_scene->m_cameras[act_rt_cam_name],  *m_scene);
-			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			/*glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());*/
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
+			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+			m_render = false;
 		}
 		ImGui::End();
 	}
