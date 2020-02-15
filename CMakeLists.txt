@@ -40,6 +40,7 @@ set (thirdparty_sources
     src/thirdparty/imgui/imgui_internal.h
     src/thirdparty/imgui/imgui_widgets.cpp
 	src/thirdparty/stb_image/stb_image.h
+	src/thirdparty/stb_image/stb_image_write.h
 	src/thirdparty/OBJ_loader/OBJ_Loader.h
 )
 
@@ -53,6 +54,11 @@ set (main_sources
 	src/ray-tracer/main/EntryPoint.cpp
 	src/ray-tracer/main/Material.h
 	src/ray-tracer/main/Light.h
+	src/ray-tracer/main/Image.h
+	src/ray-tracer/main/Image.cpp
+	src/ray-tracer/main/Ray.h
+	src/ray-tracer/main/RayTracer.h
+	src/ray-tracer/main/RayTracer.cpp
 	src/ray-tracer/main/Scene.h
 	src/ray-tracer/main/Scene.cpp
 	src/ray-tracer/main/SceneObject.h
