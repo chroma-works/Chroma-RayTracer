@@ -357,7 +357,6 @@ namespace Chroma
 		if (res != ray_tracer->m_resolution)
 		{
 			ray_tracer->SetResoultion(res);
-
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, 0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
@@ -369,9 +368,9 @@ namespace Chroma
 			ray_tracer->Render(m_scene->m_cameras[act_rt_cam_name],  *m_scene);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
-			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
-			m_render = false;
+			//std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
+			//ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+			//m_render = false;
 		}
 		ImGui::End();
 	}
