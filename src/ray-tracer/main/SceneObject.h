@@ -122,9 +122,9 @@ namespace Chroma
 
 
 		inline void SetTexture(Chroma::Texture tex) { m_texture = tex; }
-		inline void SetMaterial(Material mat) { m_material = mat; }
+		inline void SetMaterial(Material mat) { *m_material = mat; }
 
-		inline Material GetMaterial() { return m_material; }
+		inline Material* GetMaterial() { return m_material; }
 
 		inline RT_INTR_METHOD GetRTIntersectionMethod() { return m_method; }
 
@@ -134,6 +134,7 @@ namespace Chroma
 		void Draw(DrawMode mode);
 
 		float m_radius;
+		Mesh m_mesh; //TODO: multiple mesh ?
 
 	private:
 		void RecalculateModelMatrix();
@@ -151,9 +152,8 @@ namespace Chroma
 		glm::mat4 m_model_matrix = glm::mat4(1.0);
 
 		Chroma::Texture m_texture;
-		Material m_material = Material();
+		Material* m_material;
 
-		Mesh m_mesh; //TODO: multiple mesh ?
 
 		RT_INTR_METHOD m_method;
 

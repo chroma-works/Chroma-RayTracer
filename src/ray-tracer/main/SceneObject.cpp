@@ -82,6 +82,8 @@ namespace Chroma
 			m_radius = 1.0f;
 		}
 
+		m_material = new Material();
+
 		//Vertex positions buffer
 		std::shared_ptr<Chroma::OpenGLVertexBuffer> position_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)m_mesh.m_vertex_positions.data(),
 			m_mesh.m_vertex_positions.size() * sizeof(GLfloat) * 3);
