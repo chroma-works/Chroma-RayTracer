@@ -3,26 +3,35 @@
 
 namespace Chroma
 {
+
+#define T_MAX 100000;
+
 	RayTracer::RayTracer()
 	{
 		m_rendered_image = new Image(m_resolution.x, m_resolution.y);
-
 	}
 
 
 	void RayTracer::Render(Camera* cam, Scene& scene)
 	{
+		m_intersect_eps = scene.m_intersect_eps;
 		glm::vec3 cam_pos = cam->GetPosition();
-		glm::vec3 cam_gaze = glm::normalize(cam->GetGaze());
 		glm::vec2 top_left = cam->GetNearPlane()[0];
 		glm::vec2 bottom_right = cam->GetNearPlane()[1];
 		float dist = cam->GetNearDist();
-		glm::vec3 up_v = glm::normalize(cam->GetUp());
-		glm::vec3 right_v = glm::normalize(glm::cross(cam_gaze, up_v));
-		glm::vec3 top_left_world_coord = cam_pos + top_left.y * up_v + top_left.x * -right_v;
-		CH_TRACE(top_left_world_coord.x);
-		CH_TRACE(top_left_world_coord.y);
-		CH_TRACE(top_left_world_coord.z);
+
+		glm::vec3 up = glm::normalize(cam->GetUp());
+		glm::vec3 forward = glm::normalize(cam->GetGaze());
+		glm::vec3 down = -up;
+		glm::vec3 right = glm::normalize(glm::cross(forward, up));
+		glm::vec3 left = -right;
+
+		const glm::vec3 top_left_w = cam_pos + forward + up * top_left.y + left * glm::abs(top_left.x);
+
+		Ray ray(cam_pos - forward * dist);
+
+		const glm::vec3 right_step = (right) * glm::abs(top_left.x-bottom_right.x) / (float)m_resolution.x;
+		const glm::vec3 down_step = (down) *glm::abs(top_left.y - bottom_right.y) / (float)m_resolution.y;
 
 		for (int i = 0; i < m_resolution.x; i++)
 		{
@@ -30,33 +39,43 @@ namespace Chroma
 			{
 				glm::vec3 color = scene.m_sky_color;
 
-
-
-				/*float u = float(i) / float(m_resolution.x);
-				float v = float(j) / float(m_resolution.y);*/
-
-				float pw = float(top_left.x - bottom_right.x)/ float(m_resolution.x);
-				float ph = float(top_left.y - bottom_right.y) / float(m_resolution.y);
-
-				glm::vec3 q = top_left_world_coord + pw * (i + 0.5f) * right_v + ph * (j + 0.5f) * -up_v;
-
-				Ray ray(cam_pos - cam_gaze * dist, glm::normalize(q));
+				ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f)  - ray.origin);
 
 				std::map<std::string, std::shared_ptr<SceneObject>>::iterator it;
 				for (it = scene.m_scene_objects.begin(); it != scene.m_scene_objects.end(); it++)
 				{
-					if (intersect(*(it->second.get()), ray))
+					IntersectionData* intersection_data = new IntersectionData();
+					if (Intersect((it->second.get()), ray, intersection_data))//Hit
 					{
-						CH_TRACE("HIT!");
-						color += glm::vec3(255, 255, 255);
+						//lighting calculation
+						std::map<std::string, std::shared_ptr<PointLight>>::iterator it2;
+						for (it2 = scene.m_point_lights.begin(); it2 != scene.m_point_lights.end(); it2++)
+						{
+							std::shared_ptr<PointLight> pl = it2->second;
+							glm::vec3 w0 = pl->position - ray.origin;
+							glm::vec3 w1 = pl->position - intersection_data->position;
+							float d = glm::distance(pl->position, intersection_data->position);
+
+							//Ka * Ia
+							glm::vec3 ambiance = scene.m_ambient_l * intersection_data->material->ambient;
+
+							//Kd * I * cos(theta) /d^2 
+							glm::vec3 diffuse = intersection_data->material->diffuse * pl->diffuse *
+								glm::dot(intersection_data->normal, w1) / (glm::length(intersection_data->normal) * glm::length(w1)) /
+								(d*d);
+							//Ks* I * max(0, h . n) / d^2
+							glm::vec3 h = (w0 + w1) / glm::length(w0 + w1);
+							glm::vec3 specular = intersection_data->material->specular * pl->specular *
+								glm::max(0.0f, glm::dot(h, intersection_data->normal)) / (d * d);
+
+							color = ambiance + diffuse + specular;
+						}
 					}
 				}
 
 				m_rendered_image->SetPixel(i, j, color);
 			}
-			CH_TRACE(i);
 		}
-		CH_TRACE("Rendered");
 	}
 
 	void RayTracer::SetResoultion(const glm::ivec2& resolution)
@@ -71,17 +90,135 @@ namespace Chroma
 		m_rendered_image = new Image(m_resolution.x, m_resolution.y);
 	}
 
-	bool RayTracer::intersect(SceneObject obj, Ray ray)
+	bool RayTracer::Intersect(SceneObject* obj, Ray ray, IntersectionData* intersection_data)
 	{
 		//SPHERE INTERSECTION
-		if (obj.GetRTIntersectionMethod() == RT_INTR_METHOD::sphere)
+		if (obj->GetRTIntersectionMethod() == RT_INTR_METHOD::sphere)
 		{
 			float a = glm::dot(ray.direction, ray.direction);
-			float b = 2.0f * glm::dot(ray.direction, (ray.origin - obj.GetPosition()));
-			float c = glm::dot(ray.origin - obj.GetPosition(), ray.origin - obj.GetPosition()) - obj.m_radius * obj.m_radius;
+			float b = 2.0f * glm::dot(ray.direction, (ray.origin - obj->GetPosition()));
+			float c = glm::dot(ray.origin - obj->GetPosition(), ray.origin - obj->GetPosition()) - obj->m_radius * obj->m_radius;
 
-			//float t1 = - b - glm::sqrt(b * b - 4 * a * c)/(2.0f * a);
-			return b * b - 4 * a * c > 0;
+			float t0, t1;
+			float discr = b * b - 4 * a * c;
+			if (discr < 0) 
+				return false;
+			else if (discr == 0) //single root
+				t0 = t1 = -0.5 * b / a;
+			else {
+				float q = (b > 0) ?
+					-0.5 * (b + glm::sqrt(discr)) : -0.5 * (b - glm::sqrt(discr));
+				t0 = q / a;
+				t1 = c / q;
+			}
+			if (t0 > t1) 
+				std::swap(t0, t1);
+
+			if (t0 < 0) {
+				t0 = t1; // if t0 is negative, let's use t1 instead 
+				if (t0 < 0) return false; // both t0 and t1 are negative 
+			}
+
+			intersection_data->hit = discr > m_intersect_eps;
+			intersection_data->material = obj->GetMaterial();
+			intersection_data->position = ray.PointAt(t0);
+			intersection_data->normal = glm::normalize(intersection_data->position - obj->GetPosition());
+			intersection_data->uv = glm::vec2(glm::atan(intersection_data->position.z, intersection_data->position.x),
+				glm::acos(intersection_data->position.y / obj->m_radius));
+
+			return intersection_data->hit;
+		}
+		//TRIANGLE INTERSECTION
+		else if (obj->GetRTIntersectionMethod() == RT_INTR_METHOD::triangle)
+		{
+			std::vector<glm::vec3*> verts;
+			std::vector<glm::vec3*> norms;
+
+			verts.reserve(3);
+			verts.resize(3);
+			verts[0] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[0]];
+			verts[1] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[1]];
+			verts[2] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[2]];
+
+			norms.reserve(3);
+			norms.resize(3);
+			norms[0] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[0]];
+			norms[1] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[1]];
+			norms[2] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[2]];
+
+
+			if (IntersectTriangle(verts, norms, ray, intersection_data))
+			{
+				intersection_data->material = obj->GetMaterial();
+				return intersection_data->hit;
+			}
+		}
+		//MESH INTERSECTION (multiple tringles)
+		else if (obj->GetRTIntersectionMethod() == RT_INTR_METHOD::mesh)
+		{
+			std::vector<glm::vec3*> verts;
+			verts.reserve(3);
+			verts.resize(3);
+
+			std::vector<glm::vec3*> norms;
+			norms.reserve(3);
+			norms.resize(3);
+
+			for (int i = 0; i < obj->m_mesh.GetFaceCount(); i++) 
+			{
+				verts[0] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3]];
+				verts[1] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3 + 1]];
+				verts[2] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3 + 2]];
+				norms[0] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[i * 3]];
+				norms[1] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[i * 3 + 1]];
+				norms[2] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[i * 3 + 2]];
+
+				if (IntersectTriangle(verts, norms, ray, intersection_data))
+				{
+					intersection_data->material = obj->GetMaterial();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	bool RayTracer::IntersectTriangle(std::vector<glm::vec3*> vertices, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_data)
+	{
+		if (vertices.size() != 3)
+		{
+			CH_WARN("Non triangle object fed into intersetion method");
+			return false;
+		}
+		glm::vec3 v0 = *vertices[0];
+		glm::vec3 v1 = *vertices[1];
+		glm::vec3 v2 = *vertices[2];
+
+		glm::vec3 v0v1 = v1 - v0;
+		glm::vec3 v0v2 = v2 - v0;
+		glm::vec3 pvec = glm::cross(ray.direction, v0v2);
+		float det = glm::dot(v0v1, pvec);
+
+		if (det >= m_intersect_eps)
+		{
+			float invDet = 1 / det;
+
+			glm::vec3 tvec = ray.origin - v0;
+			float u = glm::dot(tvec, (pvec)) * invDet;
+			if (u < 0 || u > 1) return false;
+
+			glm::vec3 qvec = glm::cross(tvec, v0v1);
+			float v = glm::dot(ray.direction, (qvec)) * invDet;
+			if (v < 0 || u + v > 1) return false;
+
+			float t = glm::dot(v0v2, qvec) * invDet;
+
+			intersection_data->hit = true;
+			intersection_data->position = ray.PointAt(t);
+			intersection_data->normal = u * (*normals[0]) + v * (*normals[1]) + (1 - u - v) * (*normals[2]);
+			intersection_data->uv = { u,v };
+
+			return intersection_data->hit;
 		}
 		return false;
 	}

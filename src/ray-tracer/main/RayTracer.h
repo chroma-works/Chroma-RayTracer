@@ -17,9 +17,11 @@ namespace Chroma
 	private:
 		friend class Editor;
 		glm::ivec2 m_resolution = { 800,800 };
+		float m_intersect_eps;
 
 		Image* m_rendered_image;
 
-		bool intersect(SceneObject obj, Ray ray);
+		bool Intersect(SceneObject* obj, Ray ray, IntersectionData* intersection_data);
+		bool IntersectTriangle(std::vector<glm::vec3*> edges, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_dat);
 	};
 }
