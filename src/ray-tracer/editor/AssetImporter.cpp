@@ -143,7 +143,7 @@ namespace Chroma
 						{
 							std::string data = cam_prop->FirstChild()->Value();
 							glm::vec2 vec[2];
-							sscanf(data.c_str(), "%f %f %f, %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
+							sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
 							cam->SetNearPlane(vec);
 						}
 						else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
