@@ -39,6 +39,9 @@ namespace Chroma
 		float m_shadow_eps = 1e-3 ;
 		float m_intersect_eps = 1e-6;
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
+		std::map<std::string, std::shared_ptr<DirectionalLight>> m_dir_lights;
+		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;
+		std::map<std::string, std::shared_ptr<SpotLight>> m_spot_lights;
 
 	private:
 		friend class Editor;
@@ -46,9 +49,6 @@ namespace Chroma
 
 		std::map<std::string, Camera*> m_cameras;
 
-		std::map<std::string, std::shared_ptr<DirectionalLight>> m_dir_lights;
-		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;
-		std::map<std::string, std::shared_ptr<SpotLight>> m_spot_lights;
 
 
 		class SceneData
