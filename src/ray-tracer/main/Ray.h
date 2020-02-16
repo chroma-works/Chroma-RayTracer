@@ -1,5 +1,6 @@
 #pragma once
 #include <thirdparty/glm/glm/glm.hpp>
+#include <ray-tracer/main/Material.h>
 
 namespace Chroma
 {
@@ -14,5 +15,16 @@ namespace Chroma
 		{}
 
 		glm::vec3 PointAt(float t) { return origin + t * direction; }
+	};
+
+	struct IntersectionData
+	{
+		glm::vec3 position;
+		glm::vec3 normal;
+		glm::vec2 uv;
+
+		Material* material;
+
+		bool hit;
 	};
 }
