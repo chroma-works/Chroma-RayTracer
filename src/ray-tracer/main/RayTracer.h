@@ -17,6 +17,7 @@ namespace Chroma
 	private:
 		friend class Editor;
 		glm::ivec2 m_resolution = { 800,800 };
+		bool m_calc_shdws = false;
 		float m_intersect_eps;
 
 		Image* m_rendered_image;
