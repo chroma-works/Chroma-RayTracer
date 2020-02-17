@@ -42,6 +42,7 @@ namespace Chroma
 		std::string m_img_name = "no_set";
 
 		void RecalculateViewMatrix();
+		void RecalculateUp();
 
 		glm::mat4 m_projection_matrix;
 		glm::mat4 m_view_matrix;

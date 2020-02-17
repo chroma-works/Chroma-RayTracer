@@ -16,4 +16,9 @@ namespace Chroma
 		m_view_matrix = glm::lookAt(m_pos, m_gaze + m_pos, m_up);
 		m_view_projection_matrix = m_projection_matrix * m_view_matrix;
 	}
+	void Camera::RecalculateUp()
+	{
+		glm::vec3 u = glm::normalize(glm::cross(-m_gaze, m_up));
+		SetUp(glm::normalize(glm::cross(u, -m_gaze)));
+	}
 }
