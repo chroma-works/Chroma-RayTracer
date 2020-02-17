@@ -1,4 +1,5 @@
 #include "Image.h"
+#include <ray-tracer/editor/Logger.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <thirdparty/stb_image/stb_image_write.h>
@@ -25,5 +26,6 @@ namespace Chroma
 	void Image::SaveToDisk(const char* file_name) const
 	{
 		stbi_write_png(file_name, m_width, m_height, 3, m_pixels, 3 * m_width);
+		CH_TRACE("Image Saved to" + std::string(file_name));
 	}
 }
