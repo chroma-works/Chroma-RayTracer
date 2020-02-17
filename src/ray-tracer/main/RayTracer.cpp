@@ -1,5 +1,6 @@
 #include "RayTracer.h"
 #include <thirdparty/glm/glm/glm.hpp>
+#include <limits>
 
 namespace Chroma
 {
@@ -28,7 +29,7 @@ namespace Chroma
 
 		const glm::vec3 top_left_w = cam_pos + forward + up * top_left.y + left * glm::abs(top_left.x);
 
-		Ray ray(cam_pos - forward * dist);
+		Ray camera_ray(cam_pos);
 
 		const glm::vec3 right_step = (right) * glm::abs(top_left.x-bottom_right.x) / (float)m_resolution.x;
 		const glm::vec3 down_step = (down) *glm::abs(top_left.y - bottom_right.y) / (float)m_resolution.y;
@@ -39,43 +40,68 @@ namespace Chroma
 			{
 				glm::vec3 color = scene.m_sky_color;
 
-				ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f)  - ray.origin);
+				camera_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) + forward * dist - camera_ray.origin);
 
+				//Go over scene objects and lights
+				float t_min = std::numeric_limits<float>::max();
 				std::map<std::string, std::shared_ptr<SceneObject>>::iterator it;
 				for (it = scene.m_scene_objects.begin(); it != scene.m_scene_objects.end(); it++)
 				{
 					IntersectionData* intersection_data = new IntersectionData();
-					if (Intersect((it->second.get()), ray, intersection_data))//Hit
+					if (it->second->IsVisible() && Intersect((it->second.get()), camera_ray, intersection_data)
+						&& (glm::distance(camera_ray.origin, intersection_data->position) < t_min))//Hit
 					{
+						color = {0,0,0};
+						t_min = glm::distance(camera_ray.origin, intersection_data->position);
 						//lighting calculation
 						std::map<std::string, std::shared_ptr<PointLight>>::iterator it2;
 						for (it2 = scene.m_point_lights.begin(); it2 != scene.m_point_lights.end(); it2++)
 						{
 							std::shared_ptr<PointLight> pl = it2->second;
-							glm::vec3 w0 = pl->position - ray.origin;
-							glm::vec3 w1 = pl->position - intersection_data->position;
-							float d = glm::distance(pl->position, intersection_data->position);
+							glm::vec3 e_vec = camera_ray.origin - pl->position;
+							glm::vec3 l_vec = pl->position - intersection_data->position;
 
-							//Ka * Ia
-							glm::vec3 ambiance = scene.m_ambient_l * intersection_data->material->ambient;
+							//Shadow calculation
+							bool shadowed = false;
+							IntersectionData* shd = new IntersectionData();
+							for (auto it3 = scene.m_scene_objects.begin(); !shadowed && it3 != scene.m_scene_objects.end() && m_calc_shdws; it3++)
+							{
+								//if (it == it3) it3++;
 
-							//Kd * I * cos(theta) /d^2 
-							glm::vec3 diffuse = intersection_data->material->diffuse * pl->diffuse *
-								glm::dot(intersection_data->normal, w1) / (glm::length(intersection_data->normal) * glm::length(w1)) /
-								(d*d);
-							//Ks* I * max(0, h . n) / d^2
-							glm::vec3 h = (w0 + w1) / glm::length(w0 + w1);
-							glm::vec3 specular = intersection_data->material->specular * pl->specular *
-								glm::max(0.0f, glm::dot(h, intersection_data->normal)) / (d * d);
+								Ray shadow_ray(intersection_data->position + intersection_data->normal * scene.m_shadow_eps);
+								shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
+								shadowed = Intersect(it3->second.get(), shadow_ray, shd) && 
+									glm::distance(shd->position, intersection_data->position) < glm::distance(intersection_data->position, pl->position) ;
+							}
+							delete shd;
 
-							color = ambiance + diffuse + specular;
+							if(!shadowed)
+							{
+								float d = glm::distance(pl->position, intersection_data->position);
+
+								//Kd * I * cos(theta) /d^2 
+								glm::vec3 diffuse = intersection_data->material->diffuse * pl->intensity *
+									glm::max(glm::dot(intersection_data->normal, l_vec), 0.0f)/  (glm::length(intersection_data->normal) * glm::length(l_vec))/(d*d);
+								//Ks* I * max(0, r . dir) / d^2
+								glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+								glm::vec3 r = glm::normalize(glm::reflect(l_vec, intersection_data->normal));
+								glm::vec3 specular = intersection_data->material->specular * pl->intensity *
+									glm::pow(glm::max(0.0f, glm::dot(r, camera_ray.direction)), it->second->GetMaterial()->shininess) / (d*d);
+
+								color += diffuse + specular;
+							}
 						}
+						//Ka * Ia
+						glm::vec3 ambient = scene.m_ambient_l * intersection_data->material->ambient;
+						color += ambient;
 					}
+					delete intersection_data;
 				}
-
-				m_rendered_image->SetPixel(i, j, color);
+				//CH_TRACE(std::to_string(((float)i) / ((float)m_resolution.x) * 100.0f) + std::string("% complete"));
+				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
 			}
 		}
+		CH_TRACE("Rendered");
 	}
 
 	void RayTracer::SetResoultion(const glm::ivec2& resolution)
@@ -100,14 +126,14 @@ namespace Chroma
 			float c = glm::dot(ray.origin - obj->GetPosition(), ray.origin - obj->GetPosition()) - obj->m_radius * obj->m_radius;
 
 			float t0, t1;
-			float discr = b * b - 4 * a * c;
+			double discr = b * b - 4 * a * c;
 			if (discr < 0) 
 				return false;
 			else if (discr == 0) //single root
 				t0 = t1 = -0.5 * b / a;
 			else {
 				float q = (b > 0) ?
-					-0.5 * (b + glm::sqrt(discr)) : -0.5 * (b - glm::sqrt(discr));
+					-0.5 * (b + (double)glm::sqrt(discr)) : -0.5 * (b - (double)glm::sqrt(discr));
 				t0 = q / a;
 				t1 = c / q;
 			}
@@ -199,7 +225,9 @@ namespace Chroma
 		glm::vec3 pvec = glm::cross(ray.direction, v0v2);
 		float det = glm::dot(v0v1, pvec);
 
-		if (det >= m_intersect_eps)
+		//if (fabs(det) < m_intersect_eps) return false;
+
+		if ((det) >= m_intersect_eps)
 		{
 			float invDet = 1 / det;
 
@@ -215,8 +243,7 @@ namespace Chroma
 
 			intersection_data->hit = true;
 			intersection_data->position = ray.PointAt(t);
-			intersection_data->normal = u * (*normals[0]) + v * (*normals[1]) + (1 - u - v) * (*normals[2]);
-			intersection_data->uv = { u,v };
+			intersection_data->normal = u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);//NAN GEL�YOR ��ZZ!!!!!!!!!!!!!!
 
 			return intersection_data->hit;
 		}
