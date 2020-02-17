@@ -165,7 +165,13 @@ namespace Chroma
 						}
 						cam_prop = cam_prop->NextSibling();
 					}
-
+					if (glm::dot(cam->GetGaze(), cam->GetUp()) != 0)
+					{
+						CH_INFO("Camera Up and gaze are not orthogonal. Recalculating up...");
+						glm::vec3 u = glm::cross(cam->GetGaze(), cam->GetUp());
+						glm::vec3 v_prime = glm::cross(-cam->GetGaze(), u);
+						cam->SetUp(v_prime);
+					}
 
 					scene->AddCamera(cam_name, cam);
 					child_node = child_node->NextSibling();
