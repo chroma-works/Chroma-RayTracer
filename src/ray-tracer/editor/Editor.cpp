@@ -326,7 +326,7 @@ namespace Chroma
 	}
 	void Editor::DrawRayTracedFrame()
 	{
-		static glm::ivec2 res = ray_tracer->m_resolution;
+		static glm::ivec2 res = m_scene->GetCamera(act_rt_cam_name)->m_res;
 		static bool flag = true;
 		if (flag)
 		{
@@ -334,25 +334,6 @@ namespace Chroma
 			ImGui::SetNextWindowSize(ImVec2(820, 480));
 			glGenTextures(1, &rendered_frame_texture_id);
 		}
-		ImGui::Begin("Ray Tracer", 0, ImGuiWindowFlags_None);
-		ImGui::Text( "Ray Traced Frame");
-		float cw = ImGui::GetContentRegionAvailWidth() * 0.65f;
-
-		ImGui::Image((ImTextureID)(intptr_t)rendered_frame_texture_id, ImVec2(cw, cw * ray_tracer->m_resolution.y / ray_tracer->m_resolution.x));
-		ImGui::SameLine();
-
-		ImGui::BeginChild("Settings", ImVec2(0, 0));
-		ImGui::InputInt2("Resolution", (int*)&res.x);
-		if (ImGui::Button("Toggle Render"))
-			m_render = !m_render;
-		if (ImGui::Button("Save Frame"))
-		{
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
-			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
-			CH_INFO("Image Saved to" + file_name);
-		}
-
-		ImGui::EndChild();
 
 		if (res != ray_tracer->m_resolution)
 		{
@@ -367,11 +348,48 @@ namespace Chroma
 		{
 			ray_tracer->Render(m_scene->m_cameras[act_rt_cam_name],  *m_scene);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
-			//std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
-			//ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
-			//m_render = false;
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			/*std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
+			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+			m_render = false;*/
 		}
+
+		ImGui::Begin("Ray Tracer", 0, ImGuiWindowFlags_None);
+		ImGui::Text("Ray Traced Frame");
+		float cw = ImGui::GetContentRegionAvailWidth() * 0.65f;
+
+		ImGui::Image((ImTextureID)(intptr_t)rendered_frame_texture_id, ImVec2(cw, cw * ray_tracer->m_resolution.y / ray_tracer->m_resolution.x));
+		ImGui::SameLine();
+
+		ImGui::BeginChild("Settings", ImVec2(0, 0));
+		ImGui::InputInt2("Resolution", (int*)&res.x);
+		
+		bool chng_color = false;
+		if (m_render)
+		{
+			chng_color = true;
+			ImGui::PushStyleColor(ImGuiCol_Button, DARK_PURPLE);
+		}
+		if (ImGui::Button("Toggle Render"))
+		{
+			m_render = !m_render;
+		}
+		if (chng_color)
+		{
+			ImGui::PopStyleColor();
+			chng_color = false;
+		}
+
+		ImGui::Checkbox("Shadows", &ray_tracer->m_calc_shdws);
+		ImGui::DragFloat("Shadow Bias", &m_scene->m_shadow_eps, 0.0001f, 0.0f, 0.8);
+
+		if (ImGui::Button("Save Frame"))
+		{
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
+			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+		}
+
+		ImGui::EndChild();
 		ImGui::End();
 	}
 	void Editor::DrawSceneInfo()
