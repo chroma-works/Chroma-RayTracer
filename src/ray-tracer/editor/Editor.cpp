@@ -379,9 +379,19 @@ namespace Chroma
 			ImGui::PopStyleColor();
 			chng_color = false;
 		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("Render once & Save"))
+		{
+			ray_tracer->Render(m_scene->m_cameras[act_rt_cam_name], *m_scene);
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
+			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+		}
 
 		ImGui::Checkbox("Shadows", &ray_tracer->m_calc_shdws);
-		ImGui::DragFloat("Shadow Bias", &m_scene->m_shadow_eps, 0.0001f, 0.0f, 0.8);
+		ImGui::DragFloat("Shadow Bias", &m_scene->m_shadow_eps, 0.00001f, 0.0f, 0.8, "%.6f");
 
 		if (ImGui::Button("Save Frame"))
 		{
