@@ -27,7 +27,7 @@ namespace Chroma
 		glm::vec3 right = glm::normalize(glm::cross(forward, up));
 		glm::vec3 left = -right;
 
-		const glm::vec3 top_left_w = cam_pos + forward + up * top_left.y + left * glm::abs(top_left.x);
+		const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
 
 		Ray camera_ray(cam_pos);
 
@@ -40,7 +40,7 @@ namespace Chroma
 			{
 				glm::vec3 color = scene.m_sky_color;
 
-				camera_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) + forward * dist - camera_ray.origin);
+				camera_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - camera_ray.origin);
 
 				//Go over scene objects and lights
 				float t_min = std::numeric_limits<float>::max();
