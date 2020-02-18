@@ -58,8 +58,8 @@ namespace Chroma
 						for (it2 = scene.m_point_lights.begin(); it2 != scene.m_point_lights.end(); it2++)
 						{
 							std::shared_ptr<PointLight> pl = it2->second;
-							glm::vec3 e_vec = camera_ray.origin - pl->position;
-							glm::vec3 l_vec = pl->position - intersection_data->position;
+							glm::vec3 e_vec = glm::normalize(camera_ray.origin - intersection_data->position);
+							glm::vec3 l_vec = glm::normalize(pl->position - intersection_data->position);
 
 							//Shadow calculation
 							bool shadowed = false;
