@@ -33,6 +33,7 @@ namespace Chroma
             }
 
             mesh->m_indices = curMesh.Indices;
+			mesh->SetFaceCount(mesh->m_indices.size() / 3);
 
         }
 
