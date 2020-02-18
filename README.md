@@ -9,6 +9,12 @@
 ## Introduction  
 This repository is meant to contain a simple implementation of the ray tracing algorithm. Hopefully will surpass its humble conception. This page will also be used as a blog to update on the development process. Developed for CENG795 course at METU(2019-2020 Spring Semester).
 
+<p align="center">
+<img src= "resources/editorprev.png" height="400">
+ </p>
+
+Here is a full preview of Chroma-Ray Tracer enviroment
+
 ## Build instructions for Windows  
 ### Requires:
 * Visual Stuido(VS) 17+
@@ -61,10 +67,39 @@ Finally, everything is set. I have started working on the Ray Tracer. Some attem
 <img src= "resources/fail.png">  
 **Figure 4:** 300x300 image of a ray traced sphere. Failed to properly set ray directions to the near plane. No lighting calculations are made. Just hit tests.   
   
-After some fiddeling with the code I have found the errors. And I was able to implement the ray tracer without shadows. **Figure 5** displays spheres scene without shadows. I have implemented Möller-Trumbore's method for ray-triangle intersections which is a efficient implementation of Cramer's rule[[2]](#2). The introductary article and the intersection methods on the scratch a pixel website was also utilized[[3]](#3).  
+After some fiddling with the code I have found the errors. One of the particular errors I have encountered was causing occluded objects to be rendered as if the objects that occlude them were "transparent"(see **Figure 5**). I quickly realised one must take the smallest t value when considering ray hits at ray direction t. After solving this problem, I was able to implement the ray tracer without shadows. **Figure 6** displays spheres scene without shadows. I have implemented Möller-Trumbore's method for ray-triangle intersections which is a efficient implementation of Cramer's rule[[2]](#2). The introductary article and the intersection methods on the scratch a pixel website was also utilized[[3]](#3). For the sphere intersection I implemented a simple "discriminant-based" method.  
 
-<img src= "resources/spheres_no_shadow.png" height="300">
-**Figure 5:** Shadowless render of spheres scene.  
+<img src= "resources/deptproblem.png" height="300">  
+**Figure 5:** Failed render of the Cornell box due to dept problem.   
+
+
+<img src= "resources/spheres_no_shadow.png" height="300">  
+**Figure 6:** Shadowless render of spheres scene. 
+
+## Week 3  
+To begin with shadows, I have implemented a loop that goes over all the scene objects to check if they occlude the light or not. I have used the same intersection methods in the **week 2** to check if the rays cast from intersection point to light position intersects with another scene object. However, this part deemed it self to be very challenging since there were small intricacies.  
+First of those intricacies was tracking the t value in the ray equation. This was important because our shadow rays may reach to the light and keep going until they intersect an object behind the light where we mark this ray as shadowed although it is not. **Figure 7** illustrates this problem. And **Figure 7** displays the render failure due to this error.  
+<img src= "resources/shdwraymiss.png" width="300"><img src= "resources/shdwraymissc.png" width="300">  
+**Figure 7:** On left object is shadowed due to extra intersection, on right correct calculation is shown.  
+
+<img src= "resources/cornellbox_wrong_t.png" height="300">  
+**Figure 8:** Failed render of the Cornell box due to incorrect shadowing.  
+
+Another problem I have encountered was the mistake in the Scratch a pixel's implementation of the Möller-Trumbore method. This implementation did not returned false when t in the ray equation is negative. So a ray that has an object behind it's origin returned true although it should not have. Of course this was not a problem for the camera rays since they did not encounter anythşng behind them yet this was causing problems when we triend to calculate shadow rays. Thats why this error went unnoticed until now(and possibly by the authors of the article [[3]](#3) ).  **Figure 9** Demonstrates the render failure due to this problem.
+I have tweeted about the problem if one deems this subject interesting he can follow the link: https://twitter.com/stlkr_v1/status/1229527293351124992  
+  
+<img src= "resources/scienceTreefail.png" height="300">  
+**Figure 9:** Render failure at the science tree scene due to negative t values for shadow rays.  
+
+To conclude interms of HW1, here are my final renders of all the scenes provided:  
+<img src= "resources/simple.png" height="400"> <img src= "resources/spheres.png" height="400">   
+<img src= "resources/cornellbox.png" height="400"> <img src= "resources/bunny.png" height="400">  
+**Figure 10:** Final renders for HW1. 
+  
+<img src= "resources/scienceTree.png" width = "804">  
+**Figure 11:** Final render of the ODTU "science tree" and logo. ***This can be considered as treason among "Bilkenters".***  
+
+
 
 ## References
 <a id="1">[1]</a>
