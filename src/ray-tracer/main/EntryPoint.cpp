@@ -52,9 +52,9 @@ int main()
 	box->SetTexture(*texture);
 	box->SetMaterial(*mat);
 
-	 //std::make_shared<Chroma::Scene>("The scene", shader);
-	scene->AddSceneObject("teapot", teapot);
-	scene->AddSceneObject("box", box);*/
+	 //std::make_shared<Chroma::Scene>("The scene", shader);*/
+	//scene->AddSceneObject("teapot", teapot);
+	//scene->AddSceneObject("box", box);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -75,9 +75,9 @@ int main()
 	std::shared_ptr<Chroma::SpotLight> sl = std::make_shared<Chroma::SpotLight>(glm::vec3(-20.0f, 0.0f, 40.0f), glm::vec3(0.0f, 0.0f, -1.0f),
 		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));*/
 
-	//scene->AddLight("point 1", pl);
-	//scene->AddLight("spot 1", sl);
-	//scene->AddLight("directional 1", dl);
+		//scene->AddLight("point 1", pl);
+		//scene->AddLight("spot 1", sl);
+		//scene->AddLight("directional 1", dl);
 
 	/*glm::vec4 dir({ 0.0f, 0.0f, 0.0f, 1.0f });
 
@@ -85,7 +85,7 @@ int main()
 	teapot->SetPosition({ 0.0f, -9.0f, 0.0f });
 	teapot->SetRotation(glm::quat({ glm::radians(0.0f), glm::radians(45.0f), glm::radians(0.0f) }));
 
-	box->SetScale({ .9f, .9f, .9f });
+	/*box->SetScale({ .9f, .9f, .9f });
 	box->SetPosition({ 35.0f, 0.0f, 0.0f });
 	box->RotateAngleAxis(glm::radians(0.0), glm::vec3(0.0, 0.0, 1.0));*/
 
