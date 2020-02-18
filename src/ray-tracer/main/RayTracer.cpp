@@ -97,9 +97,9 @@ namespace Chroma
 					}
 					delete intersection_data;
 				}
-				//CH_TRACE(std::to_string(((float)i) / ((float)m_resolution.x) * 100.0f) + std::string("% complete"));
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
 			}
+			CH_TRACE(std::to_string(((float)i) / ((float)m_resolution.x) * 100.0f) + std::string("% complete"));
 		}
 		CH_TRACE("Rendered");
 	}
@@ -145,7 +145,7 @@ namespace Chroma
 				if (t0 < 0) return false; // both t0 and t1 are negative 
 			}
 
-			intersection_data->hit = discr > m_intersect_eps;
+			intersection_data->hit = discr >= m_intersect_eps;
 			intersection_data->material = obj->GetMaterial();
 			intersection_data->position = ray.PointAt(t0);
 			intersection_data->normal = glm::normalize(intersection_data->position - obj->GetPosition());
@@ -171,7 +171,6 @@ namespace Chroma
 			norms[0] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[0]];
 			norms[1] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[1]];
 			norms[2] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[2]];
-
 
 			if (IntersectTriangle(verts, norms, ray, intersection_data))
 			{
@@ -202,7 +201,7 @@ namespace Chroma
 				if (IntersectTriangle(verts, norms, ray, intersection_data))
 				{
 					intersection_data->material = obj->GetMaterial();
-					return true;
+					return intersection_data->hit;
 				}
 			}
 		}
@@ -222,31 +221,32 @@ namespace Chroma
 
 		glm::vec3 v0v1 = v1 - v0;
 		glm::vec3 v0v2 = v2 - v0;
+
 		glm::vec3 pvec = glm::cross(ray.direction, v0v2);
 		float det = glm::dot(v0v1, pvec);
 
-		//if (fabs(det) < m_intersect_eps) return false;
+		intersection_data->hit = true;
+		if ((det) < m_intersect_eps) intersection_data->hit = false;
 
-		if ((det) >= m_intersect_eps)
-		{
-			float invDet = 1 / det;
+		float invDet = 1 / det;
 
-			glm::vec3 tvec = ray.origin - v0;
-			float u = glm::dot(tvec, (pvec)) * invDet;
-			if (u < 0 || u > 1) return false;
+		glm::vec3 tvec = ray.origin - v0;
+		float u = glm::dot(tvec, (pvec)) * invDet;
+		if (u < 0 || u > 1) intersection_data->hit = false;
 
-			glm::vec3 qvec = glm::cross(tvec, v0v1);
-			float v = glm::dot(ray.direction, (qvec)) * invDet;
-			if (v < 0 || u + v > 1) return false;
+		glm::vec3 qvec = glm::cross(tvec, v0v1);
+		float v = glm::dot(ray.direction, (qvec)) * invDet;
+		if (v < 0 || u + v > 1) intersection_data->hit = false;
 
-			float t = glm::dot(v0v2, qvec) * invDet;
+		float t = glm::dot(v0v2, qvec) * invDet;
 
-			intersection_data->hit = true;
-			intersection_data->position = ray.PointAt(t);
-			intersection_data->normal = u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);//NAN GEL�YOR ��ZZ!!!!!!!!!!!!!!
+		if (t < m_intersect_eps) return false;
 
-			return intersection_data->hit;
-		}
+		intersection_data->position = ray.PointAt(t);
+		intersection_data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);
+
+		return intersection_data->hit;
+
 		return false;
 	}
 
