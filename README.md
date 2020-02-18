@@ -86,7 +86,7 @@ First of those intricacies was tracking the t value in the ray equation. This wa
 **Figure 8:** Failed render of the Cornell box due to incorrect shadowing.  
 
 Another problem I have encountered was the mistake in the Scratch a pixel's implementation of the Möller-Trumbore method. This implementation did not returned false when t in the ray equation is negative. So a ray that has an object behind it's origin returned true although it should not have. Of course this was not a problem for the camera rays since they did not encounter anythşng behind them yet this was causing problems when we triend to calculate shadow rays. Thats why this error went unnoticed until now(and possibly by the authors of the article [[3]](#3) ).  **Figure 9** Demonstrates the render failure due to this problem.
-I have tweeted about the problem if one deems this subject interesting he can follow the link: https://twitter.com/stlkr_v1/status/1229527293351124992  
+I have tweeted about the problem if one deems this subject interesting he can follow the link: [https://twitter.com/stlkr_v1/status/1229527293351124992]  
   
 <img src= "resources/scienceTreefail.png" height="300">  
 **Figure 9:** Render failure at the science tree scene due to negative t values for shadow rays.  
