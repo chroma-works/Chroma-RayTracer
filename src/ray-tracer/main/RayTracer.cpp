@@ -70,7 +70,7 @@ namespace Chroma
 
 								Ray shadow_ray(intersection_data->position + l_vec * scene.m_shadow_eps);
 								shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
-								shadowed = Intersect(it3->second.get(), shadow_ray, shd) &&
+								shadowed = it3->second->IsVisible() && Intersect(it3->second.get(), shadow_ray, shd) &&
 									glm::distance(shd->position, intersection_data->position) < glm::distance(intersection_data->position, pl->position);
 								//CH_TRACE(std::string(it3->first + std::string(" is shadowed: ") + std::to_string(shadowed)));
 							}
@@ -158,14 +158,14 @@ namespace Chroma
 		//TRIANGLE INTERSECTION
 		else if (obj->GetRTIntersectionMethod() == RT_INTR_METHOD::triangle)
 		{
-			std::vector<glm::vec3*> verts;
+			std::vector<glm::vec3> verts;
 			std::vector<glm::vec3*> norms;
 
 			verts.reserve(3);
 			verts.resize(3);
-			verts[0] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[0]];
-			verts[1] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[1]];
-			verts[2] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[2]];
+			verts[0] = obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[0]] * obj->GetScale() + obj->GetPosition();
+			verts[1] = obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[1]] * obj->GetScale() + obj->GetPosition();
+			verts[2] = obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[2]] * obj->GetScale() + obj->GetPosition();
 
 			norms.reserve(3);
 			norms.resize(3);
@@ -182,7 +182,7 @@ namespace Chroma
 		//MESH INTERSECTION (multiple tringles)
 		else if (obj->GetRTIntersectionMethod() == RT_INTR_METHOD::mesh)
 		{
-			std::vector<glm::vec3*> verts;
+			std::vector<glm::vec3> verts;
 			verts.reserve(3);
 			verts.resize(3);
 
@@ -192,9 +192,9 @@ namespace Chroma
 
 			for (int i = 0; i < obj->m_mesh.GetFaceCount(); i++) 
 			{
-				verts[0] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3]];
-				verts[1] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3 + 1]];
-				verts[2] = &obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3 + 2]];
+				verts[0] = obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3]] * obj->GetScale() + obj->GetPosition();
+				verts[1] = obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3 + 1]] * obj->GetScale() + obj->GetPosition();
+				verts[2] = obj->m_mesh.m_vertex_positions[obj->m_mesh.m_indices[i * 3 + 2]] * obj->GetScale() + obj->GetPosition();
 				norms[0] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[i * 3]];
 				norms[1] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[i * 3 + 1]];
 				norms[2] = &obj->m_mesh.m_vertex_normals[obj->m_mesh.m_indices[i * 3 + 2]];
@@ -209,16 +209,16 @@ namespace Chroma
 		return false;
 	}
 
-	bool RayTracer::IntersectTriangle(std::vector<glm::vec3*> vertices, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_data)
+	bool RayTracer::IntersectTriangle(std::vector<glm::vec3> vertices, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_data)
 	{
 		if (vertices.size() != 3)
 		{
 			CH_WARN("Non triangle object fed into intersetion method");
 			return false;
 		}
-		glm::vec3 v0 = *vertices[0];
-		glm::vec3 v1 = *vertices[1];
-		glm::vec3 v2 = *vertices[2];
+		glm::vec3 v0 = vertices[0];
+		glm::vec3 v1 = vertices[1];
+		glm::vec3 v2 = vertices[2];
 
 		glm::vec3 v0v1 = v1 - v0;
 		glm::vec3 v0v2 = v2 - v0;

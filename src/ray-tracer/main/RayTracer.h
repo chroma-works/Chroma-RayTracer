@@ -23,6 +23,6 @@ namespace Chroma
 		Image* m_rendered_image;
 
 		bool Intersect(SceneObject* obj, Ray ray, IntersectionData* intersection_data);
-		bool IntersectTriangle(std::vector<glm::vec3*> edges, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_dat);
+		bool IntersectTriangle(std::vector<glm::vec3> vertices, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_dat);
 	};
 }

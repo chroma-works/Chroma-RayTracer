@@ -530,7 +530,7 @@ namespace Chroma
 		ImGui::End();
 	}
 	float yaw = -90.0f;
-	float pitch = 180.0f;
+	float pitch = 0.0f;
 	void Editor::HandleKeyBoardNavigation()
 	{
 		auto cam = m_scene->m_cameras[act_editor_cam_name];
