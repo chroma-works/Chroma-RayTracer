@@ -68,10 +68,11 @@ namespace Chroma
 							{
 								//if (it == it3) it3++;
 
-								Ray shadow_ray(intersection_data->position + intersection_data->normal * scene.m_shadow_eps);
+								Ray shadow_ray(intersection_data->position + l_vec * scene.m_shadow_eps);
 								shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
-								shadowed = Intersect(it3->second.get(), shadow_ray, shd) && 
-									glm::distance(shd->position, intersection_data->position) < glm::distance(intersection_data->position, pl->position) ;
+								shadowed = Intersect(it3->second.get(), shadow_ray, shd) &&
+									glm::distance(shd->position, intersection_data->position) < glm::distance(intersection_data->position, pl->position);
+								//CH_TRACE(std::string(it3->first + std::string(" is shadowed: ") + std::to_string(shadowed)));
 							}
 							delete shd;
 
@@ -84,11 +85,11 @@ namespace Chroma
 									glm::max(glm::dot(intersection_data->normal, l_vec), 0.0f)/  (glm::length(intersection_data->normal) * glm::length(l_vec))/(d*d);
 								//Ks* I * max(0, r . dir) / d^2
 								glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-								glm::vec3 r = glm::normalize(glm::reflect(l_vec, intersection_data->normal));
 								glm::vec3 specular = intersection_data->material->specular * pl->intensity *
-									glm::pow(glm::max(0.0f, glm::dot(r, camera_ray.direction)), it->second->GetMaterial()->shininess) / (d*d);
-
-								color += diffuse + specular;
+									glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(intersection_data->normal))), it->second->GetMaterial()->shininess) / (d * d);
+									//glm::pow(glm::max(0.0f, glm::dot(r, camera_ray.direction)), it->second->GetMaterial()->shininess) / (d*d);
+								//specular = (_isnan(specular.x) || _isnan(specular.y) || _isnan(specular.z)) ? glm::vec3({0, 0, 0}) : specular;
+								color += specular + diffuse;
 							}
 						}
 						//Ka * Ia
