@@ -15,5 +15,5 @@
  </p>  
  
  ## Gallery  
-<img src= "resources/fail3.png" width = "400" > <img src= "resources/light_bug.gif" >
+<img src= "resources/fail3.png" width = "300" > <img src= "resources/light_bug.gif" >
  
