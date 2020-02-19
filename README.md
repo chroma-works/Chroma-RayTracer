@@ -2,7 +2,7 @@
 ## Development Blog 
 ### Author:Alper Şahıstan([STLKRv1](https://github.com/STLKRv1))  
 
-[Accidental Art Page](ACCIDENTALART.md)
+[Accidental Art Page](ACCIDENTALART.html)
 
 <p align="center">
 <img src= "resources/logo_w.png" height="100">
