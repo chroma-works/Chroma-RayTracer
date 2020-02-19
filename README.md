@@ -17,7 +17,7 @@ Here is a full preview of Chroma-Ray Tracer enviroment
 
 ## Build instructions for Windows  
 ### Requires:
-* Visual Stuido(VS) 17+
+* Visual Studio(VS) 17+
 * CMake 3.15.0+
 ### Instructions
 After downloading and unzipping the repo open Cmake and fill the fields:  
