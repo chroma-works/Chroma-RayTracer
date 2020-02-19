@@ -1,6 +1,8 @@
 #  Chroma Ray Tracer <img align="left" src= "resources/logo_solo.png" height="40">
 ## Development Blog 
-### Author:Alper Şahıstan([STLKRv1](https://github.com/STLKRv1)) 
+### Author:Alper Şahıstan([STLKRv1](https://github.com/STLKRv1))  
+
+[Accidental Art Page](README.md)
 
 <p align="center">
 <img src= "resources/logo_w.png" height="100">
