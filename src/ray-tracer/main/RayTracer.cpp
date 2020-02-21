@@ -118,6 +118,9 @@ namespace Chroma
 		delete m_rendered_image;
 
 		m_rendered_image = new Image(m_resolution.x, m_resolution.y);
+		for (int i = 0; i < m_resolution.x; i++)
+			for (int j = 0; j < m_resolution.y; j++)
+				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
 	}
 
 }
