@@ -39,7 +39,7 @@ namespace Chroma
 		glm::vec2 m_near_p[2];
 		float m_near_dist;
 
-		std::string m_img_name = "no_set";
+		std::string m_img_name = "not_set";
 
 		void RecalculateViewMatrix();
 		void RecalculateUp();
