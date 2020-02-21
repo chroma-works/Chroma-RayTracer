@@ -376,7 +376,10 @@ namespace Chroma
 			ImGui::EndCombo();
 		}
 
-		ImGui::InputInt2("Resolution", (int*)&m_options.editor_res.x);
+		if (ImGui::InputInt2("Resolution", (int*)&m_options.editor_res.x))
+		{
+			m_scene->GetCamera(m_options.act_rt_cam_name)->m_res = m_options.editor_res;
+		}
 
 		if (ImGui::InputInt("Thread Count", &m_options.thread_count))
 		{
