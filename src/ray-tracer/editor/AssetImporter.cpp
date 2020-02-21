@@ -211,6 +211,7 @@ namespace Chroma
 								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
 
 								p_l.SetIntensity(tmp);
+								p_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
@@ -383,7 +384,7 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), RT_INTR_METHOD::mesh);
+						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), RT_INTR_TYPE::mesh);
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
@@ -426,14 +427,14 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), RT_INTR_METHOD::triangle);
+						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), RT_INTR_TYPE::triangle);
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
 					else if (std::string(child_node->Value()).compare(SPHR) == 0)
 					{
 						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						SceneObject* scene_obj = new SceneObject(Mesh(), name, glm::vec3(), glm::vec3(), glm::vec3(), RT_INTR_METHOD::sphere);
+						SceneObject* scene_obj = new SceneObject(Mesh(), name, glm::vec3(), glm::vec3(), glm::vec3(), RT_INTR_TYPE::sphere);
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)

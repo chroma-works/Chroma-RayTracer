@@ -11,6 +11,15 @@
 
 namespace Chroma
 {
+	struct Options
+	{
+		int thread_count = 1;
+		std::string act_editor_cam_name = "";
+		std::string act_rt_cam_name = "";
+		glm::ivec2 editor_res;
+		float m_camera_move_speed = 0.4;
+		float m_camera_rotate_speed = 0.005;
+	};
 	class Editor
 	{
 	public:
@@ -37,11 +46,8 @@ namespace Chroma
 		bool m_render;
 		Scene* m_scene;
 
-		std::string act_editor_cam_name = "";
-		std::string act_rt_cam_name = "";
+		Options m_options;
 
-		float m_camera_move_speed = 0.8;
-		float m_camera_rotate_speed = 0.005;
 		unsigned int rendered_frame_texture_id;
 
 		/*Camera* selected_cam;

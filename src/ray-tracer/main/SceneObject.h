@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ray-tracer/main/Material.h>
+#include <ray-tracer/main/Ray.h>
 #include <ray-tracer/editor/Texture.h>
 #include <ray-tracer/editor/Shader.h>
 #include <ray-tracer/editor/Buffer.h>
@@ -21,7 +22,7 @@ namespace Chroma
                                                     void AddTo##NAME_P(TYPE val) { VAR.push_back(val);}\
                                                     void ResizeSpaceFrom##NAME_P(unsigned int size) {VAR.resize(size);}\
                                                     void Set##NAME_S##At(unsigned int index, TYPE val) {VAR.at(index) = val;}
-	enum class RT_INTR_METHOD {mesh, triangle, sphere};
+	enum class RT_INTR_TYPE {mesh, triangle, sphere};
 
 	class Mesh
 	{
@@ -86,7 +87,7 @@ namespace Chroma
 		SceneObject(Mesh mesh, std::string name,
 			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f), RT_INTR_METHOD rt_intersect = RT_INTR_METHOD::mesh);
+			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f), RT_INTR_TYPE rt_intersect = RT_INTR_TYPE::mesh);
 		//~SceneObject();
 
 
@@ -126,10 +127,15 @@ namespace Chroma
 
 		inline Material* GetMaterial() { return m_material; }
 
-		inline RT_INTR_METHOD GetRTIntersectionMethod() { return m_method; }
+		inline RT_INTR_TYPE GetRTIntersectionMethod() { return m_method; }
 
 		inline std::string GetName() { return m_name; }
 		inline void SetName(std::string n) { m_name = n; }
+
+		inline bool Intersect(Ray ray, float intersection_eps, IntersectionData* intersection_data)
+		{
+			return (this->*m_intersection_method)(ray, intersection_eps, intersection_data);
+		}
 
 		void Draw(DrawMode mode);
 
@@ -154,8 +160,13 @@ namespace Chroma
 		Chroma::Texture m_texture;
 		Material* m_material;
 
+		bool(SceneObject::* m_intersection_method)(Ray ray, float intersect_eps, IntersectionData* data);
 
-		RT_INTR_METHOD m_method;
+		bool IntersectSphere(Ray ray, float intersect_eps, IntersectionData* data);
+		bool IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data);
+		bool IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data);
+
+		RT_INTR_TYPE m_method;
 
 		Chroma::OpenGLVertexArrayObject m_vao;
 		std::vector<std::shared_ptr<Chroma::VertexBuffer>> m_vertex_buffers;

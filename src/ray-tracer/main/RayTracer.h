@@ -20,7 +20,8 @@ namespace Chroma
 		bool m_calc_shdws = false;
 		float m_intersect_eps;
 
-		Image* m_rendered_image;
+		Image* m_rendered_image ;
+		int m_thread_count = 1;
 
 		bool Intersect(SceneObject* obj, Ray ray, IntersectionData* intersection_data);
 		bool IntersectTriangle(std::vector<glm::vec3> vertices, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_dat);

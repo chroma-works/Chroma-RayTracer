@@ -28,8 +28,8 @@ namespace Chroma
 			m_scene = scene;
 			m_render = false;
 
-			act_editor_cam_name = m_scene->m_cameras.begin()->first;
-			act_rt_cam_name = act_editor_cam_name;
+			m_options.act_editor_cam_name = m_scene->m_cameras.begin()->first;
+			m_options.act_rt_cam_name = m_options.act_editor_cam_name;
 
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(m_window->m_window_handle, true);
@@ -65,7 +65,7 @@ namespace Chroma
 		HandleKeyBoardNavigation();
 		m_window->OnUpdate();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		m_scene->Render(m_scene->GetCamera(act_editor_cam_name));
+		m_scene->Render(m_scene->GetCamera(m_options.act_editor_cam_name));
 	}
 
 	void Editor::OnDraw()
@@ -187,9 +187,9 @@ namespace Chroma
 		}
 		else if (selected_item_type == SELECTION_TYPE::cam)
 		{
-			bool tmp = act_editor_cam_name.compare(selected_name) == 0;
+			bool tmp = m_options.act_editor_cam_name.compare(selected_name) == 0;
 			ImGui::Checkbox("Editor Camera", &tmp);
-			act_editor_cam_name = tmp ? selected_name : act_editor_cam_name;
+			m_options.act_editor_cam_name = tmp ? selected_name : m_options.act_editor_cam_name;
 
 			ImGui::Separator();
 
@@ -326,7 +326,7 @@ namespace Chroma
 	}
 	void Editor::DrawRayTracedFrame()
 	{
-		static glm::ivec2 res = m_scene->GetCamera(act_rt_cam_name)->m_res;
+		m_options.editor_res = m_scene->GetCamera(m_options.act_rt_cam_name)->m_res;
 		static bool flag = true;
 		if (flag)
 		{
@@ -335,9 +335,9 @@ namespace Chroma
 			glGenTextures(1, &rendered_frame_texture_id);
 		}
 
-		if (res != ray_tracer->m_resolution)
+		if (m_options.editor_res != ray_tracer->m_resolution)
 		{
-			ray_tracer->SetResoultion(res);
+			ray_tracer->SetResoultion(m_options.editor_res);
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, 0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
@@ -346,7 +346,7 @@ namespace Chroma
 		}
 		if (m_render)
 		{
-			ray_tracer->Render(m_scene->m_cameras[act_rt_cam_name],  *m_scene);
+			ray_tracer->Render(m_scene->m_cameras[m_options.act_rt_cam_name],  *m_scene);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 			/*std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
@@ -362,7 +362,30 @@ namespace Chroma
 		ImGui::SameLine();
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
-		ImGui::InputInt2("Resolution", (int*)&res.x);
+
+		if (ImGui::BeginCombo("RT Camera", m_options.act_rt_cam_name.c_str(), ImGuiComboFlags_None))
+		{
+			for (auto it = m_scene->m_cameras.begin(); it != m_scene->m_cameras.end(); it++)
+			{
+				bool is_selected = (m_options.act_rt_cam_name.compare(it->first) == 0);
+				if (ImGui::Selectable(m_options.act_rt_cam_name.c_str(), is_selected))
+					m_options.act_rt_cam_name = it->first;
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		if (ImGui::InputInt2("Resolution", (int*)&m_options.editor_res.x))
+		{
+			m_scene->GetCamera(m_options.act_rt_cam_name)->m_res = m_options.editor_res;
+		}
+
+		if (ImGui::InputInt("Thread Count", &m_options.thread_count))
+		{
+			ray_tracer->m_thread_count = m_options.thread_count;
+		}
+
 		
 		bool chng_color = false;
 		if (m_render)
@@ -383,8 +406,8 @@ namespace Chroma
 
 		if (ImGui::Button("Render once & Save"))
 		{
-			ray_tracer->Render(m_scene->m_cameras[act_rt_cam_name], *m_scene);
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
+			ray_tracer->Render(m_scene->m_cameras[m_options.act_rt_cam_name], *m_scene);
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_options.act_rt_cam_name)->GetImageName();
 			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_resolution.x, ray_tracer->m_resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
@@ -395,7 +418,7 @@ namespace Chroma
 
 		if (ImGui::Button("Save Frame"))
 		{
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_options.act_rt_cam_name)->GetImageName();
 			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
 		}
 
@@ -524,40 +547,40 @@ namespace Chroma
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
 		ImGui::Begin("Editor Info", 0, flags);
 		ImGui::SetWindowPos(ImVec2(5, 5));
-		ImGui::Text("Camera Movement Speed: %f", m_camera_move_speed);
+		ImGui::Text("Camera Movement Speed: %f", m_options.m_camera_move_speed);
 		ImGui::SetWindowPos(ImVec2(5, 10));
-		ImGui::Text("Camera Rotation Speed: %f", m_camera_rotate_speed);
+		ImGui::Text("Camera Rotation Speed: %f", m_options.m_camera_rotate_speed);
 		ImGui::End();
 	}
 	float yaw = -90.0f;
 	float pitch = 0.0f;
 	void Editor::HandleKeyBoardNavigation()
 	{
-		auto cam = m_scene->m_cameras[act_editor_cam_name];
+		auto cam = m_scene->m_cameras[m_options.act_editor_cam_name];
 		glm::vec3 forward = glm::normalize(cam->GetGaze());
 		glm::vec3 right = glm::cross(forward, glm::normalize(cam->GetUp()));
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_W])
 		{
-			cam->SetPosition(cam->GetPosition() + forward * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() + forward * m_options.m_camera_move_speed);
 			cam->SetGaze( forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_S])
 		{
-			cam->SetPosition(cam->GetPosition() - forward * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() - forward * m_options.m_camera_move_speed);
 			cam->SetGaze(forward);
 		}
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_A])
 		{
-			cam->SetPosition(cam->GetPosition() - glm::normalize(right) * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() - glm::normalize(right) * m_options.m_camera_move_speed);
 			cam->SetGaze( forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_D])
 		{
-			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_camera_move_speed);
+			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_options.m_camera_move_speed);
 			cam->SetGaze(forward);
 		}
 
@@ -570,7 +593,7 @@ namespace Chroma
 			float xoffset = ImGui::GetMouseDragDelta(0, 1.0).x; 
 			float yoffset = ImGui::GetMouseDragDelta(0, 1.0).y; 
 
-			float sensitivity = m_camera_rotate_speed*0.05;
+			float sensitivity = m_options.m_camera_rotate_speed*0.05;
 			xoffset *= sensitivity;
 			yoffset *= sensitivity;
 
@@ -587,9 +610,9 @@ namespace Chroma
 		}
 
 		if(ImGui::GetIO().KeyAlt)
-			m_camera_rotate_speed = glm::max(0.0f, m_camera_rotate_speed + wheel_y_offset * 0.1f);
+			m_options.m_camera_rotate_speed = glm::max(0.0f, m_options.m_camera_rotate_speed + wheel_y_offset * 0.1f);
 		else
-			m_camera_move_speed = glm::max(0.0f, m_camera_move_speed + wheel_y_offset);
+			m_options.m_camera_move_speed = glm::max(0.0f, m_options.m_camera_move_speed + wheel_y_offset);
 		wheel_y_offset = 0.0f;
 	}
 }
