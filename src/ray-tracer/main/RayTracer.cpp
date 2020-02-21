@@ -9,15 +9,39 @@ namespace Chroma
 
 	RayTracer::RayTracer()
 	{
-		m_rendered_image = new Image(m_resolution.x, m_resolution.y);
-		for (int i = 0; i < m_resolution.x; i++)
-			for (int j = 0; j < m_resolution.y; j++)
+		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y);
+		for (int i = 0; i < m_settings.resolution.x; i++)
+			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
 	}
 
+	std::atomic<float> progress_pers;
+
 	void RayTracer::Render(Camera* cam, Scene& scene)
 	{
-		m_intersect_eps = scene.m_intersect_eps;
+		progress_pers = 0.0f;
+		std::thread** threads = new std::thread * [m_settings.thread_count];
+
+		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+		for (int i = 0; i < m_settings.thread_count; i++)
+			threads[i] = new std::thread(&RayTracer::RayTraceWorker, this, cam, std::ref(scene), i);
+
+		for (int i = 0; i < m_settings.thread_count; i++)
+		{
+			threads[i]->join();
+			delete threads[i];
+		}
+
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+		delete[] threads;
+
+		CH_TRACE("Rendered");
+	}
+
+	void RayTracer::RayTraceWorker(Camera* cam, Scene& scene, int idx)
+	{
 		glm::vec3 cam_pos = cam->GetPosition();
 		glm::vec2 top_left = cam->GetNearPlane()[0];
 		glm::vec2 bottom_right = cam->GetNearPlane()[1];
