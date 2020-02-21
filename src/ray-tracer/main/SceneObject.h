@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ray-tracer/main/Material.h>
+#include <ray-tracer/main/Ray.h>
 #include <ray-tracer/editor/Texture.h>
 #include <ray-tracer/editor/Shader.h>
 #include <ray-tracer/editor/Buffer.h>

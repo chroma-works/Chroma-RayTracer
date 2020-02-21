@@ -67,12 +67,12 @@ namespace Chroma
 	}
 
 
-	SceneObject::SceneObject(Mesh mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, RT_INTR_METHOD method)
+	SceneObject::SceneObject(Mesh mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, RT_INTR_TYPE method)
 		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(glm::quat(rot)), m_scale(scale), m_method(method), m_radius(0.0f)
 	{
 		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid all black shaded objects
 
-		if (m_method == RT_INTR_METHOD::sphere)
+		if (m_method == RT_INTR_TYPE::sphere)
 		{
 			if (m_mesh.GetVertexCount() != 0)
 			{
@@ -80,6 +80,15 @@ namespace Chroma
 			}
 			m_mesh = *AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj");
 			m_radius = 1.0f;
+			m_intersection_method = &SceneObject::IntersectSphere;
+		}
+		else if (m_method == RT_INTR_TYPE::triangle)
+		{
+			m_intersection_method = &SceneObject::IntersectTriangle;
+		}
+		else
+		{
+			m_intersection_method = &SceneObject::IntersectMesh;
 		}
 
 		m_material = new Material();
@@ -144,4 +153,157 @@ namespace Chroma
 		m_model_matrix = translation * rotation * scale;
 	}
 
+	bool SceneObject::IntersectSphere(Ray ray, float intersect_eps, IntersectionData* data)
+	{
+		float a = glm::dot(ray.direction, ray.direction);
+		float b = 2.0f * glm::dot(ray.direction, (ray.origin - GetPosition()));
+		float c = glm::dot(ray.origin - GetPosition(), ray.origin - GetPosition()) - m_radius * m_radius;
+
+		float t0, t1;
+		double discr = b * b - 4 * a * c;
+		if (discr < 0)
+			return false;
+		else if (discr == 0) //single root
+			t0 = t1 = -0.5 * b / a;
+		else {
+			float q = (b > 0) ?
+				-0.5 * (b + (double)glm::sqrt(discr)) : -0.5 * (b - (double)glm::sqrt(discr));
+			t0 = q / a;
+			t1 = c / q;
+		}
+		if (t0 > t1)
+			std::swap(t0, t1);
+
+		if (t0 < 0) {
+			t0 = t1; // if t0 is negative, let's use t1 instead 
+			if (t0 < 0) return false; // both t0 and t1 are negative 
+		}
+
+		data->hit = discr >= intersect_eps;
+		data->material = GetMaterial();
+		data->position = ray.PointAt(t0);
+		data->normal = glm::normalize(data->position - GetPosition());
+		data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
+			glm::acos(data->position.y / m_radius));
+
+		return data->hit;
+	}
+
+	bool SceneObject::IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data)
+	{
+		std::vector<glm::vec3> verts;
+		std::vector<glm::vec3*> norms;
+
+		verts.reserve(3);
+		verts.resize(3);
+		verts[0] = m_mesh.m_vertex_positions[m_mesh.m_indices[0]] * GetScale() + GetPosition();
+		verts[1] = m_mesh.m_vertex_positions[m_mesh.m_indices[1]] * GetScale() + GetPosition();
+		verts[2] = m_mesh.m_vertex_positions[m_mesh.m_indices[2]] * GetScale() + GetPosition();
+
+		norms.reserve(3);
+		norms.resize(3);
+		norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[0]];
+		norms[1] = &m_mesh.m_vertex_normals[m_mesh.m_indices[1]];
+		norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[2]];
+
+		if (verts.size() != 3)
+		{
+			CH_WARN("Non triangle object fed into intersetion method");
+			return false;
+		}
+		glm::vec3 v0 = verts[0];
+		glm::vec3 v1 = verts[1];
+		glm::vec3 v2 = verts[2];
+
+		glm::vec3 v0v1 = v1 - v0;
+		glm::vec3 v0v2 = v2 - v0;
+
+		glm::vec3 pvec = glm::cross(ray.direction, v0v2);
+		float det = glm::dot(v0v1, pvec);
+
+		data->hit = true;
+		if ((det) < intersect_eps) data->hit = false;
+
+		float invDet = 1 / det;
+
+		glm::vec3 tvec = ray.origin - v0;
+		float u = glm::dot(tvec, (pvec)) * invDet;
+		if (u < 0 || u > 1) data->hit = false;
+
+		glm::vec3 qvec = glm::cross(tvec, v0v1);
+		float v = glm::dot(ray.direction, (qvec)) * invDet;
+		if (v < 0 || u + v > 1) data->hit = false;
+
+		float t = glm::dot(v0v2, qvec) * invDet;
+
+		if (t < intersect_eps) return false;
+
+		data->position = ray.PointAt(t);
+		data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);
+		data->material = GetMaterial();
+
+		return data->hit;
+	}
+
+	bool SceneObject::IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data)
+	{
+		std::vector<glm::vec3> verts;
+		verts.reserve(3);
+		verts.resize(3);
+
+		std::vector<glm::vec3*> norms;
+		norms.reserve(3);
+		norms.resize(3);
+
+		for (int i = 0; i < m_mesh.GetFaceCount(); i++)
+		{
+			verts[0] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3]] * GetScale() + GetPosition();
+			verts[1] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 1]] * GetScale() + GetPosition();
+			verts[2] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 2]] * GetScale() + GetPosition();
+			norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3]];
+			norms[1] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3 + 1]];
+			norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3 + 2]];
+
+
+			if (verts.size() != 3)
+			{
+				CH_WARN("Non triangle object fed into intersetion method");
+				return false;
+			}
+			glm::vec3 v0 = verts[0];
+			glm::vec3 v1 = verts[1];
+			glm::vec3 v2 = verts[2];
+
+			glm::vec3 v0v1 = v1 - v0;
+			glm::vec3 v0v2 = v2 - v0;
+
+			glm::vec3 pvec = glm::cross(ray.direction, v0v2);
+			float det = glm::dot(v0v1, pvec);
+
+			data->hit = true;
+			if ((det) < intersect_eps) data->hit = false;
+
+			float invDet = 1 / det;
+
+			glm::vec3 tvec = ray.origin - v0;
+			float u = glm::dot(tvec, (pvec)) * invDet;
+			if (u < 0 || u > 1) data->hit = false;
+
+			glm::vec3 qvec = glm::cross(tvec, v0v1);
+			float v = glm::dot(ray.direction, (qvec)) * invDet;
+			if (v < 0 || u + v > 1) data->hit = false;
+
+			float t = glm::dot(v0v2, qvec) * invDet;
+
+			if (t < intersect_eps) data->hit = false;
+
+			data->position = ray.PointAt(t);
+			data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);
+			data->material = GetMaterial();
+
+			if (data->hit)
+				return data->hit;
+		}
+		return false;
+	}
 }
