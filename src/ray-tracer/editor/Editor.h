@@ -2,6 +2,7 @@
 #include <thirdparty/imgui/imgui.h>
 #include "thirdparty/imgui/imgui_impl_glfw.h"
 #include "thirdparty/imgui/imgui_impl_opengl3.h"
+#include <ray-tracer/editor/Settings.h>
 #include <ray-tracer/main/RayTracer.h>
 #include <ray-tracer/main/Scene.h>
 #include <ray-tracer/main/Window.h>
@@ -11,15 +12,7 @@
 
 namespace Chroma
 {
-	struct Options
-	{
-		int thread_count = 1;
-		std::string act_editor_cam_name = "";
-		std::string act_rt_cam_name = "";
-		glm::ivec2 editor_res;
-		float m_camera_move_speed = 0.4;
-		float m_camera_rotate_speed = 0.005;
-	};
+
 	class Editor
 	{
 	public:
@@ -46,7 +39,7 @@ namespace Chroma
 		bool m_render;
 		Scene* m_scene;
 
-		Options m_options;
+		Settings m_settings;
 
 		unsigned int rendered_frame_texture_id;
 
@@ -63,6 +56,7 @@ namespace Chroma
 		void DrawSceneInfo();
 		void DrawEditorInfo();
 		void HandleKeyBoardNavigation();
+		void LoopUpdate();
 	};
 
 }
