@@ -211,6 +211,7 @@ namespace Chroma
 								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
 
 								p_l.SetIntensity(tmp);
+								p_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
