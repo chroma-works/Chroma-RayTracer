@@ -378,6 +378,11 @@ namespace Chroma
 
 		ImGui::InputInt2("Resolution", (int*)&m_options.editor_res.x);
 
+		if (ImGui::InputInt("Thread Count", &m_options.thread_count))
+		{
+			ray_tracer->m_thread_count = m_options.thread_count;
+		}
+
 		
 		bool chng_color = false;
 		if (m_render)
