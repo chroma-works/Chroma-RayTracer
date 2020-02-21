@@ -78,6 +78,7 @@ set (editor_sources
 	src/ray-tracer/editor/Editor.cpp
 	src/ray-tracer/editor/Logger.h
 	src/ray-tracer/editor/Logger.cpp
+	src/ray-tracer/editor/Settings.h
 	src/ray-tracer/editor/Shader.h
 	src/ray-tracer/editor/Shader.cpp
 	src/ray-tracer/editor/Texture.h
