@@ -54,18 +54,23 @@ namespace Chroma
 		glm::vec3 left = -right;
 
 		const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
-
 		Ray camera_ray(cam_pos);
 
-		const glm::vec3 right_step = (right) * glm::abs(top_left.x-bottom_right.x) / (float)m_resolution.x;
-		const glm::vec3 down_step = (down) *glm::abs(top_left.y - bottom_right.y) / (float)m_resolution.y;
+		const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
+		const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
 
 		IntersectionData* intersection_data = new IntersectionData();
 		IntersectionData* shadow_data = new IntersectionData();
 
-		for (int i = 0; i < m_resolution.x; i++)
+		int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
+		int col_end = idx == m_settings.thread_count -1 ? m_settings.resolution.x :
+			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
+
+		//CH_TRACE(std::string(std::to_string(col_start)) + "-" + std::to_string(col_end));
+
+		for (int i = col_start; i < col_end; i++)
 		{
-			for (int j = 0; j < m_resolution.y; j++)
+			for (int j = 0; j < m_settings.resolution.y; j++)
 			{
 				glm::vec3 color = scene.m_sky_color;
 
@@ -76,10 +81,10 @@ namespace Chroma
 				std::map<std::string, std::shared_ptr<SceneObject>>::iterator it;
 				for (it = scene.m_scene_objects.begin(); it != scene.m_scene_objects.end(); it++)
 				{
-					if (it->second->IsVisible() && it->second->Intersect(camera_ray, m_intersect_eps, intersection_data)
+					if (it->second->IsVisible() && it->second->Intersect(camera_ray, m_settings.intersection_eps, intersection_data)
 						&& (glm::distance(camera_ray.origin, intersection_data->position) < t_min))//Hit
 					{
-						color = {0,0,0};
+						color = { 0,0,0 };
 						t_min = glm::distance(camera_ray.origin, intersection_data->position);
 						//lighting calculation
 						std::map<std::string, std::shared_ptr<PointLight>>::iterator it2;
@@ -89,32 +94,30 @@ namespace Chroma
 							glm::vec3 e_vec = glm::normalize(camera_ray.origin - intersection_data->position);
 							glm::vec3 l_vec = glm::normalize(pl->position - intersection_data->position);
 
-							//Shadow calculation
+							//Shadow calculation	
 							bool shadowed = false;
-							for (auto it3 = scene.m_scene_objects.begin(); !shadowed && it3 != scene.m_scene_objects.end() && m_calc_shdws; it3++)
+							for (auto it3 = scene.m_scene_objects.begin(); !shadowed &&
+								it3 != scene.m_scene_objects.end() && m_settings.calc_shadows; it3++)
 							{
-								//if (it == it3) it3++;
-
 								Ray shadow_ray(intersection_data->position + l_vec * scene.m_shadow_eps);
 								shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
-								shadowed = it3->second->IsVisible() && it3->second->Intersect(shadow_ray, m_intersect_eps, shadow_data) &&
+								shadowed = it3->second->IsVisible() && it3->second->Intersect(shadow_ray, m_settings.intersection_eps, shadow_data) &&
 									glm::distance(shadow_data->position, intersection_data->position) < glm::distance(intersection_data->position, pl->position);
-								//CH_TRACE(std::string(it3->first + std::string(" is shadowed: ") + std::to_string(shadowed)));
 							}
 
-							if(!shadowed)
+							if (!shadowed)
 							{
 								float d = glm::distance(pl->position, intersection_data->position);
 
 								//Kd * I * cos(theta) /d^2 
 								glm::vec3 diffuse = intersection_data->material->diffuse * pl->intensity *
-									glm::max(glm::dot(intersection_data->normal, l_vec), 0.0f)/  (glm::length(intersection_data->normal) * glm::length(l_vec))/(d*d);
+									glm::max(glm::dot(intersection_data->normal, l_vec), 0.0f) / (glm::length(intersection_data->normal) * glm::length(l_vec)) / (d * d);
 								//Ks* I * max(0, r . dir) / d^2
 								glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 								glm::vec3 specular = intersection_data->material->specular * pl->intensity *
 									glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(intersection_data->normal))), it->second->GetMaterial()->shininess) / (d * d);
-									//glm::pow(glm::max(0.0f, glm::dot(r, camera_ray.direction)), it->second->GetMaterial()->shininess) / (d*d);
-								//specular = (_isnan(specular.x) || _isnan(specular.y) || _isnan(specular.z)) ? glm::vec3({0, 0, 0}) : specular;
+								//glm::pow(glm::max(0.0f, glm::dot(r, camera_ray.direction)), it->second->GetMaterial()->shininess) / (d*d);
+							//specular = (_isnan(specular.x) || _isnan(specular.y) || _isnan(specular.z)) ? glm::vec3({0, 0, 0}) : specular;
 								color += specular + diffuse;
 							}
 						}
@@ -125,25 +128,26 @@ namespace Chroma
 				}
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
 			}
-			CH_TRACE(std::to_string(((float)i) / ((float)m_resolution.x) * 100.0f) + std::string("% complete"));
+			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
+			if(idx == m_settings.thread_count - 1)
+				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));
 		}
 		delete intersection_data;
 		delete shadow_data;
-		CH_TRACE("Rendered");
 	}
 
 	void RayTracer::SetResoultion(const glm::ivec2& resolution)
 	{
-		if (m_resolution == resolution)
+		if (m_settings.resolution == resolution)
 			return;
 
-		m_resolution = resolution;
+		m_settings.resolution = resolution;
 
 		delete m_rendered_image;
 
-		m_rendered_image = new Image(m_resolution.x, m_resolution.y);
-		for (int i = 0; i < m_resolution.x; i++)
-			for (int j = 0; j < m_resolution.y; j++)
+		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y);
+		for (int i = 0; i < m_settings.resolution.x; i++)
+			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
 	}
 
