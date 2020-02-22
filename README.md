@@ -104,13 +104,13 @@ To conclude interms of HW1, here are my final renders of all the scenes provided
 This week I have managed to multi-thread the ray-tracer.**Table 1** shows some statistics including thread counts. 
 
 **Table 1:** Scene and render statistics 
-| Scene Name    |# of Triangles & Spheres | Resolution    | # of Treads   |Render time(s)|
-| ------------- | ------------- | ------------- | ------------- | ------------- |
-| Simple        | 5,1           | 800x800       |  8            | 0.1071        |
-| Spheres       | 6,5           | 1440x720      |  8            | 0.1644        |
-| Cornell Box   | 10,2          | 800 x800      |  8            | 0.5071        |
-| Bunny         | 4968,0        | 512x512       |  8            | 13.1100       |
-| Science Tree  | 2240,0        | 1440x720      |  8            | 28.8958       |  
+| Scene Name    |# of Triangles & Spheres | Resolution    | # of Treads   |Render time(s) |
+| ------------- | ----------------------- | ------------- | ------------- | ------------- |
+| Simple        | 5,1                     | 800x800       |  8            | 0.1071        |
+| Spheres       | 6,5                     | 1440x720      |  8            | 0.1644        |
+| Cornell Box   | 10,2                    | 800 x800      |  8            | 0.5071        |
+| Bunny         | 4968,0                  | 512x512       |  8            | 13.1100       |
+| Science Tree  | 2240,0                  | 1440x720      |  8            | 28.8958       |  
 
 ## References
 <a id="1">[1]</a>
