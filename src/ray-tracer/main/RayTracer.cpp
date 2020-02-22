@@ -37,7 +37,21 @@ namespace Chroma
 
 		delete[] threads;
 
-		CH_TRACE("Rendered");
+		std::chrono::duration<float> fs = end - start;
+		std::chrono::milliseconds d = std::chrono::duration_cast<std::chrono::milliseconds>(fs);
+
+
+		unsigned int triangle_count = 0;
+
+		for (auto it = scene.m_scene_objects.begin(); it != scene.m_scene_objects.end(); it++)
+		{
+			if(it->second->GetRTIntersectionMethod() != RT_INTR_TYPE::sphere)
+				triangle_count += it->second->m_mesh.GetFaceCount();
+		}
+		CH_TRACE("Render info:\n\tTriangles :" + std::to_string(triangle_count) +
+			"\n\tResolution: (" + std::to_string(cam->m_res.x) + ", " + std::to_string(cam->m_res.y) +
+			")\n\tRendered in " + std::to_string(fs.count()) + "s" 
+			+ "\n\tThreads: " + std::to_string(m_settings.thread_count));
 	}
 
 	void RayTracer::RayTraceWorker(Camera* cam, Scene& scene, int idx)
