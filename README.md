@@ -103,7 +103,7 @@ To conclude interms of HW1, here are my final renders of all the scenes provided
 
 This week I have managed to multi-thread the ray-tracer.**Table 1** shows some statistics including thread counts. 
 
-**Table 1:** Scene and render statistics 
+**Table 1:** Scene and render statistics.  
 | Scene Name    |# of Triangles & Spheres | Resolution    | # of Treads   |Render time(s) |
 | ------------- | ----------------------- | ------------- | ------------- | ------------- |
 | Simple        | 5,1                     | 800x800       |  8            | 0.1071        |
