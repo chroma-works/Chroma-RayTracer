@@ -1,0 +1,69 @@
+<Scene>
+    <BackgroundColor>0 0 0</BackgroundColor>
+
+    <MaxRecursionDepth>6</MaxRecursionDepth>
+
+    <Cameras>
+        <Camera id="1" type="lookAt">
+            <Position>500 -100 100</Position>
+            <GazePoint>0 100 -60</GazePoint>
+            <Up>0 0 1</Up>
+            <FovY>32</FovY>
+            <NearDistance>1</NearDistance>
+            <ImageResolution>800 480</ImageResolution>
+            <ImageName>other_dragon.png</ImageName>
+        </Camera>
+    </Cameras>
+
+    <Lights>
+        <AmbientLight>25 25 25</AmbientLight>
+        <PointLight id="1">
+            <Position>400 100 200</Position>
+            <Intensity>50000000 50000000 50000000</Intensity>
+        </PointLight>
+        <PointLight id="2">
+            <Position>600 -200 200</Position>
+            <Intensity>50000000 50000000 50000000</Intensity>
+        </PointLight>
+    </Lights>
+
+    <VertexData>
+        -1000 -1000 -100
+        1000 -1000 -100
+        1000 1000 -100
+        -1000 1000 -100
+    </VertexData>
+
+    <Materials>
+        <Material id="1" type="conductor">
+            <AmbientReflectance>0 0 0</AmbientReflectance>
+            <DiffuseReflectance>0 0 0</DiffuseReflectance>
+            <SpecularReflectance>1 0.86 0.57</SpecularReflectance>
+            <PhongExponent>5</PhongExponent>
+            <MirrorReflectance>1 0.86 0.57</MirrorReflectance>
+            <RefractionIndex>0.370</RefractionIndex>
+            <AbsorptionIndex>2.820</AbsorptionIndex>
+        </Material>
+        <Material id="2" type="mirror">
+            <AmbientReflectance>0 0 0</AmbientReflectance>
+            <DiffuseReflectance>0.5 0.5 0.5</DiffuseReflectance>
+            <SpecularReflectance>0 0 0</SpecularReflectance>
+            <PhongExponent>1</PhongExponent>
+            <MirrorReflectance>0.5 0.5 0.5</MirrorReflectance>
+        </Material>
+    </Materials>
+
+    <Objects>
+        <Mesh id="1">
+            <Material>1</Material>
+            <Faces plyFile="ply/dragon_remeshed.ply" />
+        </Mesh>
+        <Mesh id="2">
+            <Material>2</Material>
+            <Faces>
+                1 2 3
+                3 4 1
+            </Faces>
+        </Mesh>
+    </Objects>
+</Scene>
