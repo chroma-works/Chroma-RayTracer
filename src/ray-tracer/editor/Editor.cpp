@@ -364,6 +364,22 @@ namespace Chroma
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
 
+		static std::string rt_methods[] = { "Ray Casting", "Path Tracing" };
+		static int selected_rt_method = 0;
+
+
+		if (ImGui::BeginCombo("RT Method", rt_methods[selected_rt_method].c_str(), ImGuiComboFlags_None))
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				if (ImGui::Selectable(rt_methods[i].c_str(), i == selected_rt_method))
+					selected_rt_method = i;
+				if (i==selected_rt_method)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
 		if (ImGui::BeginCombo("RT Camera", m_settings.act_rt_cam_name.c_str(), ImGuiComboFlags_None))
 		{
 			for (auto it = m_scene->m_cameras.begin(); it != m_scene->m_cameras.end(); it++)
