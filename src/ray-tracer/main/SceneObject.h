@@ -30,6 +30,8 @@ namespace Chroma
 		Mesh();
 		Mesh(std::vector<glm::vec3> m_vertices, std::vector<glm::vec3> m_normals,
 			std::vector<glm::vec2> m_texcoords, std::vector<glm::vec3> m_colors, unsigned int face_count, bool cntr_piv = false);
+		Mesh(std::vector<glm::vec3> m_vertices, std::vector<glm::vec3> m_normals,
+			std::vector<glm::vec2> m_texcoords, std::vector<glm::vec3> m_colors, std::vector<unsigned int> m_indices, bool cntr_piv = false);
 
 		inline unsigned int GetFaceCount() const { return m_face_count; }
 		inline unsigned int GetVertexCount() const { return m_vertex_count; }
@@ -131,6 +133,14 @@ namespace Chroma
 
 		inline std::string GetName() { return m_name; }
 		inline void SetName(std::string n) { m_name = n; }
+
+		inline void SetRadius(float radius)
+		{
+			m_radius = radius;
+
+			m_mesh.SetMinBound(m_position - glm::vec3(radius, radius, radius));
+			m_mesh.SetMaxBound(m_position + glm::vec3(radius, radius, radius));
+		}
 
 		inline bool Intersect(Ray ray, float intersection_eps, IntersectionData* intersection_data)
 		{

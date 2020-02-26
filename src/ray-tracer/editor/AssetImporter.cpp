@@ -324,14 +324,6 @@ namespace Chroma
 
 										glm::vec3 a = (vertices[ind[0] - 1] - vertices[ind[1] - 1]);
 										glm::vec3 b = (vertices[ind[0] - 1] - vertices[ind[2] - 1]);
-										std::ostringstream ss;
-										ss << "a: " << a.x << ", " << a.y << ", " << a.z;
-										std::string s(ss.str());
-										//CH_TRACE(s);
-										std::ostringstream ss2;
-										ss2 << "b: " << b.x << ", " << b.y << ", " << b.z;
-										s = (ss2.str());
-										//CH_TRACE(s);
 
 										glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
 
@@ -351,36 +343,14 @@ namespace Chroma
 												num_shared_faces[ind[j] - 1]++;
 											}
 
-											/*bool flag = true;
-											int i = 0;
-											for (; (i < marked_indices.size()) && flag; i++)
-											{
-												flag = marked_indices[i] != (ind[j]); // check if that index is marked
-											}
-											if (flag)//if not marked
-											{
-												marked_indices.push_back(ind[j]);//mark the index
-												mesh_verts.push_back(vertices[ind[j] - 1]);//push the relevant vertex
-												mesh_normals.push_back(normal);// push face normal
-												mesh_indices.push_back(mesh_verts.size() - 1);//push the index
-												num_shared_faces.push_back(1);//this vertex has 1 face for now
-											}
-											else //if marked
-											{
-												mesh_normals[i-1] += normal; //sum face normal to cumulative sum
-												mesh_indices.push_back(mesh_indices[i-1]);//find the relevant index and push it again
-												num_shared_faces[mesh_indices[i-1]]++;//increment the number of faces for that vertex
-											}*/
-
 										}
 									}
 									for (int i = 0; i < num_shared_faces.size(); i++)
 									{
 										mesh_normals[i] = glm::normalize(mesh_normals[i]); /// (float)num_shared_faces[i];//average vert. normals for shared faces
 									}
-									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices.size() / 3);
-									mesh->m_indices = mesh_indices;
 								}
+								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 							}
 							object_prop = object_prop->NextSibling();
 						}
@@ -422,8 +392,7 @@ namespace Chroma
 								mesh_uvs.push_back({ 0.0f, 0.0f });
 								mesh_uvs.push_back({ 1.0f, 0.0f });
 								mesh_uvs.push_back({ 0.0f, 1.0f });
-								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), 3);
-								mesh->m_indices = mesh_indices;
+								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 							}
 							object_prop = object_prop->NextSibling();
 						}
@@ -461,7 +430,8 @@ namespace Chroma
 								float r;
 								sscanf(data.c_str(), "%f", &r);
 								scene_obj->SetScale(glm::vec3(r/2,r/2,r/2));
-								scene_obj->m_radius = r;
+								//scene_obj->m_radius = r;
+								scene_obj->SetRadius(r);
 							}
 							object_prop = object_prop->NextSibling();
 						}

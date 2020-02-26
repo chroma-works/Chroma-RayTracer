@@ -32,6 +32,32 @@ namespace Chroma
 			CenterToPivot();
 	}
 
+	Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> texcoords, std::vector<glm::vec3> colors, std::vector<unsigned int> indices, bool cntr_piv)
+		:Mesh(vertices, normals, texcoords, colors, indices.size() / 3, cntr_piv)
+	{
+		m_indices = indices;
+		if (m_vertex_count == 0)
+		{
+			m_bound_min = glm::vec3(0);
+			m_bound_max = glm::vec3(0);
+		}
+		else
+		{
+			m_bound_min = glm::vec3(INFINITY);//m_vertex_positions[m_indices[0]];
+			m_bound_max = glm::vec3(-INFINITY);//m_vertex_positions[m_indices[0]];
+
+			for (int i = 0; i < m_indices.size(); i++)
+			{
+				m_bound_min.x = glm::min(m_vertex_positions[m_indices[i]].x, m_bound_min.x);
+				m_bound_max.x = glm::max(m_vertex_positions[m_indices[i]].x, m_bound_max.x);
+				m_bound_min.y = glm::min(m_vertex_positions[m_indices[i]].y, m_bound_min.y);
+				m_bound_max.y = glm::max(m_vertex_positions[m_indices[i]].y, m_bound_max.y);
+				m_bound_min.z = glm::min(m_vertex_positions[m_indices[i]].z, m_bound_min.z);
+				m_bound_max.z = glm::max(m_vertex_positions[m_indices[i]].z, m_bound_max.z);
+			}
+		}
+	}
+
 	void Mesh::CenterToPivot()
 	{
 		glm::vec3 center(0, 0, 0);
@@ -196,9 +222,9 @@ namespace Chroma
 
 		verts.reserve(3);
 		verts.resize(3);
-		verts[0] = m_mesh.m_vertex_positions[m_mesh.m_indices[0]] * GetScale() + GetPosition();
-		verts[1] = m_mesh.m_vertex_positions[m_mesh.m_indices[1]] * GetScale() + GetPosition();
-		verts[2] = m_mesh.m_vertex_positions[m_mesh.m_indices[2]] * GetScale() + GetPosition();
+		verts[0] = m_mesh.m_vertex_positions[m_mesh.m_indices[0]];
+		verts[1] = m_mesh.m_vertex_positions[m_mesh.m_indices[1]];
+		verts[2] = m_mesh.m_vertex_positions[m_mesh.m_indices[2]];
 
 		norms.reserve(3);
 		norms.resize(3);
@@ -257,9 +283,9 @@ namespace Chroma
 
 		for (int i = 0; i < m_mesh.GetFaceCount(); i++)
 		{
-			verts[0] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3]] * GetScale() + GetPosition();
-			verts[1] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 1]] * GetScale() + GetPosition();
-			verts[2] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 2]] * GetScale() + GetPosition();
+			verts[0] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3]];
+			verts[1] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 1]];
+			verts[2] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 2]];
 			norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3]];
 			norms[1] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3 + 1]];
 			norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3 + 2]];
