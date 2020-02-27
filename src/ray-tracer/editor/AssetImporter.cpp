@@ -430,7 +430,6 @@ namespace Chroma
 								float r;
 								sscanf(data.c_str(), "%f", &r);
 								scene_obj->SetScale(glm::vec3(r/2,r/2,r/2));
-								//scene_obj->m_radius = r;
 								scene_obj->SetRadius(r);
 							}
 							object_prop = object_prop->NextSibling();

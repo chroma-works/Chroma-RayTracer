@@ -45,21 +45,6 @@ namespace Chroma
 		inline void SetMaxBound(glm::vec3 max_b) { m_bound_max = max_b; }
 		inline void SetMinBound(glm::vec3 min_b) { m_bound_min = min_b; }
 
-		/*VECTOR_FIELD_METHODS(m_vertex_positions, Position, Positions,glm::vec3);
-		VECTOR_FIELD_METHODS(m_vertex_normals, Normal, Normals, glm::vec3);
-		VECTOR_FIELD_METHODS(m_vertex_colors, Color, Colors, glm::vec3);
-		VECTOR_FIELD_METHODS(m_vertex_texcoords, TextureCoord, TextureCoords, glm::vec2);
-		VECTOR_FIELD_METHODS(m_indices, Index, Indices, int);*/
-		/*inline std::vector<glm::vec3> GetVertices() const { return m_vertices; }
-		inline std::vector<glm::vec3> GetNormals() const { return m_normals; }
-		inline std::vector<glm::vec3> GetColors() const { return m_colors; }
-		inline std::vector<glm::vec2> GetTexCoords() const { return m_texcoords; }
-
-		inline void SetVertices(std::vector<glm::vec3> vertices) { m_vertices = vertices; CalculateBounds(); CenterToPivot(); }
-		inline void SetNormals(std::vector<glm::vec3> normals) { m_normals = normals; }
-		inline void SetColors(std::vector<glm::vec3> colors) { m_colors = colors; }
-		inline void SetTexCoords(std::vector<glm::vec2> texcoords) { m_texcoords = texcoords; }*/
-
 		std::vector<glm::vec3> m_vertex_positions;
 		std::vector<glm::vec3> m_vertex_normals;
 		std::vector<glm::vec3> m_vertex_colors;
