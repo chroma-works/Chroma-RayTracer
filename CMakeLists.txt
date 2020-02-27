@@ -70,6 +70,13 @@ source_group ("main\\" FILES
     ${main_sources}
 )
 
+set (acc_sources
+	src/ray-tracer/accelerationStructures/AccelerationStructure.h
+)
+source_group ("accelerationStructures\\" FILES
+    ${acc_sources}
+)
+
 set (editor_sources
 	src/ray-tracer/editor/AssetImporter.h
 	src/ray-tracer/editor/AssetImporter.cpp
@@ -102,6 +109,7 @@ source_group ("opengl\\" FILES
 add_executable (chroma-ray-tracer
 	${editor_sources}
     ${main_sources}
+	${acc_sources}
 	${opengl_sources}
     ${thirdparty_sources}
 )
