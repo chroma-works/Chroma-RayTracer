@@ -17,5 +17,6 @@ This page is dedicated for "artsy" looking render fails that are too damn specia
 **Gallery**
 
 <img src= "resources/fail3.png" width = "300" > <img src= "resources/light_bug.gif" >  
+<img src= "resources/halıkilimtravel.png" width = "300" >
 
 
