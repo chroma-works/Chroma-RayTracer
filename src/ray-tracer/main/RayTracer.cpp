@@ -19,6 +19,10 @@ namespace Chroma
 
 	void RayTracer::Render(Camera* cam, Scene& scene)
 	{
+		if (!scene.m_accel_structure)
+		{
+			return;
+		}
 		progress_pers = 0.0f;
 		std::thread** threads = new std::thread * [m_settings.thread_count];
 

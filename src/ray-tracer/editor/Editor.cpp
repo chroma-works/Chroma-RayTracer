@@ -1,5 +1,6 @@
 #include "Editor.h"
 #include <thirdparty/glm/glm/glm.hpp>
+#include <ray-tracer/accelerationStructures/BVH.h>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
@@ -326,10 +327,11 @@ namespace Chroma
 	}
 	void Editor::DrawRayTracedFrame()
 	{
-		m_settings.resolution = m_scene->GetCamera(m_settings.act_rt_cam_name)->m_res;
 		static bool flag = true;
+		m_settings.resolution = m_scene->GetCamera(m_settings.act_rt_cam_name)->m_res;
 		if (flag)
 		{
+			ray_tracer->m_settings.resolution = { -1.0f, -1.0f };
 			flag = false;
 			ImGui::SetNextWindowSize(ImVec2(820, 480));
 			glGenTextures(1, &rendered_frame_texture_id);
@@ -349,9 +351,6 @@ namespace Chroma
 			ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name],  *m_scene);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings.resolution.x, m_settings.resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
-			/*std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(act_rt_cam_name)->GetImageName();
-			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
-			m_render = false;*/
 		}
 
 		ImGui::Begin("Ray Tracer", 0, ImGuiWindowFlags_None);
@@ -393,6 +392,8 @@ namespace Chroma
 			ImGui::EndCombo();
 		}
 
+		ImGui::Separator();
+
 		if (ImGui::InputInt2("Resolution", (int*)&m_settings.resolution.x))
 		{
 			m_scene->GetCamera(m_settings.act_rt_cam_name)->m_res = m_settings.resolution;
@@ -406,7 +407,8 @@ namespace Chroma
 
 		ImGui::InputInt("Thread Count", &m_settings.thread_count);
 
-		
+		ImGui::Separator();
+
 		bool chng_color = false;
 		if (m_render)
 		{
@@ -415,7 +417,10 @@ namespace Chroma
 		}
 		if (ImGui::Button("Toggle Render"))
 		{
-			m_render = !m_render;
+			if(m_scene->m_accel_structure)
+				m_render = !m_render;
+			else
+				CH_FATAL("Acceleration structure is NOT initialized");
 		}
 		if (chng_color)
 		{
@@ -426,27 +431,45 @@ namespace Chroma
 
 		if (ImGui::Button("Render once & Save"))
 		{
-			ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name], *m_scene);
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
-			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
-			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_settings.resolution.x, ray_tracer->m_settings.resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			if (m_scene->m_accel_structure)
+			{
+				ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name], *m_scene);
+				std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
+				ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+				glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_settings.resolution.x, ray_tracer->m_settings.resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			}
+			else
+				CH_FATAL("Acceleration structure is NOT initialized");
 		}
-
-		ImGui::Checkbox("Shadows", &ray_tracer->m_settings.calc_shadows);
-		ImGui::DragFloat("Shadow Bias", &m_settings.shadow_eps, 0.00001f, 0.0f, 0.8, "%.6f");
-
 		if (ImGui::Button("Save Frame"))
 		{
 			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
 			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
 		}
 
+		ImGui::Separator();
+
+		if (ImGui::Button("Init BVH"))
+		{
+			m_scene->InitAccelarationStructure();
+			CH_INFO("BVH initialized");
+		}
+
+		ImGui::Separator();
+
+		ImGui::Checkbox("Shadows", &m_settings.calc_shadows);
+		ImGui::SameLine();
+		ImGui::PushItemWidth(120);
+		ImGui::DragFloat("Shadow Bias", &m_settings.shadow_eps, 0.00001f, 0.0f, 0.8, "%.6f");
+
+		ImGui::Separator();
+
 		ImGui::EndChild();
 		ImGui::End();
 
-		ray_tracer->m_settings = m_settings;
 		ray_tracer->SetResoultion(m_settings.resolution);
+		ray_tracer->m_settings = m_settings;
 	}
 	void Editor::DrawSceneInfo()
 	{
