@@ -13,8 +13,8 @@ This page is dedicated for "artsy" looking render fails that are too damn specia
 <p align="center">
 <img src= "resources/bob.jpg" >
 </p>  
-
-**Gallery**
+  
+## Gallery
 
 <img src= "resources/fail3.png" width = "300" > <img src= "resources/light_bug.gif" >  
 <img src= "resources/halıkilimtravel.png" width = "300" > 
