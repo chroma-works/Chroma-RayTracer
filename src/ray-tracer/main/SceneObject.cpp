@@ -28,6 +28,7 @@ namespace Chroma
 		m_bound_max = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
 
 		CalculateBounds();
+		
 		if(cntr_piv)
 			CenterToPivot();
 	}
@@ -54,6 +55,20 @@ namespace Chroma
 				m_bound_max.y = glm::max(m_vertex_positions[m_indices[i]].y, m_bound_max.y);
 				m_bound_min.z = glm::min(m_vertex_positions[m_indices[i]].z, m_bound_min.z);
 				m_bound_max.z = glm::max(m_vertex_positions[m_indices[i]].z, m_bound_max.z);
+			}
+		}
+		//OrderVerticesCCW();
+	}
+
+	void Mesh::OrderVerticesCCW()
+	{
+		for (int i = 0; i < m_indices.size(); i+=3)
+		{
+			glm::mat3 mat(m_vertex_positions[m_indices[i]], m_vertex_positions[m_indices[i + 1]], m_vertex_positions[m_indices[i + 2]]);
+			if (glm::determinant(mat) < 0)
+			{
+				//CH_INFO("CW traingle swapped to be CCW");
+				std::swap(m_indices[i], m_indices[i + 2]);
 			}
 		}
 	}
@@ -163,6 +178,11 @@ namespace Chroma
 		m_vao.SetIndexBuffer(index_buffer);
 	}
 
+	bool SceneObject::Intersect(Ray ray, float intersection_eps, IntersectionData* intersection_data) const
+	{
+		return (this->*m_intersection_method)(ray, intersection_eps, intersection_data);
+	}
+
 	void SceneObject::Draw(DrawMode mode)
 	{
 		m_texture.Bind();
@@ -179,20 +199,23 @@ namespace Chroma
 		m_model_matrix = translation * rotation * scale;
 	}
 
-	bool SceneObject::IntersectSphere(Ray ray, float intersect_eps, IntersectionData* data)
+	bool SceneObject::IntersectSphere(Ray ray, float intersect_eps, IntersectionData* data) const
 	{
 		float a = glm::dot(ray.direction, ray.direction);
 		float b = 2.0f * glm::dot(ray.direction, (ray.origin - GetPosition()));
 		float c = glm::dot(ray.origin - GetPosition(), ray.origin - GetPosition()) - m_radius * m_radius;
 
-		float t0, t1;
+		float t0 = std::numeric_limits<float>().max(), t1 = std::numeric_limits<float>().max();
 		double discr = b * b - 4 * a * c;
-		if (discr < 0)
+		if (discr < intersect_eps)
+		{
+			data->hit = false;
 			return false;
-		else if (discr == 0) //single root
+		}
+		else if (discr == intersect_eps) //single root
 			t0 = t1 = -0.5 * b / a;
 		else {
-			float q = (b > 0) ?
+			float q = (b > 0.0f) ?
 				-0.5 * (b + (double)glm::sqrt(discr)) : -0.5 * (b - (double)glm::sqrt(discr));
 			t0 = q / a;
 			t1 = c / q;
@@ -205,6 +228,7 @@ namespace Chroma
 			if (t0 < 0) return false; // both t0 and t1 are negative 
 		}
 
+		data->t = t0;
 		data->hit = discr >= intersect_eps;
 		data->material = GetMaterial();
 		data->position = ray.PointAt(t0);
@@ -215,10 +239,12 @@ namespace Chroma
 		return data->hit;
 	}
 
-	bool SceneObject::IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data)
+	bool SceneObject::IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data) const
 	{
 		std::vector<glm::vec3> verts;
 		std::vector<glm::vec3*> norms;
+
+		data->t = std::numeric_limits<float>().max();
 
 		verts.reserve(3);
 		verts.resize(3);
@@ -228,9 +254,9 @@ namespace Chroma
 
 		norms.reserve(3);
 		norms.resize(3);
-		norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[0]];
+		/*norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[0]];
 		norms[1] = &m_mesh.m_vertex_normals[m_mesh.m_indices[1]];
-		norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[2]];
+		norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[2]];*/
 
 		if (verts.size() != 3)
 		{
@@ -248,7 +274,7 @@ namespace Chroma
 		float det = glm::dot(v0v1, pvec);
 
 		data->hit = true;
-		if ((det) < intersect_eps) data->hit = false;
+		if (fabs(det) < intersect_eps) data->hit = false;
 
 		float invDet = 1 / det;
 
@@ -262,8 +288,9 @@ namespace Chroma
 
 		float t = glm::dot(v0v2, qvec) * invDet;
 
-		if (t < intersect_eps) return false;
+		if (t < intersect_eps) data->hit = false;
 
+		data->t = t;
 		data->position = ray.PointAt(t);
 		data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);
 		data->material = GetMaterial();
@@ -271,7 +298,7 @@ namespace Chroma
 		return data->hit;
 	}
 
-	bool SceneObject::IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data)
+	bool SceneObject::IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data) const
 	{
 		std::vector<glm::vec3> verts;
 		verts.reserve(3);
@@ -281,14 +308,18 @@ namespace Chroma
 		norms.reserve(3);
 		norms.resize(3);
 
+		data->hit = false; 
+		data->t = std::numeric_limits<float>().max();
+
 		for (int i = 0; i < m_mesh.GetFaceCount(); i++)
 		{
+			bool hit = true;
 			verts[0] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3]];
 			verts[1] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 1]];
 			verts[2] = m_mesh.m_vertex_positions[m_mesh.m_indices[i * 3 + 2]];
-			norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3]];
+			/*norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3]];
 			norms[1] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3 + 1]];
-			norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3 + 2]];
+			norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[i * 3 + 2]];*/
 
 
 			if (verts.size() != 3)
@@ -306,30 +337,34 @@ namespace Chroma
 			glm::vec3 pvec = glm::cross(ray.direction, v0v2);
 			float det = glm::dot(v0v1, pvec);
 
-			data->hit = true;
-			if ((det) < intersect_eps) data->hit = false;
+			if (fabs(det) < intersect_eps) hit = false;
 
 			float invDet = 1 / det;
 
 			glm::vec3 tvec = ray.origin - v0;
 			float u = glm::dot(tvec, (pvec)) * invDet;
-			if (u < 0 || u > 1) data->hit = false;
+			if (u < 0 || u > 1) hit = false;
 
 			glm::vec3 qvec = glm::cross(tvec, v0v1);
 			float v = glm::dot(ray.direction, (qvec)) * invDet;
-			if (v < 0 || u + v > 1) data->hit = false;
+			if (v < 0 || u + v > 1) hit = false;
 
 			float t = glm::dot(v0v2, qvec) * invDet;
 
-			if (t < intersect_eps) data->hit = false;
+			if (t < intersect_eps) hit = false;
 
-			data->position = ray.PointAt(t);
-			data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);
-			data->material = GetMaterial();
+			if (hit && t <= data->t)
+			{
+				data->t = t;
+				data->hit = hit;
+				data->position = ray.PointAt(t);
+				data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
+				data->material = GetMaterial();
+			}
 
-			if (data->hit)
-				return data->hit;
+			/*if(data->hit)
+				return data->hit;*/
 		}
-		return false;
+		return data->hit;
 	}
 }

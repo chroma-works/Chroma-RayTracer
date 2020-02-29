@@ -33,6 +33,7 @@ namespace Chroma
 		Mesh(std::vector<glm::vec3> m_vertices, std::vector<glm::vec3> m_normals,
 			std::vector<glm::vec2> m_texcoords, std::vector<glm::vec3> m_colors, std::vector<unsigned int> m_indices, bool cntr_piv = false);
 
+
 		inline unsigned int GetFaceCount() const { return m_face_count; }
 		inline unsigned int GetVertexCount() const { return m_vertex_count; }
 
@@ -55,6 +56,7 @@ namespace Chroma
 	private:
 		void CenterToPivot();
 		void CalculateBounds();
+		void OrderVerticesCCW();
 
 		unsigned int m_face_count = 0;
 		unsigned int m_vertex_count = 0;
@@ -112,11 +114,11 @@ namespace Chroma
 		inline void SetTexture(Chroma::Texture tex) { m_texture = tex; }
 		inline void SetMaterial(Material mat) { *m_material = mat; }
 
-		inline Material* GetMaterial() { return m_material; }
+		inline Material* GetMaterial() const { return m_material; }
 
 		inline RT_INTR_TYPE GetRTIntersectionMethod() { return m_method; }
 
-		inline std::string GetName() { return m_name; }
+		inline std::string GetName() const { return m_name; }
 		inline void SetName(std::string n) { m_name = n; }
 
 		inline void SetRadius(float radius)
@@ -127,9 +129,42 @@ namespace Chroma
 			m_mesh.SetMaxBound(m_position + glm::vec3(radius, radius, radius));
 		}
 
-		inline bool Intersect(Ray ray, float intersection_eps, IntersectionData* intersection_data)
+		bool Intersect(Ray ray, float intersection_eps, IntersectionData* intersection_data) const;
+
+		inline bool IntersectBBox(Ray ray, float intersection_eps, float& tHit)
 		{
-			return (this->*m_intersection_method)(ray, intersection_eps, intersection_data);
+			float tmin, tmax, tymin, tymax, tzmin, tzmax;
+			glm::vec3 bounds[2] = { m_mesh.GetMinBound(),  m_mesh.GetMaxBound() };
+			bool sign[3] = {(ray.direction.x < 0.0f), (ray.direction.y < 0.0f), (ray.direction.z < 0.0f)  };
+			glm::vec3 inv_dir = 1.0f / ray.direction;
+
+			tmin = (bounds[sign[0]].x - ray.origin.x) * inv_dir.x;
+			tmax = (bounds[1 - sign[0]].x - ray.origin.x) * inv_dir.x;
+			tymin = (bounds[sign[1]].y - ray.origin.y) * inv_dir.y;
+			tymax = (bounds[1 - sign[1]].y - ray.origin.y) * inv_dir.y;
+
+			if ((tmin > tymax) || (tymin > tmax))
+				return false;
+
+			if (tymin > tmin)
+				tmin = tymin;
+			if (tymax < tmax)
+				tmax = tymax;
+
+			tzmin = (bounds[sign[2]].z - ray.origin.z) * inv_dir.z;
+			tzmax = (bounds[1 - sign[2]].z - ray.origin.z) * inv_dir.z;
+
+			if ((tmin > tzmax) || (tzmin > tmax))
+				return false;
+
+			if (tzmin > tmin)
+				tmin = tzmin;
+			if (tzmax < tmax)
+				tmax = tzmax;
+
+			tHit = tmin;
+
+			return true;
 		}
 
 		void Draw(DrawMode mode);
@@ -155,11 +190,11 @@ namespace Chroma
 		Chroma::Texture m_texture;
 		Material* m_material;
 
-		bool(SceneObject::* m_intersection_method)(Ray ray, float intersect_eps, IntersectionData* data);
+		bool(SceneObject::* m_intersection_method)(Ray ray, float intersect_eps, IntersectionData* data) const;
 
-		bool IntersectSphere(Ray ray, float intersect_eps, IntersectionData* data);
-		bool IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data);
-		bool IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data);
+		bool IntersectSphere(Ray ray, float intersect_eps, IntersectionData* data) const;
+		bool IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data) const;
+		bool IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data) const;
 
 		RT_INTR_TYPE m_method;
 
