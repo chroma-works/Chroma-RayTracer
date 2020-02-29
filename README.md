@@ -123,8 +123,22 @@ As expected, during this process I have encountered some bugs;
   * Solved by bounding meshes with slightly larger boxes.
 I have also made adjustments to my mesh intersection methods since they rendered with minor backface-clipping issiues.  
 
-<img src= "resources/thin_mesh_prob1.png" width = "400"> <img src= "resources/thin_mesh_prob2.png" width = "400">   
+<img src= "resources/thin_mesh_prob1.png" width = "300"> <img src= "resources/thin_mesh_prob2.png" width = "300">   
 **Figure 12:** Cornell box scene cannot be traced with tight BVH bounds since it contains "thin meshes".  
+
+**Table 2** displays new render statistics with BVH using the scenes from hw1.  
+
+**Table 2:** Scene and render statistics with BVH acceleration 
+  
+| Scene Name    |# of Triangles & Spheres | Resolution    | # of Treads   |Render time(s) |  
+| ------------- | ----------------------- | ------------- | ------------- | ------------- |  
+| Simple        | 5,1                     | 800x800       |  8            | 0.0328        |  
+| Spheres       | 6,5                     | 1440x720      |  8            | 0.1714        |  
+| Cornell Box   | 10,2                    | 800 x800      |  8            | 0.2538        |  
+| Bunny         | 4968,0                  | 512x512       |  8            | 5.8057        |  
+| Science Tree  | 2240,0                  | 1440x720      |  8            | 2.2952        |   
+  
+  
 
 ## References
 <a id="1">[1]</a>
