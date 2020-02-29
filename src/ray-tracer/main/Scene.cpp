@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include <ray-tracer/accelerationStructures/BVH.h>
 
 namespace Chroma
 {
@@ -48,6 +49,16 @@ namespace Chroma
 	{
 		m_spot_lights[name] = li;
 		m_scene_data->m_shader->AddLight(li);
+	}
+
+	void Scene::InitAccelarationStructure()
+	{
+		std::vector<std::shared_ptr<SceneObject>> objs;
+		for (auto it = m_scene_objects.begin(); it != m_scene_objects.end(); it++)
+		{
+			objs.push_back(it->second);
+		}
+		m_accel_structure = std::shared_ptr<AccelerationStructure> (new BVH(objs));
 	}
 
 
