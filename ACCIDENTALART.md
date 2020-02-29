@@ -6,8 +6,8 @@
 
 <p align="center">
 <img src= "resources/logo_w.png" height="100"></p>  
-
-**What is this?**
+  
+## What is this?
 
 This page is dedicated for "artsy" looking render fails that are too damn special to discard.  
 <p align="center">
@@ -17,6 +17,6 @@ This page is dedicated for "artsy" looking render fails that are too damn specia
 **Gallery**
 
 <img src= "resources/fail3.png" width = "300" > <img src= "resources/light_bug.gif" >  
-<img src= "resources/halıkilimtravel.png" width = "300" >
+<img src= "resources/halıkilimtravel.png" width = "300" > 
 
 
