@@ -114,10 +114,25 @@ This week I have managed to multi-thread the ray-tracer.**Table 1** shows some s
 | Science Tree  | 2240,0                  | 1440x720      |  8            | 28.8958       |   
   
   
+## Week 4  
+For this week, some acceleration structures have been implemented. To begin with this task, the interface for the acceleration structure has been implemented while maintaining the old classes. After that some experimentations with bounding boxes are made. After expriencing their gains and limitations. Bounding Volume Hierarchy(BVH) structure was implemented. For this task I have followed the Scratchapixel's tutorial about acceleration structures[[4]](#4).  
+As expected, during this process I have encountered some bugs;
+* The tutorial did not consider spheres as seprate objects with different intersection geometry.  
+  * Solved sampling points over each sphere's surface to feed into BVH bounds.  
+* Nearly all meshes provided in the hw1 were "thin meshes" meaning all of their vertices lay in the same plane. This caused a major problem for BVH since properly bounding them and finding their intersection from both sides of their faces using those bounds was difficult(see **Figure 12** for the render fail).  
+  * Solved by bounding meshes with slightly larger boxes.
+I have also made adjustments to my mesh intersection methods since they rendered with minor backface-clipping issiues.  
+
+<img src= "resources/thin_mesh_prob1.png" width = "400"> <img src= "resources/thin_mesh_prob2.png" width = "400">   
+**Figure 12:** Cornell box scene cannot be traced with tight BVH bounds since it contains "thin meshes".  
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
 <a id="2">[2]</a>
 T. Möller and B. Trumbore, “Fast, Minimum Storage Ray-Triangle Intersection,” Journal of Graphics Tools, vol. 2, no. 1, pp. 21–28, 1997.  
 <a id="3">[3]</a>
-Scratchapixel, Ray Tracing: Rendering a Triangle (Möller-Trumbore algorithm), 15-Aug-2014. [Online]. Available: https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection. [Accessed: 18-Feb-2020].
+Scratchapixel, Ray Tracing: Rendering a Triangle (Möller-Trumbore algorithm), 15-Aug-2014. [Online]. Available: https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection. [Accessed: 18-Feb-2020].  
+
+<a id="4">[4]</a>
+Scratchapixel, “Introduction to Acceleration Structures,” Scratchapixel, 08-Oct-2015. [Online]. Available: https://www.scratchapixel.com/lessons/advanced-rendering/introduction-acceleration-structure/introduction. [Accessed: 29-Feb-2020].
