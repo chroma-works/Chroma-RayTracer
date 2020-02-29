@@ -72,6 +72,9 @@ source_group ("main\\" FILES
 
 set (acc_sources
 	src/ray-tracer/accelerationStructures/AccelerationStructure.h
+	src/ray-tracer/accelerationStructures/BBoxAcceleration.h
+	src/ray-tracer/accelerationStructures/BVH.h
+	src/ray-tracer/accelerationStructures/BVH.cpp
 )
 source_group ("accelerationStructures\\" FILES
     ${acc_sources}
