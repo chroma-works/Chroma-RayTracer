@@ -22,7 +22,5 @@ namespace Chroma
 		Settings m_settings;
 
 		void RayTraceWorker(Camera* cam, Scene& scene, int idx);
-		bool Intersect(SceneObject* obj, Ray ray, IntersectionData* intersection_data);
-		bool IntersectTriangle(std::vector<glm::vec3> vertices, std::vector<glm::vec3*> normals, Ray ray, IntersectionData* intersection_dat);
 	};
 }
