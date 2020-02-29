@@ -51,11 +51,8 @@ namespace Chroma
 					sceneExtents.d[1][0] + sceneExtents.d[1][1],
 					sceneExtents.d[2][0] + sceneExtents.d[2][1]);
 
-				CH_TRACE(std::to_string(minPlusMax.x) + ", " + std::to_string(minPlusMax.y) + ", " + std::to_string(minPlusMax.z));
 				bbox[0] = (minPlusMax - maxDiff) * 0.5f;
 				bbox[1] = (minPlusMax + maxDiff) * 0.5f;
-				CH_TRACE(std::to_string(bbox[0].x) + ", " + std::to_string(bbox[0].y) + ", " + std::to_string(bbox[0].z));
-				CH_TRACE(std::to_string(bbox[1].x) + ", " + std::to_string(bbox[1].y) + ", " + std::to_string(bbox[1].z));
 				root = new OctreeNode;
 			}
 

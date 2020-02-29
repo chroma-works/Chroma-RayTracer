@@ -136,13 +136,10 @@ namespace Chroma
 			if (node->isLeaf) {
 				for (const auto& e : node->nodeExtentsList) {
 					float t = std::numeric_limits<float>().max();
-					//CH_TRACE(std::to_string((e->obj->Intersect(ray, 0.000001f, tmp_data))) + ", " + std::to_string((glm::distance(tmp_data->position, ray.origin) < (glm::distance(isec_data->position, ray.origin)))));
-					//CH_TRACE(std::to_string(glm::distance(isec_data->position, ray.origin)));
-					if ( e->obj->Intersect(ray, intersect_eps, tmp_data) && tmp_data->t < tHit)  {
+					if ( e->obj->IsVisible() && e->obj->Intersect(ray, intersect_eps, tmp_data) && tmp_data->t < tHit)  {
 						*isec_data = *tmp_data;
 						tHit = tmp_data->t;
 						intersected_obj = e->obj;
-						//CH_TRACE(std::to_string((e->obj->Intersect(ray, 0.000001f, tmp_data))) + ", " + e->obj->GetName());
 					}
 				}
 			}
