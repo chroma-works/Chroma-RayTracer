@@ -53,6 +53,8 @@ namespace Chroma
 		std::string file_name = file_path.substr(found+1, found2-found-1);
 
 		Scene* scene = new Scene(file_name, shader);
+		const std::string ABS_COEF = "AbsorptionCoefficient";
+		const std::string ABS_IND = "AbsorptionIndex";
 		const std::string AM_LIG = "AmbientLight";//INIT as point light with very low constans
 		const std::string AM_REF = "AmbientReflectance";
 		const std::string BCK_COLOR = "BackgroundColor";
@@ -69,6 +71,7 @@ namespace Chroma
 		const std::string MAT = "Material";
 		const std::string MATS = "Materials";
 		const std::string MESH = "Mesh";
+		const std::string MIRROR_REF = "MirrorReflectance";
 		const std::string N_DIST = "NearDistance";
 		const std::string N_PLANE = "NearPlane";
 		const std::string OBJ = "Objects";
@@ -77,6 +80,7 @@ namespace Chroma
 		const std::string PHONG_EX = "PhongExponent";
 		const std::string POS = "Position";
 		const std::string RAD = "Radius";
+		const std::string REF_IND = "RefractionIndex";
 		const std::string RES = "ImageResolution";
 		const std::string S_RAY_EPS = "ShadowRayEpsilon";
 		const std::string SPEC_REF = "SpecularReflectance";
@@ -144,25 +148,25 @@ namespace Chroma
 						{
 							std::string data = cam_prop->FirstChild()->Value();
 							glm::vec2 vec[2];
-							sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
-							cam->SetNearPlane(vec);
+sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
+cam->SetNearPlane(vec);
 						}
 						else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
 						{
-							std::string data = cam_prop->FirstChild()->Value();
-							float d;
-							sscanf(data.c_str(), "%f", &d);
-							cam->SetNearDist(d);
+						std::string data = cam_prop->FirstChild()->Value();
+						float d;
+						sscanf(data.c_str(), "%f", &d);
+						cam->SetNearDist(d);
 						}
 						else if (std::string(cam_prop->Value()).compare(RES) == 0)
 						{
-							std::string data = cam_prop->FirstChild()->Value();
-							sscanf(data.c_str(), "%d %d", &cam->m_res.x, &cam->m_res.y);
+						std::string data = cam_prop->FirstChild()->Value();
+						sscanf(data.c_str(), "%d %d", &cam->m_res.x, &cam->m_res.y);
 						}
 						else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
 						{
-							std::string data = cam_prop->FirstChild()->Value();
-							cam->SetImageName(data);
+						std::string data = cam_prop->FirstChild()->Value();
+						cam->SetImageName(data);
 						}
 						cam_prop = cam_prop->NextSibling();
 					}
@@ -180,56 +184,104 @@ namespace Chroma
 			}
 			else if (std::string(node->Value()).compare(LIGS) == 0)
 			{
-				tinyxml2::XMLNode* child_node = node->FirstChild();
-				while (child_node)//iterate over lights
+			tinyxml2::XMLNode* child_node = node->FirstChild();
+			while (child_node)//iterate over lights
+			{
+				if (std::string(child_node->Value()).compare(AM_LIG) == 0)
 				{
-					if (std::string(child_node->Value()).compare(AM_LIG) == 0)
-					{
-						std::string data = child_node->FirstChild()->Value();
+					std::string data = child_node->FirstChild()->Value();
 
-						sscanf(data.c_str(), "%f %f %f", &scene->m_ambient_l.x, &scene->m_ambient_l.y, &scene->m_ambient_l.z);
+					sscanf(data.c_str(), "%f %f %f", &scene->m_ambient_l.x, &scene->m_ambient_l.y, &scene->m_ambient_l.z);
 
-					}
-					else if (std::string(child_node->Value()).compare(P_LIG) == 0 )
-					{
-						PointLight p_l = PointLight({ 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 });
-						std::string lig_name;
-						lig_name = "point_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
-
-						while (lig_prop)//iterate over each light properties
-						{
-							if (std::string(lig_prop->Value()).compare(POS) == 0)
-							{
-								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &p_l.position.x, &p_l.position.y, &p_l.position.z);
-							}
-							else if (std::string(lig_prop->Value()).compare(INTEN) == 0)
-							{
-								std::string data = lig_prop->FirstChild()->Value();
-								glm::vec3 tmp({ 10,10,10 });
-								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
-
-								p_l.SetIntensity(tmp);
-								p_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
-							}
-							lig_prop = lig_prop->NextSibling();
-						}
-						scene->AddLight(lig_name, std::make_shared<PointLight>(p_l));
-
-					}
-					child_node = child_node->NextSibling();
 				}
+				else if (std::string(child_node->Value()).compare(P_LIG) == 0)
+				{
+					PointLight p_l = PointLight({ 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 });
+					std::string lig_name;
+					lig_name = "point_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+					tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
+
+					while (lig_prop)//iterate over each light properties
+					{
+						if (std::string(lig_prop->Value()).compare(POS) == 0)
+						{
+							std::string data = lig_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f %f %f", &p_l.position.x, &p_l.position.y, &p_l.position.z);
+						}
+						else if (std::string(lig_prop->Value()).compare(INTEN) == 0)
+						{
+							std::string data = lig_prop->FirstChild()->Value();
+							glm::vec3 tmp({ 10,10,10 });
+							sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
+
+							p_l.SetIntensity(tmp);
+							p_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+						}
+						lig_prop = lig_prop->NextSibling();
+					}
+					scene->AddLight(lig_name, std::make_shared<PointLight>(p_l));
+
+				}
+				child_node = child_node->NextSibling();
+			}
 			}
 			else if (std::string(node->Value()).compare(MATS) == 0)
 			{
-				tinyxml2::XMLNode* child_node = node->FirstChild();
-				while (child_node)//iterate over Materials
+			tinyxml2::XMLNode* child_node = node->FirstChild();
+			while (child_node)//iterate over Materials
+			{
+				Material mat;
+				tinyxml2::XMLNode* material_prop = child_node->FirstChild();
+				if (child_node->ToElement()->FindAttribute("type"))
 				{
-					Material mat;
-					tinyxml2::XMLNode* material_prop = child_node->FirstChild();
-					while (material_prop)
+					std::string type_string = std::string(child_node->ToElement()->FindAttribute("type")->Value());//get type
+					CH_TRACE(type_string);
+
+					mat.type = type_string.empty() ? MAT_TYPE::none :
+						type_string.compare("conductor") == 0 ? MAT_TYPE::conductor :
+						type_string.compare("mirror") == 0 ? MAT_TYPE::mirror : MAT_TYPE::dielectric;
+				}
+				while (material_prop)
+				{
+					switch (mat.type)
 					{
+					case MAT_TYPE::mirror:
+					case MAT_TYPE::conductor:
+						if (std::string(material_prop->Value()).compare(MIRROR_REF) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f %f %f", &mat.f_coeff.conductor_coeffs.mirror_reflec.x,
+								&mat.f_coeff.conductor_coeffs.mirror_reflec.y,
+								&mat.f_coeff.conductor_coeffs.mirror_reflec.z);
+						}
+						else if (std::string(material_prop->Value()).compare(REF_IND) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &mat.f_coeff.conductor_coeffs.refraction_ind);
+						}
+						else if (std::string(material_prop->Value()).compare(ABS_IND) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &mat.f_coeff.conductor_coeffs.absorptionI_ind);
+						}
+							break;
+						case MAT_TYPE::dielectric:
+							if (std::string(material_prop->Value()).compare(REF_IND) == 0)
+							{
+								std::string data = material_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f", &mat.f_coeff.dielectric_coeffs.refraction_ind);
+							}
+							else if (std::string(material_prop->Value()).compare(ABS_COEF) == 0)
+							{
+								std::string data = material_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &mat.f_coeff.dielectric_coeffs.absorption_coeff.x,
+									&mat.f_coeff.dielectric_coeffs.absorption_coeff.y,
+									&mat.f_coeff.dielectric_coeffs.absorption_coeff.z);
+							}
+							break;
+						default:
+							break;
+						}
 						if (std::string(material_prop->Value()).compare(AM_REF) == 0)
 						{
 							std::string data = material_prop->FirstChild()->Value();
