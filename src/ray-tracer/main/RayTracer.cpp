@@ -145,6 +145,129 @@ namespace Chroma
 		delete shadow_data;
 	}
 
+	void RayTracer::PathTraceWorker(Camera* cam, Scene& scene, int idx)
+	{
+		glm::vec3 cam_pos = cam->GetPosition();
+		glm::vec2 top_left = cam->GetNearPlane()[0];
+		glm::vec2 bottom_right = cam->GetNearPlane()[1];
+		float dist = cam->GetNearDist();
+
+		glm::vec3 up = glm::normalize(cam->GetUp());
+		glm::vec3 forward = glm::normalize(cam->GetGaze());
+		glm::vec3 down = -up;
+		glm::vec3 right = glm::normalize(glm::cross(forward, up));
+		glm::vec3 left = -right;
+
+		const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
+		Ray primary_ray(cam_pos);
+
+		const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
+		const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
+
+		IntersectionData* intersection_data = new IntersectionData();
+		IntersectionData* shadow_data = new IntersectionData();
+
+		int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
+		int col_end = idx == m_settings.thread_count - 1 ? m_settings.resolution.x :
+			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
+
+		glm::vec3 color = scene.m_sky_color;
+		for (int i = col_start; i < col_end; i++)
+		{
+			for (int j = 0; j < m_settings.resolution.y; j++)
+			{
+
+				primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
+				color = PathTrace(primary_ray, scene, 0);
+
+				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
+			}
+		}
+	}
+
+	glm::vec3 RayTracer::PathTrace(const Ray& ray, Scene& scene, int depth)//Recursive!
+	{
+		IntersectionData* isect_data = new IntersectionData();
+		scene.m_accel_structure->Intersect(ray, scene.m_intersect_eps, isect_data);
+
+		glm::vec3 color= { 0,0,0 };
+
+		if (!isect_data->hit)
+		{
+			delete isect_data;
+			return scene.m_sky_color;
+		}
+
+		else if (isect_data->material->type == MAT_TYPE::mirror && depth < MAX_RAY_DEPTH) {
+			// compute reflection
+			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
+			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal));
+
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
+			color += reflection_color;
+		}
+		else if (isect_data->material->type == MAT_TYPE::conductor && depth < MAX_RAY_DEPTH)
+		{
+			// compute reflection
+			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
+			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal));
+
+			float cos_theta = glm::dot(-ray.direction, isect_data->normal);// /1*1
+
+			CH_TRACE(isect_data->material->GetFr(cos_theta));
+
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->GetFr(cos_theta) * 
+				isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
+			color += reflection_color;
+		}
+		else if (isect_data->material->type == MAT_TYPE::dielectric && depth < MAX_RAY_DEPTH)
+		{
+			delete isect_data;
+			return glm::vec3(0.0f, 0.0f, 1.0f);
+		}
+
+		// point is illuminated
+		if (isect_data->hit )
+		{
+			IntersectionData* shadow_data = new IntersectionData();
+			//lighting calculation
+			for (auto it = scene.m_point_lights.begin(); it != scene.m_point_lights.end(); it++)
+			{
+				std::shared_ptr<PointLight> pl = it->second;
+				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data->position);
+				glm::vec3 l_vec = glm::normalize(pl->position - isect_data->position);
+
+				//Shadow calculation	
+				bool shadowed = false;
+				Ray shadow_ray(isect_data->position + isect_data->normal * scene.m_shadow_eps);
+				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
+
+				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, scene.m_intersect_eps, shadow_data) &&
+					shadow_data->t < glm::distance(isect_data->position, pl->position));
+
+				if (!shadowed)
+				{
+					float d = glm::distance(pl->position, isect_data->position);
+
+					//Kd * I * cos(theta) /d^2 
+					glm::vec3 diffuse = isect_data->material->diffuse * pl->intensity *
+						glm::max(glm::dot(isect_data->normal, l_vec), 0.0f) / (glm::length(isect_data->normal) * glm::length(l_vec)) / (d * d);
+					//Ks* I * max(0, h . n)^s / d^2
+					glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+					glm::vec3 specular = isect_data->material->specular * pl->intensity *
+						glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data->normal))), isect_data->material->shininess) / (d * d);
+					color += specular + diffuse;
+				}
+			}
+			delete shadow_data;
+			//Ka * Ia
+			glm::vec3 ambient = scene.m_ambient_l * isect_data->material->ambient;
+			color += ambient;
+		}
+		delete isect_data;
+		return color;
+	}
+
 	void RayTracer::SetResoultion(const glm::ivec2& resolution)
 	{
 		if (m_settings.resolution == resolution)
