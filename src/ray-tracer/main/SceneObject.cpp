@@ -3,6 +3,7 @@
 #include <thirdparty/glad/include/glad/glad.h>
 #include <thirdparty/glm/glm/gtc/matrix_transform.hpp>
 #include <thirdparty/glm/glm/gtx/quaternion.hpp>
+#include <thirdparty/glm/glm/gtx/string_cast.hpp>
 #include <ray-tracer/editor/AssetImporter.h>
 
 
@@ -292,8 +293,8 @@ namespace Chroma
 
 		data->t = t;
 		data->position = ray.PointAt(t);
-		data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]);
 		data->material = GetMaterial();
+		data->normal = glm::normalize(glm::cross(v0v1, v0v2)); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
 
 		return data->hit;
 	}
@@ -358,8 +359,8 @@ namespace Chroma
 				data->t = t;
 				data->hit = hit;
 				data->position = ray.PointAt(t);
-				data->normal = glm::cross(v0v1, v0v2); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
 				data->material = GetMaterial();
+				data->normal = glm::normalize(glm::cross(v0v1, v0v2)); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
 			}
 
 			/*if(data->hit)
