@@ -24,8 +24,10 @@ namespace Chroma
 
 		Settings m_settings;
 
-		void(RayTracer::* m_rt_mode)(Camera* cam, Scene& scene, int idx);
+		void(RayTracer::* m_rt_worker)(Camera* cam, Scene& scene, int idx);
 
 		void RayCastWorker(Camera* cam, Scene& scene, int idx);
+		void PathTraceWorker(Camera* cam, Scene& scene, int idx);
+		glm::vec3 PathTrace(const Ray& ray, Scene& scene, int depth);
 	};
 }
