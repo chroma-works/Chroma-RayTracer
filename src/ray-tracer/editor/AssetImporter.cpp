@@ -235,7 +235,6 @@ cam->SetNearPlane(vec);
 				if (child_node->ToElement()->FindAttribute("type"))
 				{
 					std::string type_string = std::string(child_node->ToElement()->FindAttribute("type")->Value());//get type
-					CH_TRACE(type_string);
 
 					mat.type = type_string.empty() ? MAT_TYPE::none :
 						type_string.compare("conductor") == 0 ? MAT_TYPE::conductor :
