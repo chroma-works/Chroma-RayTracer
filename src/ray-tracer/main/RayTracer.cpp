@@ -13,6 +13,7 @@ namespace Chroma
 		for (int i = 0; i < m_settings.resolution.x; i++)
 			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
+		m_rt_mode = &RayTracer::RayCastWorker;
 	}
 
 	std::atomic<float> progress_pers;
@@ -29,7 +30,7 @@ namespace Chroma
 		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
 		for (int i = 0; i < m_settings.thread_count; i++)
-			threads[i] = new std::thread(&RayTracer::RayTraceWorker, this, cam, std::ref(scene), i);
+			threads[i] = new std::thread(m_rt_mode, this, cam, std::ref(scene), i);
 
 		for (int i = 0; i < m_settings.thread_count; i++)
 		{
@@ -61,7 +62,7 @@ namespace Chroma
 			+ "\n\tThreads: " + std::to_string(m_settings.thread_count));
 	}
 
-	void RayTracer::RayTraceWorker(Camera* cam, Scene& scene, int idx)
+	void RayTracer::RayCastWorker(Camera* cam, Scene& scene, int idx)
 	{
 		glm::vec3 cam_pos = cam->GetPosition();
 		glm::vec2 top_left = cam->GetNearPlane()[0];
@@ -158,6 +159,22 @@ namespace Chroma
 		for (int i = 0; i < m_settings.resolution.x; i++)
 			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
+	}
+
+	void RayTracer::SetRenderMode(RT_MODE mode)
+	{
+		switch (mode)
+		{
+		case Chroma::ray_cast:
+			m_rt_mode = &RayTracer::RayCastWorker;
+			break;
+		case Chroma::path_trace:
+			break;
+		case Chroma::size:
+			break;
+		default:
+			break;
+		}
 	}
 
 }

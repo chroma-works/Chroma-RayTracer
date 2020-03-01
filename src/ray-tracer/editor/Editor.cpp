@@ -363,17 +363,20 @@ namespace Chroma
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
 
-		static std::string rt_methods[] = { "Ray Casting", "Path Tracing" };
-		static int selected_rt_method = 0;
+		static std::string rt_mode_names[] = { "Ray Casting", "Path Tracing" };
+		static RT_MODE selected_rt_method = RT_MODE::ray_cast;
 
 
-		if (ImGui::BeginCombo("RT Method", rt_methods[selected_rt_method].c_str(), ImGuiComboFlags_None))
+		if (ImGui::BeginCombo("RT Mode", rt_mode_names[selected_rt_method].c_str(), ImGuiComboFlags_None))
 		{
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < RT_MODE::size; i++)
 			{
-				if (ImGui::Selectable(rt_methods[i].c_str(), i == selected_rt_method))
-					selected_rt_method = i;
-				if (i==selected_rt_method)
+				if (ImGui::Selectable(rt_mode_names[i].c_str(), static_cast<RT_MODE>(i) == selected_rt_method))
+				{
+					selected_rt_method = static_cast<RT_MODE>(i);
+					ray_tracer->SetRenderMode(selected_rt_method);
+				}
+				if (static_cast<RT_MODE>(i) == selected_rt_method)
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
