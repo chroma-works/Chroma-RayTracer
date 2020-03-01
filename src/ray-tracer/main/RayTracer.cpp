@@ -4,8 +4,7 @@
 
 namespace Chroma
 {
-
-#define T_MAX 100000;
+#define MAX_RAY_DEPTH 6 
 
 	RayTracer::RayTracer()
 	{
@@ -13,7 +12,7 @@ namespace Chroma
 		for (int i = 0; i < m_settings.resolution.x; i++)
 			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
-		m_rt_mode = &RayTracer::RayCastWorker;
+		m_rt_worker = &RayTracer::RayCastWorker;
 	}
 
 	std::atomic<float> progress_pers;
@@ -30,7 +29,7 @@ namespace Chroma
 		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
 		for (int i = 0; i < m_settings.thread_count; i++)
-			threads[i] = new std::thread(m_rt_mode, this, cam, std::ref(scene), i);
+			threads[i] = new std::thread(m_rt_worker, this, cam, std::ref(scene), i);
 
 		for (int i = 0; i < m_settings.thread_count; i++)
 		{
@@ -76,7 +75,7 @@ namespace Chroma
 		glm::vec3 left = -right;
 
 		const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
-		Ray camera_ray(cam_pos);
+		Ray primary_ray(cam_pos);
 
 		const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
 		const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
@@ -96,10 +95,10 @@ namespace Chroma
 			{
 				glm::vec3 color = scene.m_sky_color;
 
-				camera_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - camera_ray.origin);
+				primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
 				//Go over scene objects and lights
 				float t_min = std::numeric_limits<float>::max();
-				if (scene.m_accel_structure->Intersect(camera_ray, scene.m_intersect_eps, intersection_data))//Hit
+				if (scene.m_accel_structure->Intersect(primary_ray, scene.m_intersect_eps, intersection_data))//Hit
 				{
 					color = { 0,0,0 };
 					//lighting calculation
@@ -107,12 +106,12 @@ namespace Chroma
 					for (it2 = scene.m_point_lights.begin(); it2 != scene.m_point_lights.end(); it2++)
 					{
 						std::shared_ptr<PointLight> pl = it2->second;
-						glm::vec3 e_vec = glm::normalize(camera_ray.origin - intersection_data->position);
+						glm::vec3 e_vec = glm::normalize(primary_ray.origin - intersection_data->position);
 						glm::vec3 l_vec = glm::normalize(pl->position - intersection_data->position);
 
 						//Shadow calculation	
 						bool shadowed = false;
-						Ray shadow_ray(intersection_data->position + l_vec * scene.m_shadow_eps);
+						Ray shadow_ray(intersection_data->position + intersection_data->normal * scene.m_shadow_eps);
 						shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 							
 						shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, scene.m_intersect_eps, shadow_data) &&
@@ -166,9 +165,10 @@ namespace Chroma
 		switch (mode)
 		{
 		case Chroma::ray_cast:
-			m_rt_mode = &RayTracer::RayCastWorker;
+			m_rt_worker = &RayTracer::RayCastWorker;
 			break;
 		case Chroma::path_trace:
+			m_rt_worker = &RayTracer::PathTraceWorker;
 			break;
 		case Chroma::size:
 			break;
