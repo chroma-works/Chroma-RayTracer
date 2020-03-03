@@ -183,7 +183,12 @@ namespace Chroma
 				color = PathTrace(primary_ray, scene, 0);
 
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
+
 			}
+
+			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
+			if (idx == m_settings.thread_count - 1)
+				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));
 		}
 	}
 
@@ -212,11 +217,9 @@ namespace Chroma
 		{
 			// compute reflection
 			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
-			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal));
+			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal) );
 
 			float cos_theta = glm::dot(-ray.direction, isect_data->normal);// /1*1
-
-			CH_TRACE(isect_data->material->GetFr(cos_theta));
 
 			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->GetFr(cos_theta) * 
 				isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
@@ -224,8 +227,78 @@ namespace Chroma
 		}
 		else if (isect_data->material->type == MAT_TYPE::dielectric && depth < MAX_RAY_DEPTH)
 		{
-			delete isect_data;
-			return glm::vec3(0.0f, 0.0f, 1.0f);
+			float cos_i = glm::clamp(glm::dot(ray.direction, isect_data->normal),-1.0f,1.0f);
+			float ni = 1.0f;
+			float nt = isect_data->material->f_coeff.dielectric_coeffs.refraction_ind;
+
+			glm::vec3 proper_normal = isect_data->normal;
+
+			bool inside = (cos_i > 0.0f);
+
+			if (inside)
+			{
+				std::swap(ni, nt);
+				proper_normal = -isect_data->normal;
+			}
+			/*
+			float sin2_t = ni / nt * sin_t;
+			float cos_t = std::sqrt(std::max(0.0f, 1.0f - sin_t * sin_t));
+
+			float Rparl = ((nt * cos_i) - (ni * cos_t)) /
+				((nt * cos_i) + (ni* cos_t));
+			float Rperp = ((ni * cos_i) - (nt * cos_t)) /
+				((ni * cos_i) + (nt * cos_t));
+
+			float fr = (Rparl * Rparl + Rperp * Rperp) * 0.5f;*/
+
+			float fr = isect_data->material->GetFr(cos_i);
+
+			glm::vec3 uv = glm::normalize(ray.direction);
+			float dt = dot(uv, proper_normal);
+			float int_ref = glm::length2(ni / nt * (glm::dot(ray.direction, -proper_normal) * -proper_normal - ray.direction));
+			cos_i = std::abs(cos_i);
+
+			/*float sin_i = std::sqrt(std::max(0.0f, 1.0f - cos_i * cos_i));
+			float sin_t = ni / nt * sin_i;*/
+			float sin2_i = std::max(0.f, 1.f - cos_i * cos_i);
+			float sin_t = ni/nt * ni/nt * sin2_i;
+			//fr = (sin_t > 1.0f) ? 1.0f : fr;
+			fr = (sin_t >= 1.0f) ? 1.0f : fr;
+			//fr = discriminat > 0.0f ? fr : 1.0f;
+
+			Ray reflection_ray(isect_data->position + proper_normal * m_settings.shadow_eps);
+			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, proper_normal));
+
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * fr;
+			if (inside)
+			{
+				reflection_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
+			}
+
+
+			glm::vec3 refraction_color = { 0,0,0 };
+
+			if (fr < 1.0f)
+			{
+				Ray refraction_ray(isect_data->position - proper_normal * m_settings.shadow_eps);
+				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
+				refraction_color = PathTrace(refraction_ray, scene, depth + 1) * (1.0f - fr);
+				if (!inside)
+				{
+					refraction_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
+				}
+			}
+			/*else if (inside)
+			{
+				//CH_TRACE(glm::to_string(exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position))));
+				reflection_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
+			}
+			if (!inside)
+			{
+				refraction_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
+			}*/
+
+			color += (reflection_color + refraction_color);
 		}
 
 		// point is illuminated

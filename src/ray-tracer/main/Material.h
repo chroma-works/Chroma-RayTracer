@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include<algorithm> 
 #include <thirdparty/glm/glm/glm.hpp>
 
 namespace Chroma
@@ -23,8 +24,6 @@ namespace Chroma
 				float refraction_ind = NAN;
 
 				DielectricCoeffs() {};
-
-				float FR() { return 0.4f; };
 			}dielectric_coeffs;
 
 			struct ConductorCoeffs
@@ -34,36 +33,53 @@ namespace Chroma
 				float absorptionI_ind = NAN; 
 
 				ConductorCoeffs() {};
-				float FR() { return 0.5f; };
 			}conductor_coeffs;
 
 			FrensnelCoeffs() {};
 
 		}f_coeff;
 
-		float GetFr(float cos_theta)
+		float GetFr(float cos_i)
 		{
 			if (type == MAT_TYPE::conductor)
 			{
 				float rs = ((f_coeff.conductor_coeffs.refraction_ind * f_coeff.conductor_coeffs.refraction_ind +
 					f_coeff.conductor_coeffs.absorptionI_ind * f_coeff.conductor_coeffs.absorptionI_ind) - 2.0f *
-					f_coeff.conductor_coeffs.refraction_ind * cos_theta - cos_theta * cos_theta) /
+					f_coeff.conductor_coeffs.refraction_ind * cos_i - cos_i * cos_i) /
 					((f_coeff.conductor_coeffs.refraction_ind * f_coeff.conductor_coeffs.refraction_ind +
 						f_coeff.conductor_coeffs.absorptionI_ind * f_coeff.conductor_coeffs.absorptionI_ind) + 2.0f *
-						f_coeff.conductor_coeffs.refraction_ind * cos_theta - cos_theta * cos_theta);
+						f_coeff.conductor_coeffs.refraction_ind * cos_i - cos_i * cos_i);
 				float rp = ((f_coeff.conductor_coeffs.refraction_ind * f_coeff.conductor_coeffs.refraction_ind +
 					f_coeff.conductor_coeffs.absorptionI_ind * f_coeff.conductor_coeffs.absorptionI_ind) *
-					cos_theta * cos_theta - 2.0f *
-					f_coeff.conductor_coeffs.refraction_ind * cos_theta + 1) /
+					cos_i * cos_i - 2.0f *
+					f_coeff.conductor_coeffs.refraction_ind * cos_i + 1) /
 					((f_coeff.conductor_coeffs.refraction_ind * f_coeff.conductor_coeffs.refraction_ind +
 						f_coeff.conductor_coeffs.absorptionI_ind * f_coeff.conductor_coeffs.absorptionI_ind) *
-						cos_theta * cos_theta + 2.0f *
-						f_coeff.conductor_coeffs.refraction_ind * cos_theta + 1);
+						cos_i * cos_i + 2.0f *
+						f_coeff.conductor_coeffs.refraction_ind * cos_i + 1);
 				return (rs + rp) * 0.5f;
 			}
 			else if (type == MAT_TYPE::dielectric)
 			{
-				return 0.5f;
+				float ni = 1.0f;
+				float nt = f_coeff.dielectric_coeffs.refraction_ind;
+				if( cos_i > 0.0f)
+					std::swap(ni, nt);
+
+				cos_i = std::abs(cos_i);
+
+				float sin_i = std::sqrt(std::max(0.0f, 1.0f - cos_i * cos_i));
+				float sin_t = ni / nt * sin_i;
+				float sin2_t = ni / nt * sin_t;
+				float cos_t = std::sqrt(std::max(0.0f, 1.0f - sin_t * sin_t));
+
+				float r_parl = ((nt * cos_i) - (ni * cos_t)) /
+					((nt * cos_i) + (ni * cos_t));
+				float r_perp = ((ni * cos_i) - (nt * cos_t)) /
+					((ni * cos_i) + (nt * cos_t));
+
+				return (r_parl * r_parl + r_perp * r_perp) * 0.5f;
+
 			}
 			else if (type == MAT_TYPE::mirror)
 				return 1.0f;
@@ -80,5 +96,4 @@ namespace Chroma
 		{}
 
 	};
-	
 }
