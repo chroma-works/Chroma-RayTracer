@@ -140,6 +140,14 @@ I have also made adjustments to my mesh intersection methods since they rendered
   
   
 
+## Week 5
+Implementation for a (recursive) path tracer has been completed. Now transparent and reflective objects can be rendered physically accurate. To calculate these we have considered 2 types of materials; conductors and dielectrics(and also mirrors). The programming the ray calculations for the conductors (and mirrors) were fairly easy since they only reflect the light that hits their surface. However dielectrics pose a challenge since they have many cases to handle along side with reflecions such as refractions, total internal reflections and light absorptions.  
+To find the amount of light emmited from the dielectric and conductor materials we use Fresnel equations along side with Snell equations to find the refraction angles[[5]](#5). We also use Beer's Law to find light absorptions when passing through a medium.  
+Despide all my efforts there remains to be a small refraction error when we examine the dielectic materials. **Figure 13** shows the error in the science tree scene. I believe this to be an error of light absorptions yet I am unable to see the solution.  
+
+<img src= "resources/scienceTree_failed_glass.png" width="430"> <img src= "resources/scienceTree_correct_glass.png" width="430">  
+**Figure 13:** Left shows the failed render with missing dark refractions; right shows the correct render(courtesy of Assoc. Prof. Oğuz Akyüz).  
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
@@ -150,3 +158,6 @@ Scratchapixel, Ray Tracing: Rendering a Triangle (Möller-Trumbore algorithm), 1
 
 <a id="4">[4]</a>
 Scratchapixel, “Introduction to Acceleration Structures,” Scratchapixel, 08-Oct-2015. [Online]. Available: https://www.scratchapixel.com/lessons/advanced-rendering/introduction-acceleration-structure/introduction. [Accessed: 29-Feb-2020].
+
+<a id="5">[5]</a>
+M. Pharr, W. Jakob , and G. Humphreys , “Physically Based Rendering,” Physically Based Rendering, 2017.
