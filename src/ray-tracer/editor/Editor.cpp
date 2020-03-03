@@ -364,7 +364,7 @@ namespace Chroma
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
 
 		static std::string rt_mode_names[] = { "Ray Casting", "Path Tracing" };
-		static RT_MODE selected_rt_method = RT_MODE::ray_cast;
+		static RT_MODE selected_rt_method = RT_MODE::path_trace;
 
 
 		if (ImGui::BeginCombo("RT Mode", rt_mode_names[selected_rt_method].c_str(), ImGuiComboFlags_None))

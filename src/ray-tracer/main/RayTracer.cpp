@@ -1,6 +1,8 @@
 #include "RayTracer.h"
 #include <thirdparty/glm/glm/glm.hpp>
+#include <thirdparty/glm/glm/gtx/string_cast.hpp>
 #include <limits>
+#include <thirdparty\glm\glm\gtx\norm.hpp>
 
 namespace Chroma
 {
@@ -12,7 +14,7 @@ namespace Chroma
 		for (int i = 0; i < m_settings.resolution.x; i++)
 			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
-		m_rt_worker = &RayTracer::RayCastWorker;
+		m_rt_worker = &RayTracer::PathTraceWorker;
 	}
 
 	std::atomic<float> progress_pers;
