@@ -317,6 +317,8 @@ namespace Chroma
 				std::string line;
 				std::istringstream stream(data);
 
+				CH_TRACE("Parsing vertices");
+
 				while (std::getline(stream, line)) {//read vertices line by line
 					glm::vec3 vertex;
 					std::istringstream iss(line);
@@ -329,7 +331,7 @@ namespace Chroma
 			}
 			else if (std::string(node->Value()).compare(OBJ) == 0)
 			{
-				
+				CH_TRACE("Parsing objects");
 				tinyxml2::XMLNode* child_node = node->FirstChild();
 				while (child_node)
 				{
@@ -353,7 +355,6 @@ namespace Chroma
 								std::vector<glm::vec3> mesh_verts;
 								std::vector<glm::vec2> mesh_uvs;
 								std::vector<glm::vec3> mesh_normals;
-								std::vector<unsigned int> num_shared_faces;
 								std::vector<unsigned int> mesh_indices;
 								std::vector<unsigned int> marked_indices;
 
@@ -362,8 +363,6 @@ namespace Chroma
 								mesh_verts = vertices;
 								mesh_normals.reserve(vertices.size());
 								mesh_normals.resize(vertices.size());
-								num_shared_faces.reserve(vertices.size());
-								num_shared_faces.resize(vertices.size());
 
 								while (std::getline(stream, line)) //read faces line by line
 								{
@@ -386,20 +385,18 @@ namespace Chroma
 											if (std::isnan(mesh_normals[ind[j] - 1].x))
 											{
 												mesh_normals[ind[j] - 1] = (normal);
-												num_shared_faces[ind[j] - 1] = 1;
 											}
 											else
 											{
 												mesh_normals[ind[j] - 1] += normal;
-												num_shared_faces[ind[j] - 1]++;
 											}
 
 										}
 									}
-									for (int i = 0; i < num_shared_faces.size(); i++)
+									/*for (int i = 0; i < mesh_normals.size(); i++)
 									{
 										mesh_normals[i] = glm::normalize(mesh_normals[i]); /// (float)num_shared_faces[i];//average vert. normals for shared faces
-									}
+									}*/
 								}
 								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 							}
