@@ -6,7 +6,6 @@
 
 namespace Chroma
 {
-#define MAX_RAY_DEPTH 6 
 
 	RayTracer::RayTracer()
 	{
@@ -88,8 +87,6 @@ namespace Chroma
 		int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
 		int col_end = idx == m_settings.thread_count -1 ? m_settings.resolution.x :
 			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
-
-		//CH_TRACE(std::string(std::to_string(col_start)) + "-" + std::to_string(col_end));
 
 		for (int i = col_start; i < col_end; i++)
 		{
@@ -197,7 +194,8 @@ namespace Chroma
 		IntersectionData* isect_data = new IntersectionData();
 		scene.m_accel_structure->Intersect(ray, scene.m_intersect_eps, isect_data);
 
-		glm::vec3 color= { 0,0,0 };
+		glm::vec3 color = { 0,0,0 };
+		bool inside = false;
 
 		if (!isect_data->hit)
 		{
@@ -205,7 +203,7 @@ namespace Chroma
 			return scene.m_sky_color;
 		}
 
-		else if (isect_data->material->type == MAT_TYPE::mirror && depth < MAX_RAY_DEPTH) {
+		else if (isect_data->material->type == MAT_TYPE::mirror && depth < scene.m_recur_dept) {
 			// compute reflection
 			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal));
@@ -213,97 +211,63 @@ namespace Chroma
 			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
 			color += reflection_color;
 		}
-		else if (isect_data->material->type == MAT_TYPE::conductor && depth < MAX_RAY_DEPTH)
+		else if (isect_data->material->type == MAT_TYPE::conductor && depth < scene.m_recur_dept)
 		{
 			// compute reflection
 			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal) );
 
-			float cos_theta = glm::dot(-ray.direction, isect_data->normal);// /1*1
+			float cos_theta = glm::dot(-ray.direction, isect_data->normal);
 
-			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->GetFr(cos_theta) * 
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->GetFr(cos_theta) *
 				isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
 			color += reflection_color;
 		}
-		else if (isect_data->material->type == MAT_TYPE::dielectric && depth < MAX_RAY_DEPTH)
+		else if (isect_data->material->type == MAT_TYPE::dielectric && depth < scene.m_recur_dept)
 		{
-			float cos_i = glm::clamp(glm::dot(ray.direction, isect_data->normal),-1.0f,1.0f);
+			float cos_i = glm::dot(ray.direction, isect_data->normal);
 			float ni = 1.0f;
 			float nt = isect_data->material->f_coeff.dielectric_coeffs.refraction_ind;
 
 			glm::vec3 proper_normal = isect_data->normal;
 
-			bool inside = (cos_i > 0.0f);
-
-			if (inside)
+			if (inside = (cos_i > 0.0f))
 			{
 				std::swap(ni, nt);
 				proper_normal = -isect_data->normal;
 			}
-			/*
-			float sin2_t = ni / nt * sin_t;
-			float cos_t = std::sqrt(std::max(0.0f, 1.0f - sin_t * sin_t));
-
-			float Rparl = ((nt * cos_i) - (ni * cos_t)) /
-				((nt * cos_i) + (ni* cos_t));
-			float Rperp = ((ni * cos_i) - (nt * cos_t)) /
-				((ni * cos_i) + (nt * cos_t));
-
-			float fr = (Rparl * Rparl + Rperp * Rperp) * 0.5f;*/
 
 			float fr = isect_data->material->GetFr(cos_i);
-
-			glm::vec3 uv = glm::normalize(ray.direction);
-			float dt = dot(uv, proper_normal);
-			float int_ref = glm::length2(ni / nt * (glm::dot(ray.direction, -proper_normal) * -proper_normal - ray.direction));
 			cos_i = std::abs(cos_i);
-
-			/*float sin_i = std::sqrt(std::max(0.0f, 1.0f - cos_i * cos_i));
-			float sin_t = ni / nt * sin_i;*/
-			float sin2_i = std::max(0.f, 1.f - cos_i * cos_i);
-			float sin_t = ni/nt * ni/nt * sin2_i;
-			//fr = (sin_t > 1.0f) ? 1.0f : fr;
-			fr = (sin_t >= 1.0f) ? 1.0f : fr;
-			//fr = discriminat > 0.0f ? fr : 1.0f;
 
 			Ray reflection_ray(isect_data->position + proper_normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, proper_normal));
 
+			glm::vec3 absorbance = -isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff *
+				glm::distance(ray.origin, isect_data->position) * 1.0f;
+
 			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * fr;
 			if (inside)
-			{
-				reflection_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
-			}
-
+				reflection_color *= exp(absorbance);
 
 			glm::vec3 refraction_color = { 0,0,0 };
-
 			if (fr < 1.0f)
 			{
 				Ray refraction_ray(isect_data->position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
 				refraction_color = PathTrace(refraction_ray, scene, depth + 1) * (1.0f - fr);
 				if (!inside)
-				{
-					refraction_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
-				}
+					refraction_color *= exp(absorbance);
 			}
-			/*else if (inside)
-			{
-				//CH_TRACE(glm::to_string(exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position))));
-				reflection_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
-			}
-			if (!inside)
-			{
-				refraction_color *= exp(-isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff * glm::distance(ray.origin, isect_data->position));
-			}*/
 
 			color += (reflection_color + refraction_color);
 		}
 
 		// point is illuminated
-		if (isect_data->hit )
+		if (isect_data->hit)
 		{
+			glm::vec3 absorbance = -isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff *
+				glm::distance(ray.origin, isect_data->position) * 1.0f;
 			IntersectionData* shadow_data = new IntersectionData();
 			//lighting calculation
 			for (auto it = scene.m_point_lights.begin(); it != scene.m_point_lights.end(); it++)
@@ -323,7 +287,6 @@ namespace Chroma
 				if (!shadowed)
 				{
 					float d = glm::distance(pl->position, isect_data->position);
-
 					//Kd * I * cos(theta) /d^2 
 					glm::vec3 diffuse = isect_data->material->diffuse * pl->intensity *
 						glm::max(glm::dot(isect_data->normal, l_vec), 0.0f) / (glm::length(isect_data->normal) * glm::length(l_vec)) / (d * d);

@@ -2,6 +2,7 @@
 
 #include <string>
 #include<algorithm> 
+#include <ray-tracer/editor/Logger.h>
 #include <thirdparty/glm/glm/glm.hpp>
 
 namespace Chroma
@@ -68,10 +69,14 @@ namespace Chroma
 
 				cos_i = std::abs(cos_i);
 
+
 				float sin_i = std::sqrt(std::max(0.0f, 1.0f - cos_i * cos_i));
 				float sin_t = ni / nt * sin_i;
 				float sin2_t = ni / nt * sin_t;
 				float cos_t = std::sqrt(std::max(0.0f, 1.0f - sin_t * sin_t));
+
+				if (sin_t > 1.0f)
+					return 1.0f;
 
 				float r_parl = ((nt * cos_i) - (ni * cos_t)) /
 					((nt * cos_i) + (ni * cos_t));
