@@ -70,6 +70,7 @@ namespace Chroma
 		const std::string LIGS = "Lights";
 		const std::string MAT = "Material";
 		const std::string MATS = "Materials";
+		const std::string MAX_RECUR = "MaxRecursionDepth";
 		const std::string MESH = "Mesh";
 		const std::string MIRROR_REF = "MirrorReflectance";
 		const std::string N_DIST = "NearDistance";
@@ -96,7 +97,12 @@ namespace Chroma
 		tinyxml2::XMLNode* node = doc.RootElement()->FirstChild();
 		while (node)
 		{
-			if (std::string(node->Value()).compare(BCK_COLOR) == 0)
+			if (std::string(node->Value()).compare(MAX_RECUR) == 0)
+			{
+				std::string data = node->FirstChild()->Value();
+				sscanf(data.c_str(), "%d", &scene->m_recur_dept);
+			}
+			else if (std::string(node->Value()).compare(BCK_COLOR) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
 				sscanf(data.c_str(), "%f %f %f",&scene->m_sky_color.x, &scene->m_sky_color.y, &scene->m_sky_color.z);

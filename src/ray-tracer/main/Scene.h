@@ -40,7 +40,7 @@ namespace Chroma
 		glm::vec4 m_sky_color = {0.15f * 0.3, 0.15f * 0.3, 0.2f * 0.3, 1.0f };
 		glm::vec3 m_ambient_l = { 0.0, 0.0, 0.0f };
 		float m_shadow_eps = 1e-3 ;
-		float m_intersect_eps = 1e-6;
+		float m_intersect_eps = 1e-10;
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
 		std::map<std::string, std::shared_ptr<DirectionalLight>> m_dir_lights;
 		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;
@@ -48,12 +48,12 @@ namespace Chroma
 
 		std::shared_ptr<AccelerationStructure> m_accel_structure;
 
+		int m_recur_dept = 6;
 	private:
 		friend class Editor;
 		std::string m_name;
 
 		std::map<std::string, Camera*> m_cameras;
-
 
 
 		class SceneData
