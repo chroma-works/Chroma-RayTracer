@@ -42,6 +42,7 @@ set (thirdparty_sources
 	src/thirdparty/stb_image/stb_image.h
 	src/thirdparty/stb_image/stb_image_write.h
 	src/thirdparty/OBJ_loader/OBJ_Loader.h
+	src/thirdparty/hapPLy/happly.h
 )
 
 source_group ("thirdparty\\" FILES
