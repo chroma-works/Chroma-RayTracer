@@ -72,7 +72,6 @@ namespace Chroma
 
 				float sin_i = std::sqrt(std::max(0.0f, 1.0f - cos_i * cos_i));
 				float sin_t = ni / nt * sin_i;
-				float sin2_t = ni / nt * sin_t;
 				float cos_t = std::sqrt(std::max(0.0f, 1.0f - sin_t * sin_t));
 
 				if (sin_t > 1.0f)
@@ -82,7 +81,6 @@ namespace Chroma
 					((nt * cos_i) + (ni * cos_t));
 				float r_perp = ((ni * cos_i) - (nt * cos_t)) /
 					((ni * cos_i) + (nt * cos_t));
-
 				return (r_parl * r_parl + r_perp * r_perp) * 0.5f;
 
 			}

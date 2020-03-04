@@ -243,12 +243,7 @@ namespace Chroma
 			Ray reflection_ray(isect_data->position + proper_normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, proper_normal));
 
-			glm::vec3 absorbance = -isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff *
-				glm::distance(ray.origin, isect_data->position) * 1.0f;
-
 			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * fr;
-			if (inside)
-				reflection_color *= exp(absorbance);
 
 			glm::vec3 refraction_color = { 0,0,0 };
 			if (fr < 1.0f)
@@ -256,15 +251,18 @@ namespace Chroma
 				Ray refraction_ray(isect_data->position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
 				refraction_color = PathTrace(refraction_ray, scene, depth + 1) * (1.0f - fr);
-				if (!inside)
-					refraction_color *= exp(absorbance);
 			}
 
 			color += (reflection_color + refraction_color);
+			if (inside)
+			{
+				glm::vec3 absorbance = -isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff *
+					glm::distance(ray.origin, isect_data->position) * 1.0f;
+				color *= exp(absorbance);
+			}
 		}
-
 		// point is illuminated
-		if (isect_data->hit)
+		if (isect_data->hit && !inside)
 		{
 			glm::vec3 absorbance = -isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff *
 				glm::distance(ray.origin, isect_data->position) * 1.0f;
