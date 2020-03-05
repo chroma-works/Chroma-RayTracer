@@ -1,6 +1,10 @@
 //#include <thirdparty\glad\include\glad\glad.h>
 //#include <thirdparty/glfw-3.3/include/GLFW/glfw3.h>
 
+//#define _CRTDBG_MAP_ALLOC  
+//#include <stdlib.h>  
+//#include <crtdbg.h>  
+
 #include <iostream>
 #include <ray-tracer/editor/AssetImporter.h>
 #include <ray-tracer/editor/Editor.h>
@@ -28,7 +32,7 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw1/scienceTree.xml")));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/other_dragon.xml")));
 	//init editor
 	Chroma::Editor editor(window, scene.get());
 
@@ -105,5 +109,7 @@ int main()
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
 	glfwTerminate();
+
+	//_CrtDumpMemoryLeaks();
 	return 0;
 }
