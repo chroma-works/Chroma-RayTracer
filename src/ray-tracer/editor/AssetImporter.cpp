@@ -1,5 +1,6 @@
 #include "AssetImporter.h"
 
+#include <thirdparty/hapPLY/happly.h>
 #include <thirdparty/OBJ_loader/OBJ_Loader.h>
 #include <ray-tracer/editor/Logger.h>
 #include <iostream>
@@ -127,52 +128,111 @@ namespace Chroma
 					std::string cam_name = "camera_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 					tinyxml2::XMLNode* cam_prop = child_node->FirstChild();
 
+					auto cam_type = child_node->ToElement()->FindAttribute("type");
+
 					while (cam_prop)//iterate over each cameras properties
 					{
-						if (std::string(cam_prop->Value()).compare(POS) == 0)
+						if (!cam_type)//Typless camera
 						{
-							std::string data = cam_prop->FirstChild()->Value();
-							glm::vec3 vec({0,0,0});
-							sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-							cam->SetPosition(vec);
+							if (std::string(cam_prop->Value()).compare(POS) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								glm::vec3 vec({ 0,0,0 });
+								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+								cam->SetPosition(vec);
+							}
+							else if (std::string(cam_prop->Value()).compare(GAZE) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								glm::vec3 vec({ 0,0,0 });
+								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+								cam->SetGaze(vec);
+							}
+							else if (std::string(cam_prop->Value()).compare(UP) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								glm::vec3 vec({ 0,0,0 });
+								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+								cam->SetUp(vec);
+							}
+							else if (std::string(cam_prop->Value()).compare(N_PLANE) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								glm::vec2 vec[2];
+								sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
+								cam->SetNearPlane(vec);
+							}
+							else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								float d;
+								sscanf(data.c_str(), "%f", &d);
+								cam->SetNearDist(d);
+							}
+							else if (std::string(cam_prop->Value()).compare(RES) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d %d", &cam->m_res.x, &cam->m_res.y);
+							}
+							else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								cam->SetImageName(data);
+							}
 						}
-						else if (std::string(cam_prop->Value()).compare(GAZE) == 0)
+						else if (std::string(cam_type->Value()).compare("lookAt") == 0)
 						{
-							std::string data = cam_prop->FirstChild()->Value();
-							glm::vec3 vec({ 0,0,0 });
-							sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-							cam->SetGaze(vec);
-						}
-						else if (std::string(cam_prop->Value()).compare(UP) == 0)
-						{
-							std::string data = cam_prop->FirstChild()->Value();
-							glm::vec3 vec({ 0,0,0 });
-							sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-							cam->SetUp(vec);
-						}
-						else if (std::string(cam_prop->Value()).compare(N_PLANE) == 0)
-						{
-							std::string data = cam_prop->FirstChild()->Value();
-							glm::vec2 vec[2];
-							sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
-							cam->SetNearPlane(vec);
-						}
-						else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
-						{
-						std::string data = cam_prop->FirstChild()->Value();
-						float d;
-						sscanf(data.c_str(), "%f", &d);
-						cam->SetNearDist(d);
-						}
-						else if (std::string(cam_prop->Value()).compare(RES) == 0)
-						{
-						std::string data = cam_prop->FirstChild()->Value();
-						sscanf(data.c_str(), "%d %d", &cam->m_res.x, &cam->m_res.y);
-						}
-						else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
-						{
-						std::string data = cam_prop->FirstChild()->Value();
-						cam->SetImageName(data);
+							if (std::string(cam_prop->Value()).compare(POS) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								glm::vec3 vec({ 0,0,0 });
+								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+								cam->SetPosition(vec);
+							}
+							else if (std::string(cam_prop->Value()).compare("GazePoint") == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								glm::vec3 vec({ 0,0,0 });
+								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+								cam->SetGaze(glm::normalize(vec - cam->GetPosition()));
+							}
+							else if (std::string(cam_prop->Value()).compare(UP) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								glm::vec3 vec({ 0,0,0 });
+								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+								cam->SetUp(vec);
+							}
+							else if (std::string(cam_prop->Value()).compare("FovY") == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								float fovy;
+								sscanf(data.c_str(), "%f", &fovy);
+								float aspect_ratio;
+								glm::vec2 vec[2];
+								vec[0].x = -0.5f;
+								vec[1].x = -vec[0].x;
+								vec[0].y = std::tan(fovy * 0.5f);
+								vec[1].y = -std::tan(fovy * 0.5f);
+								cam->SetNearPlane(vec);
+							}
+							else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								float d;
+								sscanf(data.c_str(), "%f", &d);
+								cam->SetNearDist(d);
+							}
+							else if (std::string(cam_prop->Value()).compare(RES) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d %d", &cam->m_res.x, &cam->m_res.y);
+							}
+							else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
+							{
+								std::string data = cam_prop->FirstChild()->Value();
+								cam->SetImageName(data);
+							}
 						}
 						cam_prop = cam_prop->NextSibling();
 					}
@@ -183,7 +243,6 @@ namespace Chroma
 						glm::vec3 v_prime = glm::cross(-cam->GetGaze(), u);
 						cam->SetUp(v_prime);
 					}
-
 					scene->AddCamera(cam_name, cam);
 					child_node = child_node->NextSibling();
 				}
@@ -347,8 +406,11 @@ namespace Chroma
 						std::string name = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						Mesh* mesh = nullptr;
 						int mat_ind = 0;
+						bool ply_parsed = false;
+
 						while (object_prop)
 						{
+							//CH_TRACE(object_prop->ToElement()->->Value());
 							if (std::string(object_prop->Value()).compare(MAT) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
@@ -357,54 +419,92 @@ namespace Chroma
 							}
 							else if (std::string(object_prop->Value()).compare(FACES) == 0)
 							{
-								std::string data = object_prop->FirstChild()->Value();
-								std::vector<glm::vec3> mesh_verts;
-								std::vector<glm::vec2> mesh_uvs;
-								std::vector<glm::vec3> mesh_normals;
-								std::vector<unsigned int> mesh_indices;
-								std::vector<unsigned int> marked_indices;
-
-								std::string line;
-								std::istringstream stream(data);
-								mesh_verts = vertices;
-								mesh_normals.reserve(vertices.size());
-								mesh_normals.resize(vertices.size());
-
-								while (std::getline(stream, line)) //read faces line by line
+								auto ply_file_path = object_prop->ToElement()->FindAttribute("plyFile");
+								if (ply_file_path)
 								{
-									unsigned int ind[3];
-									std::istringstream iss(line);
-									iss >> ind[0] >> ind[1] >> ind[2];
+									std::vector<glm::vec3> mesh_verts;
+									std::vector<glm::vec2> mesh_uvs;
+									std::vector<glm::vec3> mesh_normals;
+									std::vector<unsigned int> mesh_indices;
 
-									if (iss) {
+									happly::PLYData ply_in(file_path.substr(0, found+1) + std::string(ply_file_path->Value()));
+									std::vector<std::array<double, 3>> v_pos = ply_in.getVertexPositions();
+									std::vector<std::vector<size_t>> f_ind = ply_in.getFaceIndices<size_t>();
 
-										glm::vec3 a = (vertices[ind[0] - 1] - vertices[ind[1] - 1]);
-										glm::vec3 b = (vertices[ind[0] - 1] - vertices[ind[2] - 1]);
-
-										glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
-
-										normal = (glm::cross(-a, -b));
-
-										for (int j = 0; j < 3; j++)
+									for (int i = 0; i < v_pos.size(); i++)
+									{
+										mesh_verts.push_back({ v_pos[i][0], v_pos[i][1], v_pos[i][2] });
+										/*mesh_verts.push_back({ v_pos[i+1][0], v_pos[i+1][1], v_pos[i+1][2] });
+										mesh_verts.push_back({ v_pos[i+2][0], v_pos[i+2][1], v_pos[i+2][2] });*/
+									}
+									for (auto faces : f_ind)
+									{
+										for (int i = 0; i < faces.size(); i += 3)
 										{
-											mesh_indices.push_back(ind[j] - 1);
-											if (std::isnan(mesh_normals[ind[j] - 1].x))
-											{
-												mesh_normals[ind[j] - 1] = (normal);
-											}
-											else
-											{
-												mesh_normals[ind[j] - 1] += normal;
-											}
-
+											glm::vec3 a = (mesh_verts[faces[i + 1]] - mesh_verts[faces[i]]);
+											glm::vec3 b = (mesh_verts[faces[i + 2]] - mesh_verts[faces[i]]);
+											mesh_normals.push_back((glm::cross(-a, -b)));
+											mesh_normals.push_back((glm::cross(-a, -b)));
+											mesh_normals.push_back((glm::cross(-a, -b)));
+											mesh_indices.push_back(faces[i]);
+											mesh_indices.push_back(faces[i + 1]);
+											mesh_indices.push_back(faces[i + 2]);
 										}
 									}
-									/*for (int i = 0; i < mesh_normals.size(); i++)
-									{
-										mesh_normals[i] = glm::normalize(mesh_normals[i]); /// (float)num_shared_faces[i];//average vert. normals for shared faces
-									}*/
+									//ply_parsed = true;
+									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 								}
-								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+								else
+								{
+									std::string data = object_prop->FirstChild()->Value();
+									std::vector<glm::vec3> mesh_verts;
+									std::vector<glm::vec2> mesh_uvs;
+									std::vector<glm::vec3> mesh_normals;
+									std::vector<unsigned int> mesh_indices;
+
+									std::string line;
+									std::istringstream stream(data);
+									mesh_verts = vertices;
+									mesh_normals.reserve(vertices.size());
+									mesh_normals.resize(vertices.size());
+
+									while (std::getline(stream, line)) //read faces line by line
+									{
+										unsigned int ind[3];
+										std::istringstream iss(line);
+										iss >> ind[0] >> ind[1] >> ind[2];
+
+										if (iss) {
+
+											glm::vec3 a = (vertices[ind[0] - 1] - vertices[ind[1] - 1]);
+											glm::vec3 b = (vertices[ind[0] - 1] - vertices[ind[2] - 1]);
+
+											glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
+
+											normal = (glm::cross(-a, -b));
+
+											for (int j = 0; j < 3; j++)
+											{
+												mesh_indices.push_back(ind[j] - 1);
+												if (std::isnan(mesh_normals[ind[j] - 1].x))
+												{
+													mesh_normals[ind[j] - 1] = (normal);
+												}
+												else
+												{
+													mesh_normals[ind[j] - 1] += normal;
+												}
+
+											}
+										}
+										/*for (int i = 0; i < mesh_normals.size(); i++)
+										{
+											mesh_normals[i] = glm::normalize(mesh_normals[i]); /// (float)num_shared_faces[i];//average vert. normals for shared faces
+										}*/
+									}
+									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+								}
+
 							}
 							object_prop = object_prop->NextSibling();
 						}
