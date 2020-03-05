@@ -15,11 +15,11 @@ namespace Chroma
 	const glm::vec3 BVH::planeSetNormals[BVH::kNumPlaneSetNormals] = {
 	glm::vec3(1, 0, 0),
 	glm::vec3(0, 1, 0),
-	glm::vec3(0, 0, 1),
+	glm::vec3(0, 0, 1)/*,
 	glm::vec3(sqrtf(3) / 3.f,  sqrtf(3) / 3.f, sqrtf(3) / 3.f),
 	glm::vec3(-sqrtf(3) / 3.f,  sqrtf(3) / 3.f, sqrtf(3) / 3.f),
 	glm::vec3(-sqrtf(3) / 3.f, -sqrtf(3) / 3.f, sqrtf(3) / 3.f),
-	glm::vec3(sqrtf(3) / 3.f, -sqrtf(3) / 3.f, sqrtf(3) / 3.f)
+	glm::vec3(sqrtf(3) / 3.f, -sqrtf(3) / 3.f, sqrtf(3) / 3.f)*/
 	};
 
 	BVH::BVH(std::vector<std::shared_ptr<SceneObject>>& s) : AccelerationStructure(s)

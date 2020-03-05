@@ -8,7 +8,7 @@ namespace Chroma
 {
 	class BVH : public AccelerationStructure
 	{
-		static const uint8_t kNumPlaneSetNormals = 7;
+		static const uint8_t kNumPlaneSetNormals = 3;
 		static const glm::vec3 planeSetNormals[kNumPlaneSetNormals];
 		struct Extents
 		{
@@ -98,6 +98,7 @@ namespace Chroma
 				if (node->isLeaf) {
 					if (node->nodeExtentsList.size() == 0 || depth == 16) {
 						node->nodeExtentsList.push_back(extents);
+						CH_TRACE("Leaf");
 					}
 					else {
 						node->isLeaf = false;
