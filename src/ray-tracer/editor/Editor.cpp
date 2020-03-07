@@ -175,9 +175,9 @@ namespace Chroma
 
 			if (ImGui::Button("R##2"))m_scene->m_scene_objects[selected_name]->SetRotation(glm::vec3());
 			ImGui::SameLine();
-			glm::vec3 tmp_rot = glm::eulerAngles(m_scene->m_scene_objects[selected_name]->GetRotation());
+			glm::vec3 tmp_rot = m_scene->m_scene_objects[selected_name]->GetRotation();
 			ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.3f");
-			m_scene->m_scene_objects[selected_name]->SetRotation(glm::quat(tmp_rot));
+			m_scene->m_scene_objects[selected_name]->SetRotation(tmp_rot);
 
 			if (ImGui::Button("S##3")) m_scene->m_scene_objects[selected_name]->SetScale(glm::vec3(1, 1, 1));
 			ImGui::SameLine();
@@ -455,7 +455,7 @@ namespace Chroma
 
 		if (ImGui::Button("Init BVH"))
 		{
-			m_scene->InitAccelarationStructure();
+			m_scene->InitBVH();
 			CH_INFO("BVH initialized");
 		}
 

@@ -3,6 +3,7 @@
 #include <thirdparty/hapPLY/happly.h>
 #include <thirdparty/OBJ_loader/OBJ_Loader.h>
 #include <ray-tracer/editor/Logger.h>
+#include <ray-tracer/main/Shape.h>
 #include <iostream>
 #include <sstream>
 #include <string> 
@@ -508,7 +509,7 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), RT_INTR_TYPE::mesh);
+						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle);
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
@@ -550,14 +551,14 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), RT_INTR_TYPE::triangle);
+						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle);
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
 					else if (std::string(child_node->Value()).compare(SPHR) == 0)
 					{
 						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						SceneObject* scene_obj = new SceneObject(Mesh(), name, glm::vec3(), glm::vec3(), glm::vec3(), RT_INTR_TYPE::sphere);
+						SceneObject* scene_obj = new SceneObject(Mesh(), name, glm::vec3(), glm::vec3(), glm::vec3(), SHAPE_T::sphere);
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)

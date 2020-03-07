@@ -50,7 +50,7 @@ namespace Chroma
 
 		for (auto it = scene.m_scene_objects.begin(); it != scene.m_scene_objects.end(); it++)
 		{
-			if(it->second->GetRTIntersectionMethod() != RT_INTR_TYPE::sphere)
+			if(it->second->GetShapeType() != SHAPE_T::sphere)
 				triangle_count += it->second->m_mesh.GetFaceCount();
 
 			glm::vec3 min = it->second->m_mesh.GetMinBound();
@@ -81,7 +81,7 @@ namespace Chroma
 		const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
 		const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
 
-		IntersectionData* intersection_data = new IntersectionData();
+		IntersectionData* isect_data = new IntersectionData();
 		IntersectionData* shadow_data = new IntersectionData();
 
 		int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
@@ -97,7 +97,7 @@ namespace Chroma
 				primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
 				//Go over scene objects and lights
 				float t_min = std::numeric_limits<float>::max();
-				if (scene.m_accel_structure->Intersect(primary_ray, scene.m_intersect_eps, intersection_data))//Hit
+				if (scene.m_accel_structure->Intersect(primary_ray, isect_data))//Hit
 				{
 					color = { 0,0,0 };
 					//lighting calculation
@@ -105,33 +105,33 @@ namespace Chroma
 					for (it2 = scene.m_point_lights.begin(); it2 != scene.m_point_lights.end(); it2++)
 					{
 						std::shared_ptr<PointLight> pl = it2->second;
-						glm::vec3 e_vec = glm::normalize(primary_ray.origin - intersection_data->position);
-						glm::vec3 l_vec = glm::normalize(pl->position - intersection_data->position);
+						glm::vec3 e_vec = glm::normalize(primary_ray.origin - isect_data->position);
+						glm::vec3 l_vec = glm::normalize(pl->position - isect_data->position);
 
 						//Shadow calculation	
 						bool shadowed = false;
-						Ray shadow_ray(intersection_data->position + intersection_data->normal * scene.m_shadow_eps);
+						Ray shadow_ray(isect_data->position + isect_data->normal * scene.m_shadow_eps);
 						shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 							
-						shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, scene.m_intersect_eps, shadow_data) &&
-							shadow_data->t < glm::distance(intersection_data->position, pl->position));
+						shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, shadow_data) &&
+							shadow_data->t < glm::distance(isect_data->position, pl->position));
 
 						if (!shadowed)
 						{
-							float d = glm::distance(pl->position, intersection_data->position);
+							float d = glm::distance(pl->position, isect_data->position);
 
 							//Kd * I * cos(theta) /d^2 
-							glm::vec3 diffuse = intersection_data->material->diffuse * pl->intensity *
-								glm::max(glm::dot(intersection_data->normal, l_vec), 0.0f) / (glm::length(intersection_data->normal) * glm::length(l_vec)) / (d * d);
+							glm::vec3 diffuse = isect_data->material->diffuse * pl->intensity *
+								glm::max(glm::dot(isect_data->normal, l_vec), 0.0f) / (glm::length(isect_data->normal) * glm::length(l_vec)) / (d * d);
 							//Ks* I * max(0, h . n)^s / d^2
 							glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-							glm::vec3 specular = intersection_data->material->specular * pl->intensity *
-								glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(intersection_data->normal))), intersection_data->material->shininess) / (d * d);
+							glm::vec3 specular = isect_data->material->specular * pl->intensity *
+								glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data->normal))), isect_data->material->shininess) / (d * d);
 							color += specular + diffuse;
 						}
 					}
 					//Ka * Ia
-					glm::vec3 ambient = scene.m_ambient_l * intersection_data->material->ambient;
+					glm::vec3 ambient = scene.m_ambient_l * isect_data->material->ambient;
 					color += ambient;
 				}
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
@@ -140,7 +140,7 @@ namespace Chroma
 			if(idx == m_settings.thread_count - 1)
 				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));
 		}
-		delete intersection_data;
+		/*delete intersection_data;*/
 		delete shadow_data;
 	}
 
@@ -192,7 +192,7 @@ namespace Chroma
 	glm::vec3 RayTracer::PathTrace(const Ray& ray, Scene& scene, int depth)//Recursive!
 	{
 		IntersectionData* isect_data = new IntersectionData();
-		scene.m_accel_structure->Intersect(ray, scene.m_intersect_eps, isect_data);
+		scene.m_accel_structure->Intersect(ray, isect_data);
 
 		glm::vec3 color = { 0,0,0 };
 		bool inside = false;
@@ -279,7 +279,7 @@ namespace Chroma
 				Ray shadow_ray(isect_data->position + isect_data->normal * scene.m_shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 
-				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, scene.m_intersect_eps, shadow_data) &&
+				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, shadow_data) &&
 					shadow_data->t < glm::distance(isect_data->position, pl->position));
 
 				if (!shadowed)

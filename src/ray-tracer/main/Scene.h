@@ -1,5 +1,6 @@
 #pragma once
 #include <ray-tracer/accelerationStructures/AccelerationStructure.h>
+#include <ray-tracer/accelerationStructures/BVH.h>
 #include <ray-tracer/main/Camera.h>
 #include <ray-tracer/main/SceneObject.h>
 
@@ -28,7 +29,7 @@ namespace Chroma
 		void AddLight(std::string name, std::shared_ptr<PointLight> li);
 		void AddLight(std::string name, std::shared_ptr<SpotLight> li);
 
-		void InitAccelarationStructure();
+		void InitBVH(int maxPrimsInNode = 1, SplitMethod splitMethod = (SplitMethod)0);
 
 		inline std::shared_ptr<DirectionalLight> GetDirectionalLight(std::string name) { return m_dir_lights[name]; } //TODO: add null check
 		inline std::shared_ptr<PointLight> GetPointLight(std::string name) { return m_point_lights[name]; }
@@ -46,9 +47,8 @@ namespace Chroma
 		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;
 		std::map<std::string, std::shared_ptr<SpotLight>> m_spot_lights;
 
-		std::shared_ptr<AccelerationStructure> m_accel_structure;
-
 		int m_recur_dept = 6;
+		AccelerationStructure* m_accel_structure;
 	private:
 		friend class Editor;
 		std::string m_name;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ray-tracer/main/Material.h>
+#include <ray-tracer/main/Shape.h>
 #include <ray-tracer/main/Ray.h>
 #include <ray-tracer/editor/Texture.h>
 #include <ray-tracer/editor/Shader.h>
@@ -22,8 +23,6 @@ namespace Chroma
                                                     void AddTo##NAME_P(TYPE val) { VAR.push_back(val);}\
                                                     void ResizeSpaceFrom##NAME_P(unsigned int size) {VAR.resize(size);}\
                                                     void Set##NAME_S##At(unsigned int index, TYPE val) {VAR.at(index) = val;}
-	enum class RT_INTR_TYPE {mesh, triangle, sphere};
-
 	class Mesh
 	{
 	public:
@@ -76,7 +75,8 @@ namespace Chroma
 		SceneObject(Mesh mesh, std::string name,
 			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f), RT_INTR_TYPE rt_intersect = RT_INTR_TYPE::mesh);
+			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f), 
+			SHAPE_T t = SHAPE_T::triangle);
 		//~SceneObject();
 
 
@@ -90,23 +90,23 @@ namespace Chroma
 
 
 		inline void SetPosition(const glm::vec3 pos) { m_position = pos; RecalculateModelMatrix(); }
-		inline void SetRotation(const glm::quat rot) { m_rotation = rot; RecalculateModelMatrix(); }
+		inline void SetRotation(const glm::vec3 rot) { m_rotation = rot; RecalculateModelMatrix(); }
 		inline void SetScale(const glm::vec3 sca) { m_scale = sca; RecalculateModelMatrix(); }
 
 		inline glm::mat4 GetModelMatrix() const { return m_model_matrix; }
 		inline glm::vec3 GetPosition() const { return m_position; }
-		inline glm::quat GetRotation() const { return m_rotation; }
+		inline glm::vec3 GetRotation() const { return m_rotation; }
 		inline glm::vec3 GetScale() const { return m_scale; }
 
 		inline void Translate(const glm::vec3 vec) { m_position += vec; RecalculateModelMatrix(); }
-		inline void RotateAngleAxis(const float angle, const glm::vec3 axis) {
+		/*inline void RotateAngleAxis(const float angle, const glm::vec3 axis) {
 			m_rotation = glm::angleAxis(angle, axis) * m_rotation;
 			RecalculateModelMatrix();
 		}
 		inline void RotateEuler(const glm::vec3 euler_angles) {
 			m_rotation = glm::quat(euler_angles) * m_rotation;
 			RecalculateModelMatrix();
-		}
+		}*/
 		inline void Scale(const glm::vec3 scale) { m_scale *= scale; RecalculateModelMatrix(); }
 		inline void ResetTransforms() { m_model_matrix = glm::mat4(1.0f); }
 
@@ -116,7 +116,7 @@ namespace Chroma
 
 		inline Material* GetMaterial() const { return m_material; }
 
-		inline RT_INTR_TYPE GetRTIntersectionMethod() { return m_method; }
+		inline SHAPE_T GetShapeType() { return m_shape_t; }
 
 		inline std::string GetName() const { return m_name; }
 		inline void SetName(std::string n) { m_name = n; }
@@ -182,7 +182,7 @@ namespace Chroma
 		std::string m_name;
 
 		glm::vec3 m_position;
-		glm::quat m_rotation;
+		glm::vec3 m_rotation;
 		glm::vec3 m_scale;
 
 		glm::mat4 m_model_matrix = glm::mat4(1.0);
@@ -196,7 +196,7 @@ namespace Chroma
 		bool IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data) const;
 		bool IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data) const;
 
-		RT_INTR_TYPE m_method;
+		SHAPE_T m_shape_t;
 
 		Chroma::OpenGLVertexArrayObject m_vao;
 		std::vector<std::shared_ptr<Chroma::VertexBuffer>> m_vertex_buffers;

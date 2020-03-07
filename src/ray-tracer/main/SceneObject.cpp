@@ -109,12 +109,12 @@ namespace Chroma
 	}
 
 
-	SceneObject::SceneObject(Mesh mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, RT_INTR_TYPE method)
-		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(glm::quat(rot)), m_scale(scale), m_method(method), m_radius(0.0f)
+	SceneObject::SceneObject(Mesh mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t)
+		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t), m_radius(0.0f)
 	{
 		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid all black shaded objects
 
-		if (m_method == RT_INTR_TYPE::sphere)
+		if (m_shape_t == SHAPE_T::sphere)
 		{
 			if (m_mesh.GetVertexCount() != 0)
 			{
@@ -124,7 +124,7 @@ namespace Chroma
 			m_radius = 1.0f;
 			m_intersection_method = &SceneObject::IntersectSphere;
 		}
-		else if (m_method == RT_INTR_TYPE::triangle)
+		else if (m_shape_t == SHAPE_T::triangle)
 		{
 			m_intersection_method = &SceneObject::IntersectTriangle;
 		}
@@ -194,7 +194,7 @@ namespace Chroma
 	void SceneObject::RecalculateModelMatrix()
 	{
 		glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_position);
-		glm::mat4 rotation = glm::toMat4(m_rotation);
+		glm::mat4 rotation = glm::eulerAngleYXZ(m_rotation.y, m_rotation.x, m_rotation.z);
 		glm::mat4 scale = glm::scale(glm::mat4(1.0f), m_scale);
 
 		m_model_matrix = translation * rotation * scale;

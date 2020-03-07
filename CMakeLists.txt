@@ -53,6 +53,9 @@ set (main_sources
 	src/ray-tracer/main/Camera.h
 	src/ray-tracer/main/Camera.cpp
 	src/ray-tracer/main/EntryPoint.cpp
+	src/ray-tracer/main/Shape.h
+	src/ray-tracer/main/Geometry.h
+	src/ray-tracer/main/Geometry.cpp
 	src/ray-tracer/main/Material.h
 	src/ray-tracer/main/Light.h
 	src/ray-tracer/main/Image.h
@@ -73,9 +76,10 @@ source_group ("main\\" FILES
 
 set (acc_sources
 	src/ray-tracer/accelerationStructures/AccelerationStructure.h
-	src/ray-tracer/accelerationStructures/BBoxAcceleration.h
 	src/ray-tracer/accelerationStructures/BVH.h
 	src/ray-tracer/accelerationStructures/BVH.cpp
+	src/ray-tracer/accelerationStructures/Memory.h
+	src/ray-tracer/accelerationStructures/Memory.cpp
 )
 source_group ("accelerationStructures\\" FILES
     ${acc_sources}
@@ -131,6 +135,8 @@ target_link_libraries(chroma-ray-tracer spdlog)
 #Windows
 add_definitions(-DNOC_FILE_DIALOG_IMPLEMENTATION)
 add_definitions(-DNOC_FILE_DIALOG_WIN32)
+
+
 set_target_properties(
    chroma-ray-tracer
    PROPERTIES

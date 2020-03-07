@@ -51,14 +51,12 @@ namespace Chroma
 		m_scene_data->m_shader->AddLight(li);
 	}
 
-	void Scene::InitAccelarationStructure()
+	void Scene::InitBVH(int maxPrimsInNode, SplitMethod splitMethod)
 	{
-		std::vector<std::shared_ptr<SceneObject>> objs;
-		for (auto it = m_scene_objects.begin(); it != m_scene_objects.end(); it++)
-		{
-			objs.push_back(it->second);
-		}
-		m_accel_structure = std::shared_ptr<AccelerationStructure> (new BVH(objs));
+		/*if (m_accel_structure)
+			delete m_accel_structure;*/
+
+		m_accel_structure = new BVH(*this, maxPrimsInNode, splitMethod);
 	}
 
 
