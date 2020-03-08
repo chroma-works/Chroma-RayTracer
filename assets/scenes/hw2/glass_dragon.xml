@@ -1,7 +1,7 @@
 <Scene>
     <BackgroundColor>0 0 0</BackgroundColor>
 
-    <MaxRecursionDepth>12</MaxRecursionDepth>
+    <MaxRecursionDepth>10</MaxRecursionDepth>
 
     <Cameras>
         <Camera id="1" type="lookAt">
@@ -16,10 +16,10 @@
     </Cameras>
 
     <Lights>
-        <AmbientLight>25 25 25</AmbientLight>
+        <AmbientLight>220 220 400</AmbientLight>
         <PointLight id="1">
-            <Position>400 100 200</Position>
-            <Intensity>50000000 50000000 50000000</Intensity>
+            <Position>-120 -55 180</Position>
+            <Intensity>35000000 35000000 50000000</Intensity>
         </PointLight>
         <PointLight id="2">
             <Position>600 -200 200</Position>
@@ -51,10 +51,10 @@
             <PhongExponent>1</PhongExponent>
             <MirrorReflectance>0.5 0.5 0.5</MirrorReflectance>
         </Material>
-         <Material id="3" type="dielectric">
+          <Material id="3" type="dielectric">
             <AmbientReflectance>0.200000 0.200000 0.200000</AmbientReflectance>
-            <DiffuseReflectance>0.200000 0.200000 0.200000</DiffuseReflectance>
-            <SpecularReflectance>0.500000 0.500000 0.500000</SpecularReflectance>
+            <DiffuseReflectance>0.200000 0.200000 0.250000</DiffuseReflectance>
+            <SpecularReflectance>0.400000 0.400000 0.400000</SpecularReflectance>
             <PhongExponent>3</PhongExponent>
             <AbsorptionCoefficient>0.01 0.01 0.01</AbsorptionCoefficient>
             <RefractionIndex>1.5</RefractionIndex>
