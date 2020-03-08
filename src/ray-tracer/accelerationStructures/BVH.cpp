@@ -234,7 +234,7 @@ namespace Chroma
 			"\n\tNode size:  " + std::to_string(sizeof(LinearBVHNode)) +
 			"\n\tBVH size:  " +  
 			std::to_string((totalNodes * sizeof(LinearBVHNode)) 
-			/ (1024 * 1024)) + "MB");
+			/ (1024.0f * 1024.0f)) + "MB");
 
 		clock_t elapsed = clock() - start_time;
 	}
