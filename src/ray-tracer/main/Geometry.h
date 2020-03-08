@@ -72,13 +72,13 @@ namespace Chroma
 		}
 
 		bool IntersectP(const Ray& ray, const glm::vec3& inv_dir,
-			glm::bvec3 dirIsNeg) const {
+			const int dirIsNeg[3]) const {
 			const Bounds3& bounds = *this;
 			// Check for ray intersection against $x$ and $y$ slabs
-			float t_min = (bounds[dirIsNeg.x].x - ray.origin.x) * inv_dir.x;
-			float t_max = (bounds[1 - dirIsNeg.x].x - ray.origin.x) * inv_dir.x;
-			float ty_min = (bounds[dirIsNeg.y].y - ray.origin.y) * inv_dir.y;
-			float ty_max = (bounds[1 - dirIsNeg.y].y - ray.origin.y) * inv_dir.y;
+			float t_min = (bounds[dirIsNeg[0]].x - ray.origin.x) * inv_dir.x;
+			float t_max = (bounds[1 - dirIsNeg[0]].x - ray.origin.x) * inv_dir.x;
+			float ty_min = (bounds[dirIsNeg[1]].y - ray.origin.y) * inv_dir.y;
+			float ty_max = (bounds[1 - dirIsNeg[1]].y - ray.origin.y) * inv_dir.y;
 
 			// Update _tMax_ and _tyMax_ to ensure robust bounds intersection
 			t_max *= 1 + 2 * ((3 * MACHINE_EPSILON) / (1 - 3 * MACHINE_EPSILON));
@@ -88,8 +88,8 @@ namespace Chroma
 			if (ty_max < t_max) t_max = ty_max;
 
 			// Check for ray intersection against $z$ slab
-			float tz_min = (bounds[dirIsNeg.z].z - ray.origin.z) * inv_dir.z;
-			float tz_max = (bounds[1 - dirIsNeg.z].z - ray.origin.z) * inv_dir.z;
+			float tz_min = (bounds[dirIsNeg[2]].z - ray.origin.z) * inv_dir.z;
+			float tz_max = (bounds[1 - dirIsNeg[2]].z - ray.origin.z) * inv_dir.z;
 
 			// Update _tzMax_ to ensure robust bounds intersection
 			tz_max *= 1 + 2 * ((3 * MACHINE_EPSILON) / (1 - 3 * MACHINE_EPSILON));

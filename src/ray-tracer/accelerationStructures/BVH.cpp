@@ -690,8 +690,8 @@ namespace Chroma
 	bool BVH::Intersect(const Ray& ray, IntersectionData* intersection_data) const {
 		if (!m_nodes) return false;
 		//ProfilePhase p(Prof::AccelIntersect);
-		glm::vec3 invDir = 1.0f/(ray.direction);
-		glm::bvec3 dirIsNeg = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
+		glm::vec3 invDir = glm::vec3(1.0f/ray.direction.x, 1.0f / ray.direction.y, 1.0f / ray.direction.z);
+		int dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
 		// Follow ray through BVH nodes to find primitive intersections
 		int toVisitOffset = 0, currentNodeIndex = 0;
 		int nodesToVisit[64];
@@ -710,13 +710,18 @@ namespace Chroma
 							m_shapes[node->primitives_offset + i];
 						// Check one primitive inside leaf node
 						probe_data->t = INFINITY;
-						if (s->Intersect(ray, probe_data))
+						if (s->Intersect(ray, probe_data) && s->m_is_visible)
 						{
-							if (probe_data->t < intersection_data->t)
+							if (probe_data->t < intersection_data->t && probe_data->t >ray.intersect_eps)
 							{
 								//intersection_data->t = probe_data->t;
+								//ray.t_max = probe_data->t;
 
-								*intersection_data = *probe_data;
+								intersection_data->hit = probe_data->hit;
+								intersection_data->material = probe_data->material;
+								intersection_data->position = probe_data->position;
+								intersection_data->normal = probe_data->normal;
+								intersection_data->t = probe_data->t;
 							}
 
 							//intersection_data->hit = true;

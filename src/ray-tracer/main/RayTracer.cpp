@@ -264,8 +264,6 @@ namespace Chroma
 		// point is illuminated
 		if (isect_data->hit && !inside)
 		{
-			glm::vec3 absorbance = -isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff *
-				glm::distance(ray.origin, isect_data->position) * 1.0f;
 			IntersectionData* shadow_data = new IntersectionData();
 			//lighting calculation
 			for (auto it = scene.m_point_lights.begin(); it != scene.m_point_lights.end(); it++)
@@ -278,10 +276,12 @@ namespace Chroma
 				bool shadowed = false;
 				Ray shadow_ray(isect_data->position + isect_data->normal * scene.m_shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
+				shadow_ray.intersect_eps = 0.03f;
 
 				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, shadow_data) &&
 					shadow_data->t < glm::distance(isect_data->position, pl->position));
-
+				/*CH_TRACE(std::to_string(shadow_data->t) + ", " +
+					std::to_string(glm::distance(isect_data->position, pl->position)));*/
 				if (!shadowed)
 				{
 					float d = glm::distance(pl->position, isect_data->position);
@@ -293,12 +293,14 @@ namespace Chroma
 					glm::vec3 specular = isect_data->material->specular * pl->intensity *
 						glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data->normal))), isect_data->material->shininess) / (d * d);
 					color += specular + diffuse;
+					//CH_TRACE(glm::to_string(diffuse));
 				}
 			}
 			delete shadow_data;
 			//Ka * Ia
 			glm::vec3 ambient = scene.m_ambient_l * isect_data->material->ambient;
 			color += ambient;
+			//color = { 255,255,255 };
 		}
 		delete isect_data;
 		return color;
