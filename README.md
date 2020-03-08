@@ -148,6 +148,34 @@ Despide all my efforts there remains to be a small refraction error when we exam
 <img src= "resources/scienceTree_failed_glass.png" width="430"> <img src= "resources/scienceTree_correct_glass.png" width="430">  
 **Figure 13:** Left shows the failed render with missing dark refractions; right shows the correct render(courtesy of Assoc. Prof. Oğuz Akyüz).  
 
+As it turns out my previous implementation og BVH was not dividing objects in them selves but it was just dividing the scene until the bounding boxes of the objects were reached. So I had to decouple and scrap the **whole acceleration structure hierarchy**. Let me tell you this: "It was **NOT** easy!". But I made it. I was able to imlement a BVH very similar to PBRT version. So I am using Surface Area Heuristic(SAH) to divide the scene(and objects in it!).Additionally, I was able to adapt other heuristics from PBRT[[5]](#5). After implementation all of my provided scenes were rendering faster and correctly.Except the Spheres scene that scene where I had the self collision problem of some rays. Yet this was an odd error since shadow achne was only appering on the right hemisphere of the "sphere" objects. And it was only for the **shadow ray of a diffuse** sphere(not a dielectric or conductor one).**Figure 14** depicts the render fail. I was able to solve this by applying a lower bound threshold for t on BVH bounding box intersections.  
+
+<img src= "resources/half_spheres.png" width="430">   
+**Figure 14:** Incorrect shadows due to shadow rays colliding with spheres they are cast from.  
+  
+To conclude interms of HW2, **Figure 15** displays my final renders of all the scenes provided and **Table 3** shows the render statistics for the scenes using SAH BVH:  
+<img src= "resources/cornellbox_recursive.png" height="400"> <img src= "resources/spheres_mirror.png" height="400">   
+<img src= "resources/chinese_dragon.png" height="400"> <img src= "resources/scienceTree_correct_glass.png" height="480">  
+<img src= "resources/other_dragon.png" height="480">   
+**Figure 15:** Final renders for HW1. 
+
+**Table 3:** Scene and render statistics using SAH BVH acceleration
+  
+| Scene Name    |# of Triangles & Spheres | Resolution    | # of Treads   |Render time(s) | Recursion Depth| BVH size(MB) | # of BVH nodes |  
+| ------------- | ----------------------- | ------------- | ------------- | ------------- |----------------|--------------|-------------------|  
+| Cornell Box   | 10,2                    | 800x800       |  8            | 0.2201        | 6              | 0.0004       | 13 |  
+| Spheres       | 6,5                     |  720x720      |  8            | 0.1328        | 6              | 0.0003       | 11 |  
+| Chinese(Stanford) Dragon| 871414,2      | 800 x800      |  8            | 0.1711        | 6              | 52.5348      | 1721461 |  
+| Science Tree  | 2240,0                  | 1440x720      |  8            | 0.9363        | 6              | 0.1352       | 4431 |  
+| Other Dragon  | 1848604,0               | 800x480       |  8            | 1.2212        | 6              | 112.8229     | 3696981 |  
+
+I have also mixed and matched some of the scene vertex data, lighting, material, etc. to make some new walpapers  
+
+<img src= "resources/glass_dragon.png">
+<img src= "resources/dragon.png">
+**Figure 16:** Additional renders of "Glass Dragon" and "Stanford Dragon in Cornell box" scenes.
+ 
+  
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
