@@ -2,6 +2,8 @@
 
 
 #include <thirdparty/glm/glm/glm.hpp>
+#include <thirdparty/glm/glm/gtx/intersect.hpp>
+#include <thirdparty/glm/glm/gtc/constants.hpp>
 #include <ray-tracer/main/Geometry.h>
 #include <ray-tracer/main/Material.h>
 #include <ray-tracer/main/Ray.h>
@@ -126,6 +128,7 @@ namespace Chroma
 		Sphere(Material* mat, bool visible = true)
 			:Shape(mat, visible)
 		{
+			m_radius = 0.0f;
 			m_type = SHAPE_T::sphere;
 		}
 
@@ -135,23 +138,42 @@ namespace Chroma
 			m_type = SHAPE_T::sphere;
 		}
 
-		float m_radius;
-		glm::vec3 m_center = glm::vec3(0,0,0);
-
 		Bounds3 GetBounds() const
 		{
-			glm::vec3 b_min = m_center - 
-				glm::vec3(m_radius,m_radius, m_radius);
+			/*glm::vec3 b_min = m_center;
+			glm::vec3 b_max = m_center;
+			float step_a = glm::pi<float>() / 180.0f;
+			float step_b = 0.001f;
+			for (float theta = -2 * glm::pi<float>(); theta < 2 * glm::pi<float>(); theta += step_a)//Sample points over the sphere's surface
+			{
+				for (float k = 0.0f; k < 1.0f; k += step_b)
+				{
+					float phi = acos(1 - 2 * k);
+					glm::vec3 point = { sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi) };
+					point = point *m_radius +m_center;
+
+					b_min = glm::min(point, b_min);
+					b_max = glm::max(point, b_max);
+				}
+			}*/
+			glm::vec3 b_min = m_center -
+				m_radius * 1.732050f * glm::vec3(1, 1, 1);//glm::vec3(1.732050, 1.732050, 1.732050);
 
 			glm::vec3 b_max = m_center +
-				glm::vec3(m_radius, m_radius, m_radius);
+				m_radius * 1.732050f * glm::vec3(1, 1, 1);//glm::vec3(1.732050, 1.732050, 1.732050);
 
 			return Bounds3(b_min, b_max);
 		}
 
 		bool Intersect(Ray ray, IntersectionData* data) const
 		{
-			float a = glm::dot(ray.direction, ray.direction);
+
+			data->hit = glm::intersectRaySphere(ray.origin, ray.direction, m_center, m_radius * m_radius, data->t);
+			data->position = ray.PointAt(data->t);
+			data->material = m_material;
+			data->normal = glm::normalize(data->position - m_center);
+			return data->hit;
+			/*float a = glm::dot(ray.direction, ray.direction);
 			float b = 2.0f * glm::dot(ray.direction, (ray.origin - m_center));
 			float c = glm::dot(ray.origin - m_center, ray.origin - m_center) - m_radius * m_radius;
 
@@ -173,20 +195,23 @@ namespace Chroma
 			if (t0 > t1)
 				std::swap(t0, t1);
 
-			if (t0 < 0) {
+			data->hit = discr >= ray.intersect_eps;
+			if (t0 < 0.0f) {
 				t0 = t1; // if t0 is negative, let's use t1 instead 
-				if (t0 < 0) return false; // both t0 and t1 are negative 
+				if (t0 < 0) data->hit=false; // both t0 and t1 are negative 
 			}
 
 			data->t = t0;
-			data->hit = discr >= ray.intersect_eps;
 			data->material = m_material;
 			data->position = ray.PointAt(t0);
 			data->normal = glm::normalize(data->position - m_center);
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
 				glm::acos(data->position.y / m_radius));
 
-			return data->hit;
+			return data->hit;*/
 		}
+
+		float m_radius;
+		glm::vec3 m_center = glm::vec3(0,0,0);
 	};
 }
