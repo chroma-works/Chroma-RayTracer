@@ -207,6 +207,7 @@ namespace Chroma
 			// compute reflection
 			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal));
+			reflection_ray.intersect_eps = scene.m_intersect_eps;
 
 			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
 			color += reflection_color;
@@ -216,6 +217,7 @@ namespace Chroma
 			// compute reflection
 			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal) );
+			reflection_ray.intersect_eps = scene.m_intersect_eps;
 
 			float cos_theta = glm::dot(-ray.direction, isect_data->normal);
 
@@ -242,6 +244,7 @@ namespace Chroma
 
 			Ray reflection_ray(isect_data->position + proper_normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, proper_normal));
+			reflection_ray.intersect_eps = scene.m_intersect_eps;
 
 			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * fr;
 
@@ -250,6 +253,7 @@ namespace Chroma
 			{
 				Ray refraction_ray(isect_data->position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
+				refraction_ray.intersect_eps = scene.m_intersect_eps;
 				refraction_color = PathTrace(refraction_ray, scene, depth + 1) * (1.0f - fr);
 			}
 
@@ -274,9 +278,9 @@ namespace Chroma
 
 				//Shadow calculation	
 				bool shadowed = false;
-				Ray shadow_ray(isect_data->position + isect_data->normal * scene.m_shadow_eps);
+				Ray shadow_ray(isect_data->position + l_vec* scene.m_shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
-				shadow_ray.intersect_eps = 0.03f;
+				shadow_ray.intersect_eps = 0.009f;
 
 				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, shadow_data) &&
 					shadow_data->t < glm::distance(isect_data->position, pl->position));

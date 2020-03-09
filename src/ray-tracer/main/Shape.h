@@ -168,12 +168,12 @@ namespace Chroma
 		bool Intersect(Ray ray, IntersectionData* data) const
 		{
 
-			data->hit = glm::intersectRaySphere(ray.origin, ray.direction, m_center, m_radius * m_radius, data->t);
+			/*data->hit = glm::intersectRaySphere(ray.origin, ray.direction, m_center, m_radius * m_radius, data->t) && data->t > ray.intersect_eps;
 			data->position = ray.PointAt(data->t);
 			data->material = m_material;
 			data->normal = glm::normalize(data->position - m_center);
-			return data->hit;
-			/*float a = glm::dot(ray.direction, ray.direction);
+			return data->hit;*/
+			float a = glm::dot(ray.direction, ray.direction);
 			float b = 2.0f * glm::dot(ray.direction, (ray.origin - m_center));
 			float c = glm::dot(ray.origin - m_center, ray.origin - m_center) - m_radius * m_radius;
 
@@ -198,9 +198,10 @@ namespace Chroma
 			data->hit = discr >= ray.intersect_eps;
 			if (t0 < 0.0f) {
 				t0 = t1; // if t0 is negative, let's use t1 instead 
-				if (t0 < 0) data->hit=false; // both t0 and t1 are negative 
+				if (t0 < 0.7f) data->hit=false; // both t0 and t1 are negative 
 			}
 
+			//CH_TRACE(t0);
 			data->t = t0;
 			data->material = m_material;
 			data->position = ray.PointAt(t0);
@@ -208,7 +209,7 @@ namespace Chroma
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
 				glm::acos(data->position.y / m_radius));
 
-			return data->hit;*/
+			return data->hit;
 		}
 
 		float m_radius;

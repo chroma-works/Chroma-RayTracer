@@ -23,7 +23,7 @@ int main()
 	Chroma::Logger::Init();
 	CH_INFO("Chroma Ray Tracer v.1.4");
 
-	Chroma::Window* window = new  Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
+	Chroma::Window window = Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	Chroma::RayTracer* rt = new Chroma::RayTracer();
 
 	// build and compile our shader program
@@ -32,9 +32,9 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/dragon.xml")));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/spheres.xml")));
 	//init editor
-	Chroma::Editor editor(window, scene.get());
+	Chroma::Editor editor(&window, scene.get());
 
 	editor.SetRayTracer(rt);
 
@@ -101,7 +101,7 @@ int main()
 	glClearColor(scene->m_sky_color.x, scene->m_sky_color.y, scene->m_sky_color.z, scene->m_sky_color.w);
 	// render loop
 	// -----------
-	while (!window->ShouldClose())
+	while (!window.ShouldClose())
 	{
 		editor.OnUpdate();
 	}

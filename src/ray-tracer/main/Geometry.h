@@ -96,7 +96,7 @@ namespace Chroma
 			if (t_min > tz_max || tz_min > t_max) return false;
 			if (tz_min > t_min) t_min = tz_min;
 			if (tz_max < t_max) t_max = tz_max;
-			return (t_min < t_max) && (t_max > 0);
+			return (t_min < t_max) && (t_max > ray.intersect_eps);
 		}
 
 
