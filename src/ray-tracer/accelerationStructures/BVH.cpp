@@ -696,7 +696,7 @@ namespace Chroma
 		int toVisitOffset = 0, currentNodeIndex = 0;
 		int nodesToVisit[64];
 		float t_min = std::numeric_limits<float>().max();
-		IntersectionData* probe_data = new IntersectionData();
+		IntersectionData probe_data;
 		while (true) 
 		{
 			const LinearBVHNode* node = &m_nodes[currentNodeIndex];
@@ -709,12 +709,12 @@ namespace Chroma
 						const Shape* s =
 							m_shapes[node->primitives_offset + i];
 						// Check one primitive inside leaf node
-						probe_data->t = INFINITY;
-						if (s->Intersect(ray, probe_data) && s->m_is_visible)
+						probe_data.t = INFINITY;
+						if (s->Intersect(ray, &probe_data) && s->m_is_visible)
 						{
-							if (probe_data->t < intersection_data->t /*&& probe_data->t >ray.intersect_eps*/)
+							if (probe_data.t < intersection_data->t /*&& probe_data->t >ray.intersect_eps*/)
 							{
-								*intersection_data = *probe_data;
+								*intersection_data = probe_data;
 							}
 
 							//intersection_data->hit = true;
@@ -741,7 +741,6 @@ namespace Chroma
 				currentNodeIndex = nodesToVisit[--toVisitOffset];
 			}
 		}
-		delete probe_data;
 		return intersection_data->hit;
 	}
 

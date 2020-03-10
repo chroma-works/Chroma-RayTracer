@@ -405,10 +405,6 @@ namespace Chroma
 					child_node = child_node->NextSibling();
 					materials.push_back(mat);
 				}
-				for (auto m : materials)
-				{
-					CH_TRACE(glm::to_string(m->diffuse));
-				}
 			}
 			else if (std::string(node->Value()).compare(VRTX_DATA) == 0)
 			{
