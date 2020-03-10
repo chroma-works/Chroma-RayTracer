@@ -7,7 +7,7 @@
 
 namespace Chroma
 {
-	enum RT_MODE{ray_cast=0, path_trace, size};
+	enum RT_MODE{ray_cast=0, recursive_trace, size};
 	class RayTracer
 	{
 	public:

@@ -15,5 +15,7 @@ namespace Chroma
 		float shadow_eps = 0.001;
 		float intersection_eps = 0.000001;
 		bool calc_shadows = true;
+		bool calc_reflections = true;
+		bool calc_refractions = true;
 	};
 }

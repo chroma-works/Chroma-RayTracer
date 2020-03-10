@@ -48,7 +48,7 @@ namespace Chroma
 		std::map<std::string, std::shared_ptr<SpotLight>> m_spot_lights;
 
 		int m_recur_dept = 6;
-		AccelerationStructure* m_accel_structure;
+		AccelerationStructure* m_accel_structure = nullptr;
 	private:
 		friend class Editor;
 		std::string m_name;

@@ -203,7 +203,8 @@ namespace Chroma
 			return scene.m_sky_color;
 		}
 
-		else if (isect_data->material->type == MAT_TYPE::mirror && depth < scene.m_recur_dept) {
+		else if (m_settings.calc_reflections && 
+			isect_data->material->type == MAT_TYPE::mirror && depth < scene.m_recur_dept) {
 			// compute reflection
 			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal));
@@ -212,7 +213,8 @@ namespace Chroma
 			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
 			color += reflection_color;
 		}
-		else if (isect_data->material->type == MAT_TYPE::conductor && depth < scene.m_recur_dept)
+		else if (m_settings.calc_reflections &&
+			isect_data->material->type == MAT_TYPE::conductor && depth < scene.m_recur_dept)
 		{
 			// compute reflection
 			Ray reflection_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
@@ -241,15 +243,18 @@ namespace Chroma
 
 			float fr = isect_data->material->GetFr(cos_i);
 			cos_i = std::abs(cos_i);
+			glm::vec3 reflection_color = { 0,0,0 };
+			if (m_settings.calc_reflections)
+			{
+				Ray reflection_ray(isect_data->position + proper_normal * m_settings.shadow_eps);
+				reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, proper_normal));
+				reflection_ray.intersect_eps = scene.m_intersect_eps;
+				reflection_color = PathTrace(reflection_ray, scene, depth + 1) * fr;
+			}
 
-			Ray reflection_ray(isect_data->position + proper_normal * m_settings.shadow_eps);
-			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, proper_normal));
-			reflection_ray.intersect_eps = scene.m_intersect_eps;
-
-			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * fr;
 
 			glm::vec3 refraction_color = { 0,0,0 };
-			if (fr < 1.0f)
+			if (fr < 1.0f && m_settings.calc_refractions)
 			{
 				Ray refraction_ray(isect_data->position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
@@ -332,7 +337,7 @@ namespace Chroma
 		case Chroma::ray_cast:
 			m_rt_worker = &RayTracer::RayCastWorker;
 			break;
-		case Chroma::path_trace:
+		case Chroma::recursive_trace:
 			m_rt_worker = &RayTracer::PathTraceWorker;
 			break;
 		case Chroma::size:

@@ -23,7 +23,7 @@ namespace Chroma
 	struct MortonPrimitive;
 	struct LinearBVHNode;
 
-	enum class SplitMethod { SAH, HLBVH, Middle, EqualCounts };
+	enum class SplitMethod { SAH, HLBVH, Middle, EqualCounts, count };
 	// Bvh Declarations
 	class BVH : public AccelerationStructure
 	{

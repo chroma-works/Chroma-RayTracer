@@ -56,7 +56,6 @@ namespace Chroma
 		void DrawSceneInfo();
 		void DrawEditorInfo();
 		void HandleKeyBoardNavigation();
-		void LoopUpdate();
 	};
 
 }

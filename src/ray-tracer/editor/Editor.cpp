@@ -363,8 +363,8 @@ namespace Chroma
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
 
-		static std::string rt_mode_names[] = { "Ray Casting", "Path Tracing" };
-		static RT_MODE selected_rt_method = RT_MODE::path_trace;
+		static std::string rt_mode_names[] = { "Ray Casting", "Recursive RT" };
+		static RT_MODE selected_rt_method = RT_MODE::recursive_trace;
 
 
 		if (ImGui::BeginCombo("RT Mode", rt_mode_names[selected_rt_method].c_str(), ImGuiComboFlags_None))
@@ -452,19 +452,49 @@ namespace Chroma
 		}
 
 		ImGui::Separator();
+		static std::string split_names[] = { "SAH", "HLBVH", "Middle", "Eq. counts" };
+		static int selected_split = 0;
+
+		static int max_num_prim = 1;
+		ImGui::PushItemWidth(120);
+		if (ImGui::BeginCombo("Split type", split_names[selected_split].c_str(), ImGuiComboFlags_None))
+		{
+			for (int i = 0; i < static_cast<int>(SplitMethod::count); i++)
+			{
+				if (ImGui::Selectable(split_names[i].c_str(), i == selected_split))
+				{
+					selected_split = i;
+				}
+				if (i == selected_split)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::InputInt("Max. # of prims", &max_num_prim);
+		ImGui::PopItemWidth();
 
 		if (ImGui::Button("Init BVH"))
 		{
-			m_scene->InitBVH();
+			m_scene->InitBVH(max_num_prim, static_cast<SplitMethod>(selected_split));
 			CH_INFO("BVH initialized");
 		}
 
+
 		ImGui::Separator();
+
+		ImGui::PushItemWidth(120);
+		ImGui::DragFloat("Pertub. Bias", &m_settings.shadow_eps, 0.00001f, 0.0f, 0.8, "%.6f");
+		ImGui::PopItemWidth();
 
 		ImGui::Checkbox("Shadows", &m_settings.calc_shadows);
 		ImGui::SameLine();
-		ImGui::PushItemWidth(120);
-		ImGui::DragFloat("Shadow Bias", &m_settings.shadow_eps, 0.00001f, 0.0f, 0.8, "%.6f");
+
+		if (selected_rt_method != RT_MODE::ray_cast)
+		{
+			ImGui::Checkbox("Reflections", &m_settings.calc_reflections);
+			ImGui::SameLine();
+			ImGui::Checkbox("Refractions", &m_settings.calc_refractions);
+		}
 
 		ImGui::Separator();
 

@@ -53,8 +53,8 @@ namespace Chroma
 
 	void Scene::InitBVH(int maxPrimsInNode, SplitMethod splitMethod)
 	{
-		/*if (m_accel_structure)
-			delete m_accel_structure;*/
+		if (m_accel_structure)
+			delete m_accel_structure;
 
 		m_accel_structure = new BVH(*this, maxPrimsInNode, splitMethod);
 	}
