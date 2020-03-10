@@ -185,6 +185,31 @@ namespace Chroma
 			ImGui::DragFloat3("##6", &(tmp_sca.x), 0.05f, 0, 0, "%.3f");
 			m_scene->m_scene_objects[selected_name]->SetScale(tmp_sca);
 			ImGui::Separator();
+
+			Material* mat = m_scene->m_scene_objects[selected_name]->GetMaterial();
+			ImGui::Text("Material");
+			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.05f, 0, 0, "%.3f");
+			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.05f, 0, 0, "%.3f");
+			ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.05f, 0, 0, "%.3f");
+			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.05f, 0, 0, "%.3f");
+
+			ImGui::Separator();
+			if (mat->type == MAT_TYPE::conductor)
+			{
+				ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.05f, 0, 0, "%.3f");
+				ImGui::DragFloat("Absorp Ind.", &(((Conductor*)mat)->m_absorption_ind), 0.05f, 0, 0, "%.3f");
+				ImGui::DragFloat("Refraction Ind.", &(((Conductor*)mat)->m_refraction_ind), 0.05f, 0, 0, "%.3f");
+			}
+			else if (mat->type == MAT_TYPE::dielectric)
+			{
+				ImGui::DragFloat3("Absorp Coef.", &(((Dielectric*)mat)->m_absorption_coeff.x), 0.05f, 0, 0, "%.3f");
+				ImGui::DragFloat("Refraction Ind.", &(((Dielectric*)mat)->m_refraction_ind), 0.05f, 0, 0, "%.3f");
+			}
+			else if (mat->type == MAT_TYPE::mirror)
+			{
+				ImGui::DragFloat3("Mirror Ref.", &(((Mirror*)mat)->m_mirror_reflec.x), 0.05f, 0, 0, "%.3f");
+			}
+
 		}
 		else if (selected_item_type == SELECTION_TYPE::cam)
 		{

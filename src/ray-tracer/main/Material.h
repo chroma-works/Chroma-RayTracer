@@ -13,12 +13,12 @@ namespace Chroma
 	public:
 
 		Material(std::string name, glm::vec3 ambi, glm::vec3 diff, glm::vec3 spec, float shin, MAT_TYPE t = MAT_TYPE::none)
-			:shader_var_name(name), ambient(ambi), diffuse(diff), specular(spec), shininess(shin), type(t) 
+			:shader_var_name(name), m_ambient(ambi), m_diffuse(diff), m_specular(spec), m_shininess(shin), type(t) 
 		{}
 
 		Material()
-			:shader_var_name("u_Material"), ambient(glm::vec3(1.0f, 1.0f, 1.0f)),
-			diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), specular(glm::vec3(1.0f)), shininess(60.0f), type(MAT_TYPE::none)
+			:shader_var_name("u_Material"), m_ambient(glm::vec3(1.0f, 1.0f, 1.0f)),
+			m_diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), m_specular(glm::vec3(1.0f)), m_shininess(60.0f), type(MAT_TYPE::none)
 		{}
 
 		/*Material(Material&&) = delete;
@@ -26,10 +26,10 @@ namespace Chroma
 		Material& operator=(Material) = delete;*/
 
 		std::string shader_var_name;
-		glm::vec3 ambient;
-		glm::vec3 diffuse;
-		glm::vec3 specular;
-		float shininess;
+		glm::vec3 m_ambient;
+		glm::vec3 m_diffuse;
+		glm::vec3 m_specular;
+		float m_shininess;
 		MAT_TYPE type = MAT_TYPE::none;
 
 		inline float GetFr(float cos_i)
@@ -44,9 +44,9 @@ namespace Chroma
 		Conductor(glm::vec3 _mirror_ref, float _refraction_ind, float _absorption_ind)
 			: Material()
 		{
-			mirror_reflec = _mirror_ref;
-			absorption_ind = _absorption_ind;
-			refraction_ind = _refraction_ind;
+			m_mirror_reflec = _mirror_ref;
+			m_absorption_ind = _absorption_ind;
+			m_refraction_ind = _refraction_ind;
 			type = MAT_TYPE::conductor;
 		}
 
@@ -62,26 +62,26 @@ namespace Chroma
 
 		float GetFr(float cos_i)
 		{
-			float rs = ((refraction_ind * refraction_ind +
-				absorption_ind * absorption_ind) - 2.0f *
-				refraction_ind * cos_i - cos_i * cos_i) /
-				((refraction_ind * refraction_ind +
-					absorption_ind * absorption_ind) + 2.0f *
-					refraction_ind * cos_i - cos_i * cos_i);
-			float rp = ((refraction_ind * refraction_ind +
-				absorption_ind * absorption_ind) *
+			float rs = ((m_refraction_ind * m_refraction_ind +
+				m_absorption_ind * m_absorption_ind) - 2.0f *
+				m_refraction_ind * cos_i - cos_i * cos_i) /
+				((m_refraction_ind * m_refraction_ind +
+					m_absorption_ind * m_absorption_ind) + 2.0f *
+					m_refraction_ind * cos_i - cos_i * cos_i);
+			float rp = ((m_refraction_ind * m_refraction_ind +
+				m_absorption_ind * m_absorption_ind) *
 				cos_i * cos_i - 2.0f *
-				refraction_ind * cos_i + 1) /
-				((refraction_ind * refraction_ind +
-					absorption_ind * absorption_ind) *
+				m_refraction_ind * cos_i + 1) /
+				((m_refraction_ind * m_refraction_ind +
+					m_absorption_ind * m_absorption_ind) *
 					cos_i * cos_i + 2.0f *
-					refraction_ind * cos_i + 1);
+					m_refraction_ind * cos_i + 1);
 			return (rs + rp) * 0.5f;
 		}
 
-		glm::vec3 mirror_reflec = glm::vec3(0.0f);
-		float refraction_ind = NAN;
-		float absorption_ind = NAN;
+		glm::vec3 m_mirror_reflec = glm::vec3(0.0f);
+		float m_refraction_ind = NAN;
+		float m_absorption_ind = NAN;
 
 	};
 
@@ -91,8 +91,8 @@ namespace Chroma
 		Dielectric(glm::vec3 _absorption_coeff, float _refraction_ind)
 			: Material()
 		{
-			absorption_coeff = _absorption_coeff;
-			refraction_ind = _refraction_ind;
+			m_absorption_coeff = _absorption_coeff;
+			m_refraction_ind = _refraction_ind;
 			type = MAT_TYPE::conductor;
 		}
 
@@ -109,7 +109,7 @@ namespace Chroma
 		float GetFr(float cos_i)
 		{
 			float ni = 1.0f;
-			float nt = refraction_ind;
+			float nt = m_refraction_ind;
 			if (cos_i > 0.0f)
 				std::swap(ni, nt);
 
@@ -130,8 +130,8 @@ namespace Chroma
 			return (r_parl * r_parl + r_perp * r_perp) * 0.5f;
 		}
 
-		glm::vec3 absorption_coeff = glm::vec3(0.0f);
-		float refraction_ind = NAN;
+		glm::vec3 m_absorption_coeff = glm::vec3(0.0f);
+		float m_refraction_ind = NAN;
 	};
 
 	class Mirror : public Material
@@ -152,6 +152,6 @@ namespace Chroma
 			return 1.0f;
 		}
 
-		glm::vec3 mirror_reflec = glm::vec3(1.0f, 1.0f, 1.0f);
+		glm::vec3 m_mirror_reflec = glm::vec3(1.0f, 1.0f, 1.0f);
 	};
 }

@@ -96,7 +96,6 @@ namespace Chroma
 
 				primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
 				//Go over scene objects and lights
-				float t_min = std::numeric_limits<float>::max();
 				if (scene.m_accel_structure->Intersect(primary_ray, &isect_data))//Hit
 				{
 					color = { 0,0,0 };
@@ -121,17 +120,17 @@ namespace Chroma
 							float d = glm::distance(pl->position, isect_data.position);
 
 							//Kd * I * cos(theta) /d^2 
-							glm::vec3 diffuse = isect_data.material->diffuse * pl->intensity *
+							glm::vec3 diffuse = isect_data.material->m_diffuse * pl->intensity *
 								glm::max(glm::dot(isect_data.normal, l_vec), 0.0f) / (glm::length(isect_data.normal) * glm::length(l_vec)) / (d * d);
 							//Ks* I * max(0, h . n)^s / d^2
 							glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-							glm::vec3 specular = isect_data.material->specular * pl->intensity *
-								glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->shininess) / (d * d);
+							glm::vec3 specular = isect_data.material->m_specular * pl->intensity *
+								glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->m_shininess) / (d * d);
 							color += specular + diffuse;
 						}
 					}
 					//Ka * Ia
-					glm::vec3 ambient = scene.m_ambient_l * isect_data.material->ambient;
+					glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
 					color += ambient;
 				}
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
@@ -210,7 +209,7 @@ namespace Chroma
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			reflection_ray.intersect_eps = scene.m_intersect_eps;
 
-			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Mirror*)(isect_data.material))->mirror_reflec;
+			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
 		else if (m_settings.calc_reflections &&
@@ -224,14 +223,14 @@ namespace Chroma
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
 
 			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Conductor*)isect_data.material)->GetFr(cos_theta) *
-				((Conductor*)(isect_data.material))->mirror_reflec;
+				((Conductor*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
 		else if (isect_data.material->type == MAT_TYPE::dielectric && depth < scene.m_recur_dept)
 		{
 			float cos_i = glm::dot(ray.direction, isect_data.normal);
 			float ni = 1.0f;
-			float nt = ((Dielectric*)(isect_data.material))->refraction_ind;
+			float nt = ((Dielectric*)(isect_data.material))->m_refraction_ind;
 
 			glm::vec3 proper_normal = isect_data.normal;
 
@@ -265,7 +264,7 @@ namespace Chroma
 			color += (reflection_color + refraction_color);
 			if (inside)
 			{
-				glm::vec3 absorbance = -((Dielectric*)(isect_data.material))->absorption_coeff *
+				glm::vec3 absorbance = -((Dielectric*)(isect_data.material))->m_absorption_coeff *
 					glm::distance(ray.origin, isect_data.position) * 1.0f;
 				color *= exp(absorbance);
 			}
@@ -295,18 +294,18 @@ namespace Chroma
 				{
 					float d = glm::distance(pl->position, isect_data.position);
 					//Kd * I * cos(theta) /d^2 
-					glm::vec3 diffuse = isect_data.material->diffuse * pl->intensity *
+					glm::vec3 diffuse = isect_data.material->m_diffuse * pl->intensity *
 						glm::max(glm::dot(isect_data.normal, l_vec), 0.0f) / (glm::length(isect_data.normal) * glm::length(l_vec)) / (d * d);
 					//Ks* I * max(0, h . n)^s / d^2
 					glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-					glm::vec3 specular = isect_data.material->specular * pl->intensity *
-						glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->shininess) / (d * d);
+					glm::vec3 specular = isect_data.material->m_specular * pl->intensity *
+						glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->m_shininess) / (d * d);
 					color += specular + diffuse;
 					//CH_TRACE(glm::to_string(diffuse));
 				}
 			}
 			//Ka * Ia
-			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->ambient;
+			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
 			color += ambient;
 		}
 		return color;

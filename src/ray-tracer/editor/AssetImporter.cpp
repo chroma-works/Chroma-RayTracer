@@ -324,9 +324,9 @@ namespace Chroma
 								if (std::string(material_prop->Value()).compare(MIRROR_REF) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f %f %f", &(static_cast<Mirror*>(mat))->mirror_reflec.x,
-										&(static_cast<Mirror*>(mat))->mirror_reflec.y,
-										&(static_cast<Mirror*>(mat))->mirror_reflec.z);
+									sscanf(data.c_str(), "%f %f %f", &(static_cast<Mirror*>(mat))->m_mirror_reflec.x,
+										&(static_cast<Mirror*>(mat))->m_mirror_reflec.y,
+										&(static_cast<Mirror*>(mat))->m_mirror_reflec.z);
 								}
 							}
 								break;
@@ -337,19 +337,19 @@ namespace Chroma
 								if (std::string(material_prop->Value()).compare(MIRROR_REF) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f %f %f", &(static_cast<Conductor*>(mat))->mirror_reflec.x,
-										&(static_cast<Conductor*>(mat))->mirror_reflec.y,
-										&(static_cast<Conductor*>(mat))->mirror_reflec.z);
+									sscanf(data.c_str(), "%f %f %f", &(static_cast<Conductor*>(mat))->m_mirror_reflec.x,
+										&(static_cast<Conductor*>(mat))->m_mirror_reflec.y,
+										&(static_cast<Conductor*>(mat))->m_mirror_reflec.z);
 								}
 								else if (std::string(material_prop->Value()).compare(REF_IND) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat))->refraction_ind);
+									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat))->m_refraction_ind);
 								}
 								else if (std::string(material_prop->Value()).compare(ABS_IND) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat))->absorption_ind);
+									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat))->m_absorption_ind);
 								}
 							}
 								break;
@@ -360,14 +360,14 @@ namespace Chroma
 								if (std::string(material_prop->Value()).compare(REF_IND) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f", &(static_cast<Dielectric*>(mat))->refraction_ind);
+									sscanf(data.c_str(), "%f", &(static_cast<Dielectric*>(mat))->m_refraction_ind);
 								}
 								else if (std::string(material_prop->Value()).compare(ABS_COEF) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f %f %f", &(static_cast<Dielectric*>(mat))->absorption_coeff.x,
-										&(static_cast<Dielectric*>(mat))->absorption_coeff.y,
-										&(static_cast<Dielectric*>(mat))->absorption_coeff.z);
+									sscanf(data.c_str(), "%f %f %f", &(static_cast<Dielectric*>(mat))->m_absorption_coeff.x,
+										&(static_cast<Dielectric*>(mat))->m_absorption_coeff.y,
+										&(static_cast<Dielectric*>(mat))->m_absorption_coeff.z);
 								}
 							}
 								break;
@@ -381,22 +381,22 @@ namespace Chroma
 						if (std::string(material_prop->Value()).compare(AM_REF) == 0)
 						{
 							std::string data = material_prop->FirstChild()->Value();
-							sscanf(data.c_str(), "%f %f %f", &mat->ambient.x, &mat->ambient.y, &mat->ambient.z);
+							sscanf(data.c_str(), "%f %f %f", &mat->m_ambient.x, &mat->m_ambient.y, &mat->m_ambient.z);
 						}
 						else if (std::string(material_prop->Value()).compare(DIF_REF) == 0)
 						{
 							std::string data = material_prop->FirstChild()->Value();
-							sscanf(data.c_str(), "%f %f %f", &mat->diffuse.x, &mat->diffuse.y, &mat->diffuse.z);
+							sscanf(data.c_str(), "%f %f %f", &mat->m_diffuse.x, &mat->m_diffuse.y, &mat->m_diffuse.z);
 						}
 						else if (std::string(material_prop->Value()).compare(SPEC_REF) == 0)
 						{
 							std::string data = material_prop->FirstChild()->Value();
-							sscanf(data.c_str(), "%f %f %f", &mat->specular.x, &mat->specular.y, &mat->specular.z);
+							sscanf(data.c_str(), "%f %f %f", &mat->m_specular.x, &mat->m_specular.y, &mat->m_specular.z);
 						}
 						else if (std::string(material_prop->Value()).compare(PHONG_EX) == 0)
 						{
 							std::string data = material_prop->FirstChild()->Value();
-							sscanf(data.c_str(), "%f", &mat->shininess);
+							sscanf(data.c_str(), "%f", &mat->m_shininess);
 						}
 
 						material_prop = material_prop->NextSibling();
@@ -630,10 +630,6 @@ namespace Chroma
 			}
 			node = node->NextSibling();
 		}
-
-
 		return scene;
-
-		//tinyxml2::XMLText* textNode = doc.FirstChildElement("Scene")->FirstChildElement("Cameras")->FirstChild()->FirstChildElement("Position")->FirstChild()->ToText()
 	}
 }
