@@ -328,7 +328,7 @@ namespace Chroma
 	void Editor::DrawRayTracedFrame()
 	{
 		static bool flag = true;
-		m_settings.resolution = m_scene->GetCamera(m_settings.act_rt_cam_name)->m_res;
+		m_settings.resolution = m_scene->GetCamera(m_settings.act_rt_cam_name)->GetResolution();
 		if (flag)
 		{
 			ray_tracer->m_settings.resolution = { -1.0f, -1.0f };
@@ -399,7 +399,7 @@ namespace Chroma
 
 		if (ImGui::InputInt2("Resolution", (int*)&m_settings.resolution.x))
 		{
-			m_scene->GetCamera(m_settings.act_rt_cam_name)->m_res = m_settings.resolution;
+			m_scene->GetCamera(m_settings.act_rt_cam_name)->SetResolution(m_settings.resolution);
 			ray_tracer->SetResoultion(m_settings.resolution);
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);

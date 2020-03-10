@@ -7,8 +7,18 @@ namespace Chroma
 {
 	Camera::Camera(float width, float height, float near_clip, float far_clip, float fov)
 	{
-		m_projection_matrix = glm::perspective(glm::radians(fov), (width / height), near_clip, far_clip);
+		m_projection_matrix = glm::perspective(glm::radians(fov), ((float)m_res.x / (float)m_res.y), near_clip, far_clip);
+		m_near_dist = near_clip;
 		m_view_matrix = glm::mat4(1.0f);
+		m_view_projection_matrix = m_projection_matrix * m_view_matrix;
+	}
+	void Camera::RecalculateProjectionMatrix()
+	{
+		float aspect_ratio = glm::abs(m_near_p[0].x - m_near_p[1].x) / glm::abs(m_near_p[0].y - m_near_p[1].y);
+		float fovy = atan(aspect_ratio * glm::abs(m_near_p[0].x - m_near_p[1].x) * 0.5f);
+		m_projection_matrix = glm::perspective(fovy,
+			16.0f/9.0f
+			, m_near_dist, 3000.0f);
 		m_view_projection_matrix = m_projection_matrix * m_view_matrix;
 	}
 	void Camera::RecalculateViewMatrix()

@@ -57,7 +57,7 @@ namespace Chroma
 			glm::vec3 max = it->second->m_mesh.GetMaxBound();
 		}
 		CH_TRACE("Render info:\n\tTriangles :" + std::to_string(triangle_count) +
-			"\n\tResolution: (" + std::to_string(cam->m_res.x) + ", " + std::to_string(cam->m_res.y) +
+			"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y) +
 			")\n\tRendered in " + std::to_string(fs.count()) + "s" 
 			+ "\n\tThreads: " + std::to_string(m_settings.thread_count));
 	}

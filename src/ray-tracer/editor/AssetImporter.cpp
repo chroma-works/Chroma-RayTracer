@@ -173,7 +173,9 @@ namespace Chroma
 							else if (std::string(cam_prop->Value()).compare(RES) == 0)
 							{
 								std::string data = cam_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%d %d", &cam->m_res.x, &cam->m_res.y);
+								glm::ivec2 tmp;
+								sscanf(data.c_str(), "%d %d", &tmp.x, &tmp.y);
+								cam->SetResolution(tmp);
 							}
 							else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
 							{
@@ -216,6 +218,7 @@ namespace Chroma
 								vec[0].y = std::tan(fovy * 0.5f);
 								vec[1].y = -std::tan(fovy * 0.5f);
 								cam->SetNearPlane(vec);
+								
 							}
 							else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
 							{
@@ -227,7 +230,9 @@ namespace Chroma
 							else if (std::string(cam_prop->Value()).compare(RES) == 0)
 							{
 								std::string data = cam_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%d %d", &cam->m_res.x, &cam->m_res.y);
+								glm::ivec2 tmp;
+								sscanf(data.c_str(), "%d %d", &tmp.x, &tmp.y);
+								cam->SetResolution(tmp);
 							}
 							else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
 							{
