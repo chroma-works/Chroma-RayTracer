@@ -112,7 +112,7 @@ namespace Chroma
 
 
 		inline void SetTexture(Chroma::Texture tex) { m_texture = tex; }
-		inline void SetMaterial(Material mat) { *m_material = mat; }
+		inline void SetMaterial(Material* mat) { m_material = mat; }
 
 		inline Material* GetMaterial() const { return m_material; }
 
@@ -127,44 +127,6 @@ namespace Chroma
 
 			m_mesh.SetMinBound(m_position - glm::vec3(radius, radius, radius));
 			m_mesh.SetMaxBound(m_position + glm::vec3(radius, radius, radius));
-		}
-
-		bool Intersect(Ray ray, float intersection_eps, IntersectionData* intersection_data) const;
-
-		inline bool IntersectBBox(Ray ray, float intersection_eps, float& tHit)
-		{
-			float tmin, tmax, tymin, tymax, tzmin, tzmax;
-			glm::vec3 bounds[2] = { m_mesh.GetMinBound(),  m_mesh.GetMaxBound() };
-			bool sign[3] = {(ray.direction.x < 0.0f), (ray.direction.y < 0.0f), (ray.direction.z < 0.0f)  };
-			glm::vec3 inv_dir = 1.0f / ray.direction;
-
-			tmin = (bounds[sign[0]].x - ray.origin.x) * inv_dir.x;
-			tmax = (bounds[1 - sign[0]].x - ray.origin.x) * inv_dir.x;
-			tymin = (bounds[sign[1]].y - ray.origin.y) * inv_dir.y;
-			tymax = (bounds[1 - sign[1]].y - ray.origin.y) * inv_dir.y;
-
-			if ((tmin > tymax) || (tymin > tmax))
-				return false;
-
-			if (tymin > tmin)
-				tmin = tymin;
-			if (tymax < tmax)
-				tmax = tymax;
-
-			tzmin = (bounds[sign[2]].z - ray.origin.z) * inv_dir.z;
-			tzmax = (bounds[1 - sign[2]].z - ray.origin.z) * inv_dir.z;
-
-			if ((tmin > tzmax) || (tzmin > tmax))
-				return false;
-
-			if (tzmin > tmin)
-				tmin = tzmin;
-			if (tzmax < tmax)
-				tmax = tzmax;
-
-			tHit = tmin;
-
-			return true;
 		}
 
 		void Draw(DrawMode mode);
@@ -189,12 +151,6 @@ namespace Chroma
 
 		Chroma::Texture m_texture;
 		Material* m_material;
-
-		bool(SceneObject::* m_intersection_method)(Ray ray, float intersect_eps, IntersectionData* data) const;
-
-		bool IntersectSphere(Ray ray, float intersect_eps, IntersectionData* data) const;
-		bool IntersectTriangle(Ray ray, float intersect_eps, IntersectionData* data) const;
-		bool IntersectMesh(Ray ray, float intersect_eps, IntersectionData* data) const;
 
 		SHAPE_T m_shape_t;
 

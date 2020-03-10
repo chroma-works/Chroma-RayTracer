@@ -1,5 +1,6 @@
 #pragma once
 #include <spdlog/spdlog.h>
+#include <thirdparty/glm/glm/gtx/string_cast.hpp>
 
 namespace Chroma {
 	class Logger

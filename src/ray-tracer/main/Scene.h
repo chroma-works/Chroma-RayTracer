@@ -79,9 +79,9 @@ namespace Chroma
 				*m_proj = mat;
 				//m_shader.UpdateUniforms();
 			}
-			inline void SetMaterial(Material material)
+			inline void SetMaterial(Material* material)
 			{
-				*m_material = material;
+				*m_material = *material;
 			}
 			inline void SetCamPos(glm::vec3 cam_pos)
 			{

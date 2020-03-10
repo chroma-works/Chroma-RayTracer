@@ -210,7 +210,7 @@ namespace Chroma
 			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data->normal));
 			reflection_ray.intersect_eps = scene.m_intersect_eps;
 
-			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * ((Mirror*)(isect_data->material))->mirror_reflec;
 			color += reflection_color;
 		}
 		else if (m_settings.calc_reflections &&
@@ -223,15 +223,15 @@ namespace Chroma
 
 			float cos_theta = glm::dot(-ray.direction, isect_data->normal);
 
-			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * isect_data->material->GetFr(cos_theta) *
-				isect_data->material->f_coeff.conductor_coeffs.mirror_reflec;
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1) * ((Conductor*)isect_data->material)->GetFr(cos_theta) *
+				((Conductor*)(isect_data->material))->mirror_reflec;
 			color += reflection_color;
 		}
 		else if (isect_data->material->type == MAT_TYPE::dielectric && depth < scene.m_recur_dept)
 		{
 			float cos_i = glm::dot(ray.direction, isect_data->normal);
 			float ni = 1.0f;
-			float nt = isect_data->material->f_coeff.dielectric_coeffs.refraction_ind;
+			float nt = ((Dielectric*)(isect_data->material))->refraction_ind;
 
 			glm::vec3 proper_normal = isect_data->normal;
 
@@ -241,7 +241,7 @@ namespace Chroma
 				proper_normal = -isect_data->normal;
 			}
 
-			float fr = isect_data->material->GetFr(cos_i);
+			float fr = ((Dielectric*)isect_data->material)->GetFr(cos_i);
 			cos_i = std::abs(cos_i);
 			glm::vec3 reflection_color = { 0,0,0 };
 			if (m_settings.calc_reflections)
@@ -265,7 +265,7 @@ namespace Chroma
 			color += (reflection_color + refraction_color);
 			if (inside)
 			{
-				glm::vec3 absorbance = -isect_data->material->f_coeff.dielectric_coeffs.absorption_coeff *
+				glm::vec3 absorbance = -((Dielectric*)(isect_data->material))->absorption_coeff *
 					glm::distance(ray.origin, isect_data->position) * 1.0f;
 				color *= exp(absorbance);
 			}
