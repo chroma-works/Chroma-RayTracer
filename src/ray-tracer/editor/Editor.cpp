@@ -147,8 +147,8 @@ namespace Chroma
 
 		ImGui::Begin("Inspector", 0, flags);
 
-		ImGui::SetWindowSize(ImVec2(240, 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
-		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 240, 0));
+		ImGui::SetWindowSize(ImVec2(320, 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
+		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 320, 0));
 
 		if (selected_item_type != SELECTION_TYPE::none)
 		{
@@ -194,6 +194,51 @@ namespace Chroma
 			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.05f, 0, 0, "%.3f");
 
 			ImGui::Separator();
+			static std::string mat_names []= { "Diffuse", "Mirror", "Dielectric", "Conductor" };
+			static int selected_mat_type;
+			if (ImGui::BeginCombo("Type", mat_names[selected_mat_type].c_str(), ImGuiComboFlags_None))
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					if (ImGui::Selectable(mat_names[i].c_str(), mat->type == static_cast<MAT_TYPE>(selected_mat_type)))
+					{
+						selected_mat_type = i;
+
+						Material* mat2;
+
+						switch (static_cast<MAT_TYPE>(selected_mat_type))
+						{
+						case MAT_TYPE::conductor:
+							mat2 = new Conductor(*mat);
+							static_cast<Conductor*>(mat2)->m_absorption_ind = 1.0f;
+							static_cast<Conductor*>(mat2)->m_mirror_reflec = glm::vec3(1, 1, 1);
+							static_cast<Conductor*>(mat2)->m_refraction_ind = 1.2f;
+							break;
+						case MAT_TYPE::dielectric:
+							mat2 = new Dielectric(*mat);
+							static_cast<Dielectric*>(mat2)->m_refraction_ind = 1.2f;
+							static_cast<Dielectric*>(mat2)->m_absorption_coeff = glm::vec3(0, 0, 0);
+							break;
+						case MAT_TYPE::mirror:
+							mat2 = new Mirror(*mat);
+							static_cast<Mirror*>(mat2)->m_mirror_reflec = glm::vec3(1, 1, 1);
+							break;
+						default:
+							mat2 = new Material(*mat);
+							break;
+						}
+
+						m_scene->m_scene_objects[selected_name]->SetMaterial(mat2);
+						delete mat;
+						
+					}
+					if (mat->type == static_cast<MAT_TYPE>(selected_mat_type))
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+
 			if (mat->type == MAT_TYPE::conductor)
 			{
 				ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.05f, 0, 0, "%.3f");
@@ -535,8 +580,8 @@ namespace Chroma
 
 		ImGui::Begin("Scene", 0, flags);
 
-		ImGui::SetWindowSize(ImVec2(240, m_window->GetHeight() - 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
-		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 240, 480));
+		ImGui::SetWindowSize(ImVec2(320, m_window->GetHeight() - 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
+		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 320, 480));
 
 
 		ImGui::Text("RT Ambient");

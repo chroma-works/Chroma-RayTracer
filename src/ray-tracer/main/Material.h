@@ -21,9 +21,30 @@ namespace Chroma
 			m_diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), m_specular(glm::vec3(1.0f)), m_shininess(60.0f), type(MAT_TYPE::none)
 		{}
 
-		/*Material(Material&&) = delete;
-		Material(Material const&) = delete;
-		Material& operator=(Material) = delete;*/
+		/*Material(Material&& othr)
+		{
+			shader_var_name = othr.shader_var_name;
+			m_ambient = othr.m_ambient;
+			m_diffuse = othr.m_diffuse;
+			m_specular = othr.m_specular;
+			m_shininess = othr.m_shininess;
+		}
+		Material(Material const& othr)
+		{
+			shader_var_name = othr.shader_var_name;
+			m_ambient = othr.m_ambient;
+			m_diffuse = othr.m_diffuse;
+			m_specular = othr.m_specular;
+			m_shininess = othr.m_shininess;
+		}
+		Material& operator=(Material othr)
+		{
+			if (this != &othr) {
+				return Material(othr.shader_var_name,
+					othr.m_ambient, othr.m_diffuse, othr.m_specular,
+					othr.m_shininess);
+			}
+		}*/
 
 		std::string shader_var_name;
 		glm::vec3 m_ambient;
@@ -53,6 +74,12 @@ namespace Chroma
 		Conductor(std::string name, glm::vec3 ambi, glm::vec3 diff, glm::vec3 spec, float shin)
 			:Material(name, ambi, diff, spec, shin, MAT_TYPE::conductor)
 		{}
+
+		Conductor(Material mat)
+			: Material(mat)
+		{
+			type = MAT_TYPE::conductor;
+		}
 
 		Conductor()
 			: Material()
@@ -100,6 +127,12 @@ namespace Chroma
 			:Material(name, ambi, diff, spec, shin, MAT_TYPE::dielectric)
 		{}
 
+		Dielectric(Material mat)
+			: Material(mat)
+		{
+			type = MAT_TYPE::dielectric;
+		}
+
 		Dielectric()
 			: Material()
 		{
@@ -140,6 +173,12 @@ namespace Chroma
 		Mirror(std::string name, glm::vec3 ambi, glm::vec3 diff, glm::vec3 spec, float shin)
 			:Material(name, ambi, diff, spec, shin, MAT_TYPE::mirror)
 		{}
+
+		Mirror(Material mat)
+			: Material(mat)
+		{
+			type = MAT_TYPE::mirror;
+		}
 
 		Mirror()
 			: Material()
