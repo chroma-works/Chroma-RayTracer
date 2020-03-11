@@ -155,8 +155,8 @@ As it turns out my previous implementation og BVH was not dividing objects in th
   
 To conclude interms of HW2, **Figure 15** displays my final renders of all the scenes provided and **Table 3** shows the render statistics for the scenes using SAH BVH:  
 <img src= "resources/cornellbox_recursive.png" height="400"> <img src= "resources/spheres_mirror.png" height="400">   
-<img src= "resources/chinese_dragon.png" height="400"> <img src= "resources/scienceTree_correct_glass.png" height="480">  
-<img src= "resources/other_dragon.png" height="480">   
+<img src= "resources/chinese_dragon.png" height="400"> <img src= "resources/scienceTree_correct_glass.png">  
+<img src= "resources/other_dragon.png">   
 **Figure 15:** Final renders for HW1. 
 
 **Table 3:** Scene and render statistics using SAH BVH acceleration
@@ -175,7 +175,16 @@ I have also mixed and matched some of the scene vertex data, lighting, material,
 <img src= "resources/dragon.png">
 **Figure 16:** Additional renders of "Glass Dragon" and "Stanford Dragon in Cornell box" scenes.
  
-  
+## Week 6  
+Some new GUI features are implemented:  
+* Material editor
+* Toggleable reflections/refractions/shadows  
+
+<img src= "resources/set_1.gif" width = "400"> <img src= "resources/set_2.gif" width = "400"> <img src= "resources/set_3.gif" width = "400">  
+Also material has beed made a base class from c++ struct to support proper hierarchy of fresnel materials. Material class children are:  
+* Mirror
+* Conductor
+* Dielectric
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
