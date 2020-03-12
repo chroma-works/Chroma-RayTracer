@@ -34,6 +34,7 @@ Finally **Build** solution using VS.
 Solution explorer -> chroma-ray-tracer -> (right click ->) properties -> General -> Output Directory -> 
 * if Configuration: Debug -> unzipped/folders/directory/Chroma-RayTracer/bin/Debug  
 * if Configuration: Release -> unzipped/folders/directory/Chroma-RayTracer/bin/Release
+**Note2:** Also do not forget to select chroma-ray-tracer as the StartUp project.
 
 ## Week 1
 Although I have not made any advancements regarding "Ray-tracing" I have retrofitted my old classes from my old renderer[[1]](#1) to build a simple editor. This editor can;
@@ -184,7 +185,8 @@ Some new GUI features are implemented:
 Also material has beed made a base class from c++ struct to support proper hierarchy of fresnel materials. Material class children are:  
 * Mirror
 * Conductor
-* Dielectric
+* Dielectric  
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
