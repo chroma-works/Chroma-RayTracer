@@ -188,15 +188,15 @@ namespace Chroma
 
 			Material* mat = m_scene->m_scene_objects[selected_name]->GetMaterial();
 			ImGui::Text("Material");
-			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.05f, 0, 0, "%.3f");
-			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.05f, 0, 0, "%.3f");
-			ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.05f, 0, 0, "%.3f");
-			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.05f, 0, 0, "%.3f");
+			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.002f, 0.0f, 1.0f, "%.3f");
 
 			ImGui::Separator();
 			static std::string mat_names []= { "Diffuse", "Mirror", "Dielectric", "Conductor" };
 			static int selected_mat_type;
-			if (ImGui::BeginCombo("Type", mat_names[selected_mat_type].c_str(), ImGuiComboFlags_None))
+			if (ImGui::BeginCombo("Type", mat_names[static_cast<int>(mat->type)].c_str(), ImGuiComboFlags_None))
 			{
 				for (int i = 0; i < 4; i++)
 				{
@@ -241,18 +241,18 @@ namespace Chroma
 
 			if (mat->type == MAT_TYPE::conductor)
 			{
-				ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.05f, 0, 0, "%.3f");
-				ImGui::DragFloat("Absorp Ind.", &(((Conductor*)mat)->m_absorption_ind), 0.05f, 0, 0, "%.3f");
-				ImGui::DragFloat("Refraction Ind.", &(((Conductor*)mat)->m_refraction_ind), 0.05f, 0, 0, "%.3f");
+				ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat("Absorp Ind.", &(((Conductor*)mat)->m_absorption_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+				ImGui::DragFloat("Refraction Ind.", &(((Conductor*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
 			}
 			else if (mat->type == MAT_TYPE::dielectric)
 			{
-				ImGui::DragFloat3("Absorp Coef.", &(((Dielectric*)mat)->m_absorption_coeff.x), 0.05f, 0, 0, "%.3f");
-				ImGui::DragFloat("Refraction Ind.", &(((Dielectric*)mat)->m_refraction_ind), 0.05f, 0, 0, "%.3f");
+				ImGui::DragFloat3("Absorp Coef.", &(((Dielectric*)mat)->m_absorption_coeff.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat("Refraction Ind.", &(((Dielectric*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
 			}
 			else if (mat->type == MAT_TYPE::mirror)
 			{
-				ImGui::DragFloat3("Mirror Ref.", &(((Mirror*)mat)->m_mirror_reflec.x), 0.05f, 0, 0, "%.3f");
+				ImGui::DragFloat3("Mirror Ref.", &(((Mirror*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
 			}
 
 		}
@@ -731,6 +731,17 @@ namespace Chroma
 		{
 			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_settings.camera_move_speed);
 			cam->SetGaze(forward);
+		}
+
+		if (ImGui::GetIO().KeysDown[GLFW_KEY_SPACE] && ImGui::GetIO().KeyAlt)
+		{
+			cam->SetPosition(cam->GetPosition() - glm::normalize(cam->GetUp()) * m_settings.camera_move_speed);
+			//cam->SetGaze(forward);
+		}
+		else if (ImGui::GetIO().KeysDown[GLFW_KEY_SPACE])
+		{
+			cam->SetPosition(cam->GetPosition() + glm::normalize(cam->GetUp()) * m_settings.camera_move_speed);
+			//cam->SetGaze(forward);
 		}
 
 		if (ImGui::GetIO().KeyAlt && ImGui::IsMouseDragging(0) &&
