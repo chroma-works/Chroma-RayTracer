@@ -769,7 +769,7 @@ namespace Chroma
 		{
 			if (scene_objects[i]->GetShapeType() != SHAPE_T::sphere)
 			{
-				Mesh* mesh = &scene_objects[i]->m_mesh;
+				auto mesh = scene_objects[i]->m_mesh;
 
 				if (mesh == nullptr)
 					continue;

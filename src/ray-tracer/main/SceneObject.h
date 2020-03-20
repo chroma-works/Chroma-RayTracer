@@ -72,10 +72,15 @@ namespace Chroma
 	class SceneObject
 	{
 	public:
-		SceneObject(Mesh mesh, std::string name,
+		SceneObject(std::shared_ptr<Mesh> mesh, std::string name,
 			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f), 
+			SHAPE_T t = SHAPE_T::triangle);
+		SceneObject(Mesh* mesh, std::string name,
+			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f),
 			SHAPE_T t = SHAPE_T::triangle);
 		//~SceneObject();
 
@@ -125,14 +130,14 @@ namespace Chroma
 		{
 			m_radius = radius;
 
-			m_mesh.SetMinBound(m_position - glm::vec3(radius, radius, radius));
-			m_mesh.SetMaxBound(m_position + glm::vec3(radius, radius, radius));
+			m_mesh->SetMinBound(m_position - glm::vec3(radius, radius, radius));
+			m_mesh->SetMaxBound(m_position + glm::vec3(radius, radius, radius));
 		}
 
 		void Draw(DrawMode mode);
 
 		float m_radius;
-		Mesh m_mesh; //TODO: multiple mesh ?
+		std::shared_ptr<Mesh> m_mesh; //TODO: multiple mesh ?
 
 	private:
 		void RecalculateModelMatrix();

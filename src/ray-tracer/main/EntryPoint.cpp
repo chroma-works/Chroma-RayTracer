@@ -32,18 +32,18 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/scienceTree.xml")));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/cornellbox_recursive.xml")));
 	//init editor
 	Chroma::Editor editor(&window, scene.get());
 
 	editor.SetRayTracer(rt);
 
 	//Model import
-	/*Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/utah_teapot.obj");
+	/*Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/sport_car.obj");
 	Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
 	Chroma::Material* mat = new Chroma::Material("u_Material",
 		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
-	std::shared_ptr<Chroma::SceneObject> teapot = std::make_shared<Chroma::SceneObject>(*r_mesh, "teapot");*/
+	std::shared_ptr<Chroma::SceneObject> teapot = std::make_shared<Chroma::SceneObject>(*r_mesh, "car");*/
 
 	/*rabbit->SetTexture(*texture);
 	teapot->SetMaterial(*mat);
@@ -57,7 +57,7 @@ int main()
 	box->SetMaterial(*mat);
 
 	 //std::make_shared<Chroma::Scene>("The scene", shader);*/
-	//scene->AddSceneObject("teapot", teapot);
+	/*scene->AddSceneObject("car", teapot);*/
 	//scene->AddSceneObject("box", box);
 
 	glEnable(GL_DEPTH_TEST);

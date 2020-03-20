@@ -540,7 +540,7 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle);
+						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(*mesh), name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle);
 						scene_obj->SetMaterial(materials[mat_ind]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
@@ -583,7 +583,7 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(*mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle);
+						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(*mesh), name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle);
 						scene_obj->SetMaterial(materials[mat_ind]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
@@ -591,7 +591,7 @@ namespace Chroma
 					else if (std::string(child_node->Value()).compare(SPHR) == 0)
 					{
 						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						SceneObject* scene_obj = new SceneObject(Mesh(), name, glm::vec3(), glm::vec3(), glm::vec3(), SHAPE_T::sphere);
+						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(), name, glm::vec3(), glm::vec3(), glm::vec3(), SHAPE_T::sphere);
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)

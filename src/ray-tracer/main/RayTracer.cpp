@@ -51,10 +51,10 @@ namespace Chroma
 		for (auto it = scene.m_scene_objects.begin(); it != scene.m_scene_objects.end(); it++)
 		{
 			if(it->second->GetShapeType() != SHAPE_T::sphere)
-				triangle_count += it->second->m_mesh.GetFaceCount();
+				triangle_count += it->second->m_mesh->GetFaceCount();
 
-			glm::vec3 min = it->second->m_mesh.GetMinBound();
-			glm::vec3 max = it->second->m_mesh.GetMaxBound();
+			glm::vec3 min = it->second->m_mesh->GetMinBound();
+			glm::vec3 max = it->second->m_mesh->GetMaxBound();
 		}
 		CH_TRACE("Render info:\n\tTriangles :" + std::to_string(triangle_count) +
 			"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y) +
