@@ -731,8 +731,45 @@ namespace Chroma
 
 		for (auto obj : scene.m_scene_objects)
 		{
-			for(auto shape : obj.second->m_mesh->m_shapes)
+			glm::mat4 t = glm::translate(glm::mat4(1.0f), obj.second->GetPosition());
+			glm::vec3 rot = glm::radians(obj.second->GetRotation());
+			glm::mat4 r = glm::eulerAngleYXZ(rot.y, rot.x, rot.z);
+			glm::mat4 s = glm::scale(glm::mat4(1.0), obj.second->GetScale());
+			s[3][3] = 1;
+
+			glm::mat4 m = t * r * s;
+			for (auto shape : obj.second->m_mesh->m_shapes)
+			{
+				if(shape->m_type == SHAPE_T::triangle)
+				{
+					*((Triangle*)shape.get())->m_vertices[0] = glm::vec3(m *
+						glm::vec4(*((Triangle*)shape.get())->m_vertices[0], 1.0f));
+					*((Triangle*)shape.get())->m_vertices[1] = glm::vec3(m *
+						glm::vec4(*((Triangle*)shape.get())->m_vertices[1], 1.0f));
+					*((Triangle*)shape.get())->m_vertices[2] = glm::vec3(m *
+						glm::vec4(*((Triangle*)shape.get())->m_vertices[2], 1.0f));
+
+					*((Triangle*)shape.get())->m_normals[0] = glm::vec3(glm::mat3(m) *
+						*((Triangle*)shape.get())->m_normals[0]);
+					*((Triangle*)shape.get())->m_normals[1] = glm::vec3(glm::mat3(m) *
+						*((Triangle*)shape.get())->m_normals[1]);
+					*((Triangle*)shape.get())->m_normals[2] = glm::vec3(glm::mat3(m) *
+						*((Triangle*)shape.get())->m_normals[2]);
+
+					//if (mesh->uvs.size() > 0)
+					//{
+					//    shape.uvs[0] = mesh->uvs[j + 0];
+					//    shape.uvs[1] = mesh->uvs[j + 1];
+					//    shape.uvs[2] = mesh->uvs[j + 2];
+					//}
+				}
+				else//Sphere
+				{
+					((Sphere*)shape.get())->m_center = glm::vec3(t *
+						glm::vec4(((Sphere*)shape.get())->m_center, 1.0f));
+				}
 				m_shapes.push_back(shape.get());
+			}
 		}
 	}
 }
