@@ -6,6 +6,7 @@
 #include <thirdparty/glm/glm/gtx/string_cast.hpp>
 #include <ray-tracer/editor/AssetImporter.h>
 
+#define MK_SHRD(X) std::make_shared<glm::vec3>(X)
 
 namespace Chroma
 {
@@ -38,27 +39,6 @@ namespace Chroma
 		:Mesh(vertices, normals, texcoords, colors, indices.size() / 3, cntr_piv)
 	{
 		m_indices = indices;
-		if (m_vertex_count == 0)
-		{
-			m_bound_min = glm::vec3(0);
-			m_bound_max = glm::vec3(0);
-		}
-		else
-		{
-			m_bound_min = glm::vec3(INFINITY);//m_vertex_positions[m_indices[0]];
-			m_bound_max = glm::vec3(-INFINITY);//m_vertex_positions[m_indices[0]];
-
-			for (int i = 0; i < m_indices.size(); i++)
-			{
-				m_bound_min.x = glm::min(m_vertex_positions[m_indices[i]].x, m_bound_min.x);
-				m_bound_max.x = glm::max(m_vertex_positions[m_indices[i]].x, m_bound_max.x);
-				m_bound_min.y = glm::min(m_vertex_positions[m_indices[i]].y, m_bound_min.y);
-				m_bound_max.y = glm::max(m_vertex_positions[m_indices[i]].y, m_bound_max.y);
-				m_bound_min.z = glm::min(m_vertex_positions[m_indices[i]].z, m_bound_min.z);
-				m_bound_max.z = glm::max(m_vertex_positions[m_indices[i]].z, m_bound_max.z);
-			}
-		}
-		//OrderVerticesCCW();
 	}
 
 	void Mesh::OrderVerticesCCW()
@@ -110,9 +90,10 @@ namespace Chroma
 
 
 	SceneObject::SceneObject(std::shared_ptr<Mesh> mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t)
-		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t), m_radius(0.0f)
+		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
 	{
 		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid all black shaded objects
+		m_material = new Material();
 
 		if (m_shape_t == SHAPE_T::sphere)
 		{
@@ -121,11 +102,68 @@ namespace Chroma
 				CH_WARN("Using sphere.obj file instead of provided mesh");
 			}
 			m_mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj"));
-			m_radius = 1.0f;
+
+			Sphere sphere = Sphere(GetMaterial(), IsVisible());
+			//sphere.m_center = GetPosition();
+			sphere.m_transform = m_model_matrix;
+
+			m_mesh->m_shapes.push_back(std::make_shared<Sphere>(sphere));
 		}
+		else
+		{
+			for (int j = 0; j < mesh->m_indices.size(); j += 3)
+			{
 
-		m_material = new Material();
+				Triangle tri = Triangle(GetMaterial(), IsVisible());
 
+				tri.m_vertices[0] = MK_SHRD(mesh->m_vertex_positions[mesh->m_indices[j]]);
+				tri.m_vertices[1] = MK_SHRD(mesh->m_vertex_positions[mesh->m_indices[j + 1]]);
+				tri.m_vertices[2] = MK_SHRD(mesh->m_vertex_positions[mesh->m_indices[j + 2]]);
+
+				tri.m_normals[0] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j]]));
+				tri.m_normals[1] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j + 1]]));
+				tri.m_normals[2] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j + 2]]));
+
+				tri.m_transform = m_model_matrix;
+
+				//if (mesh->uvs.size() > 0)
+				//{
+				//    shape.uvs[0] = mesh->uvs[j + 0];
+				//    shape.uvs[1] = mesh->uvs[j + 1];
+				//    shape.uvs[2] = mesh->uvs[j + 2];
+				//}
+
+				m_mesh->m_shapes.push_back(std::make_shared<Triangle>(tri));
+			}
+		}
+		//For editor preview render
+		InitOpenGLBuffers();
+	}
+
+	SceneObject::SceneObject(Mesh* mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t)
+	{
+		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t);
+	}
+
+	void SceneObject::Draw(DrawMode mode)
+	{
+		m_texture.Bind();
+		m_vao.Bind();
+		glDrawElements(mode, m_index_buffer->GetSize(), GL_UNSIGNED_INT, NULL);
+	}
+
+	void SceneObject::RecalculateModelMatrix()
+	{
+		glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_position);
+		glm::mat4 rotation = glm::eulerAngleYXZ(m_rotation.y, m_rotation.x, m_rotation.z);
+		glm::mat4 scale = glm::scale(glm::mat4(1.0f), m_scale);
+
+		//scale[3][3] = 1.0f;
+
+		*m_model_matrix = translation * rotation * scale;
+	}
+	void SceneObject::InitOpenGLBuffers()
+	{
 		//Vertex positions buffer
 		std::shared_ptr<Chroma::OpenGLVertexBuffer> position_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)m_mesh->m_vertex_positions.data(),
 			m_mesh->m_vertex_positions.size() * sizeof(GLfloat) * 3);
@@ -168,26 +206,5 @@ namespace Chroma
 		m_vao.AddVertexBuffer(normal_buffer);
 		m_vao.AddVertexBuffer(tex_coord_buffer);
 		m_vao.SetIndexBuffer(index_buffer);
-	}
-
-	SceneObject::SceneObject(Mesh* mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t)
-	{
-		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t);
-	}
-
-	void SceneObject::Draw(DrawMode mode)
-	{
-		m_texture.Bind();
-		m_vao.Bind();
-		glDrawElements(mode, m_index_buffer->GetSize(), GL_UNSIGNED_INT, NULL);
-	}
-
-	void SceneObject::RecalculateModelMatrix()
-	{
-		glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_position);
-		glm::mat4 rotation = glm::eulerAngleYXZ(m_rotation.y, m_rotation.x, m_rotation.z);
-		glm::mat4 scale = glm::scale(glm::mat4(1.0f), m_scale);
-
-		m_model_matrix = translation * rotation * scale;
 	}
 }

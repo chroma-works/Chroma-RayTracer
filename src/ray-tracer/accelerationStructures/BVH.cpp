@@ -168,37 +168,6 @@ namespace Chroma
 		for (size_t i = 0; i < m_shapes.size(); ++i)
 		{
 			glm::vec3 b_min, b_max;
-
-			/*switch (m_shapes[i].m_type)
-			{
-			case SHAPE_T::sphere:
-			{
-				const Sphere* shape = (Sphere*)&m_shapes[i];
-				b_min = ((Sphere*)(&shape))->m_center -
-					glm::vec3(((Sphere*)(&shape))->m_radius,
-					((Sphere*)(&shape))->m_radius,
-						((Sphere*)(&shape))->m_radius);
-
-				b_max = ((Sphere*)(&shape))->m_center +
-					glm::vec3(((Sphere*)(&shape))->m_radius,
-					((Sphere*)(&shape))->m_radius,
-						((Sphere*)(&shape))->m_radius);
-			}
-				break;
-			case SHAPE_T::triangle:
-			{
-				const Triangle* shape = (Triangle*)&m_shapes[i];
-				b_min = ((Triangle*)shape)->m_vertices[0];
-				b_max = ((Triangle*)shape)->m_vertices[0];
-
-				b_min = glm::min(b_min, ((Triangle*)shape)->m_vertices[1]);
-				b_min = glm::min(b_min, ((Triangle*)shape)->m_vertices[2]);
-
-				b_max = glm::max(b_max, ((Triangle*)shape)->m_vertices[1]);
-				b_max = glm::max(b_max, ((Triangle*)shape)->m_vertices[2]);
-			}
-				break;
-			}*/
 			
 			Bounds3 b = m_shapes[i]->GetBounds();
 			primitiveInfo[i] = { i, b};
@@ -762,64 +731,8 @@ namespace Chroma
 
 		for (auto obj : scene.m_scene_objects)
 		{
-			scene_objects.push_back(obj.second.get());
-		}
-
-		for (int i = 0, face_idx = 0; i < scene_objects.size(); i++)
-		{
-			if (scene_objects[i]->GetShapeType() != SHAPE_T::sphere)
-			{
-				auto mesh = scene_objects[i]->m_mesh;
-
-				if (mesh == nullptr)
-					continue;
-
-				glm::mat4 t = glm::translate(glm::mat4(1.0f), scene_objects[i]->GetPosition());
-				glm::vec3 rot = glm::radians(scene_objects[i]->GetRotation());
-				glm::mat4 r = glm::eulerAngleYXZ(rot.y, rot.x, rot.z);
-				glm::mat4 s = glm::scale(glm::mat4(1.0), scene_objects[i]->GetScale());
-
-				s[3][3] = 1;
-
-				glm::mat4 m = t * r * s;
-
-				for (int j = 0; j < mesh->m_indices.size(); j += 3)
-				{
-
-					Triangle* tri = new Triangle(scene_objects[i]->GetMaterial(), scene_objects[i]->IsVisible());
-
-					tri->m_vertices[0] = glm::vec3(m *
-						glm::vec4(mesh->m_vertex_positions[mesh->m_indices[j]], 1));
-					tri->m_vertices[1] = glm::vec3(m *
-						glm::vec4(mesh->m_vertex_positions[mesh->m_indices[j + 1]], 1));
-					tri->m_vertices[2] = glm::vec3(m *
-						glm::vec4(mesh->m_vertex_positions[mesh->m_indices[j + 2]], 1));
-
-					tri->m_normals[0] = glm::normalize(glm::vec3(r *
-						glm::vec4(mesh->m_vertex_normals[mesh->m_indices[j]], 1)));
-					tri->m_normals[1] = glm::normalize(glm::vec3(r *
-						glm::vec4(mesh->m_vertex_normals[mesh->m_indices[j + 1]], 1)));
-					tri->m_normals[2] = glm::normalize(glm::vec3(r *
-						glm::vec4(mesh->m_vertex_normals[mesh->m_indices[j + 2]], 1)));
-
-					//if (mesh->uvs.size() > 0)
-					//{
-					//    shape.uvs[0] = mesh->uvs[j + 0];
-					//    shape.uvs[1] = mesh->uvs[j + 1];
-					//    shape.uvs[2] = mesh->uvs[j + 2];
-					//}
-
-					m_shapes.push_back(tri);
-				}
-			}
-			else//Sphere
-			{
-				Sphere* sphere = new Sphere(scene_objects[i]->GetMaterial(), scene_objects[i]->IsVisible());
-				sphere->m_center = scene_objects[i]->GetPosition();
-				sphere->m_radius = scene_objects[i]->m_radius;
-
-				m_shapes.push_back(sphere);
-			}
+			for(auto shape : obj.second->m_mesh->m_shapes)
+				m_shapes.push_back(shape.get());
 		}
 	}
 }

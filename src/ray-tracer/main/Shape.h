@@ -29,6 +29,7 @@ namespace Chroma
 
 		bool m_is_visible = true;
 		Material* m_material = nullptr;
+		glm::mat4* m_transform = nullptr;
 		SHAPE_T m_type = SHAPE_T::none;
 	};
 	class Triangle : public Shape
@@ -39,8 +40,10 @@ namespace Chroma
 		{
 			m_type = SHAPE_T::triangle;
 		}
-		Triangle(std::vector<glm::vec3>verts, std::vector<glm::vec3> norms,
-			std::vector<glm::vec2> uvs, Material* mat, bool visible = true)
+		Triangle(std::vector<std::shared_ptr<glm::vec3>>verts, 
+			std::vector<std::shared_ptr<glm::vec3>> norms,
+			std::vector<std::shared_ptr<glm::vec2>> uvs, 
+			Material* mat, bool visible = true)
 			: Shape(mat, visible)
 		{
 			m_type = SHAPE_T::triangle;
@@ -60,35 +63,38 @@ namespace Chroma
 				}
 			}
 		}
-		glm::vec3 m_vertices[3];
-		glm::vec3 m_normals[3];
-		glm::vec2 m_uvs[3];
+		std::shared_ptr<glm::vec3> m_vertices[3];
+		std::shared_ptr<glm::vec3> m_normals[3];
+		std::shared_ptr<glm::vec2> m_uvs[3];
 
 		Bounds3 GetBounds() const
 		{
-			glm::vec3 b_min = m_vertices[0];
-			glm::vec3 b_max = m_vertices[0];
+			glm::vec3 b_min = *m_transform * glm::vec4(*m_vertices[0],1.0f);
+			glm::vec3 b_max = *m_transform * glm::vec4(*m_vertices[0],1.0f);
 
-			b_min = glm::min(b_min, m_vertices[1]);
-			b_min = glm::min(b_min, m_vertices[2]);
+			b_min = glm::min(b_min, glm::vec3(*m_transform * glm::vec4(*m_vertices[1], 1.0f)));
+			b_min = glm::min(b_min, glm::vec3(*m_transform * glm::vec4(*m_vertices[2], 1.0f)));
 
-			b_max = glm::max(b_max, m_vertices[1]);
-			b_max = glm::max(b_max, m_vertices[2]);
+			b_max = glm::max(b_max, glm::vec3(*m_transform * glm::vec4(*m_vertices[1], 1.0f)));
+			b_max = glm::max(b_max, glm::vec3(*m_transform * glm::vec4(*m_vertices[2], 1.0f)));
 
 			return Bounds3(b_min, b_max);
 		}
 
 		bool Intersect(Ray ray, IntersectionData* data) const
 		{
+			ray.direction = glm::inverse(*m_transform) * glm::vec4(ray.direction, 1.0f);
+			ray.origin = glm::inverse(*m_transform) * glm::vec4(ray.origin, 1.0f);
+
 			data->t = std::numeric_limits<float>().max();
 
 			/*norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[0]];
 			norms[1] = &m_mesh.m_vertex_normals[m_mesh.m_indices[1]];
 			norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[2]];*/
 
-			glm::vec3 v0 = m_vertices[0];
-			glm::vec3 v1 = m_vertices[1];
-			glm::vec3 v2 = m_vertices[2];
+			glm::vec3 v0 = *m_vertices[0];
+			glm::vec3 v1 = *m_vertices[1];
+			glm::vec3 v2 = *m_vertices[2];
 
 			glm::vec3 v0v1 = v1 - v0;
 			glm::vec3 v0v2 = v2 - v0;
@@ -116,7 +122,8 @@ namespace Chroma
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material;
-			data->normal = glm::normalize(glm::cross(v0v1, v0v2)); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
+			data->normal = glm::transpose(glm::inverse(glm::mat3(*m_transform))) *
+				glm::normalize(glm::cross(v0v1, v0v2)); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
 
 			return data->hit;
 		}
@@ -140,39 +147,27 @@ namespace Chroma
 
 		Bounds3 GetBounds() const
 		{
-			/*glm::vec3 b_min = m_center;
-			glm::vec3 b_max = m_center;
-			float step_a = glm::pi<float>() / 180.0f;
-			float step_b = 0.001f;
-			for (float theta = -2 * glm::pi<float>(); theta < 2 * glm::pi<float>(); theta += step_a)//Sample points over the sphere's surface
-			{
-				for (float k = 0.0f; k < 1.0f; k += step_b)
-				{
-					float phi = acos(1 - 2 * k);
-					glm::vec3 point = { sin(phi) * cos(theta), sin(phi) * sin(theta), cos(phi) };
-					point = point *m_radius +m_center;
+			glm::vec3 t1 = m_center -
+				m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
+			t1 = glm::vec3(*m_transform * glm::vec4(t1, 1.0f));
 
-					b_min = glm::min(point, b_min);
-					b_max = glm::max(point, b_max);
-				}
-			}*/
-			glm::vec3 b_min = m_center -
-				m_radius * 1.732050f * glm::vec3(1, 1, 1);//glm::vec3(1.732050, 1.732050, 1.732050);
+			glm::vec3 t2 = m_center +
+				m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
+			t2 = glm::vec3(*m_transform * glm::vec4(t2, 1.0f));
 
-			glm::vec3 b_max = m_center +
-				m_radius * 1.732050f * glm::vec3(1, 1, 1);//glm::vec3(1.732050, 1.732050, 1.732050);
+			glm::vec3 b_min = glm::min(t1, t2); //glm::vec3(1.732050, 1.732050, 1.732050);
+
+			glm::vec3 b_max = glm::max(t1, t2);//glm::vec3(1.732050, 1.732050, 1.732050);
+			
 
 			return Bounds3(b_min, b_max);
 		}
 
 		bool Intersect(Ray ray, IntersectionData* data) const
 		{
+			ray.direction = glm::inverse(*m_transform) * glm::vec4(ray.direction, 1.0f);
+			ray.origin = glm::inverse(*m_transform) * glm::vec4(ray.origin, 1.0f);
 
-			/*data->hit = glm::intersectRaySphere(ray.origin, ray.direction, m_center, m_radius * m_radius, data->t) && data->t > ray.intersect_eps;
-			data->position = ray.PointAt(data->t);
-			data->material = m_material;
-			data->normal = glm::normalize(data->position - m_center);
-			return data->hit;*/
 			float a = glm::dot(ray.direction, ray.direction);
 			float b = 2.0f * glm::dot(ray.direction, (ray.origin - m_center));
 			float c = glm::dot(ray.origin - m_center, ray.origin - m_center) - m_radius * m_radius;
@@ -200,12 +195,10 @@ namespace Chroma
 				t0 = t1; // if t0 is negative, let's use t1 instead 
 				if (t0 < 0.7f) data->hit=false; // both t0 and t1 are negative 
 			}
-
-			//CH_TRACE(t0);
 			data->t = t0;
 			data->material = m_material;
 			data->position = ray.PointAt(t0);
-			data->normal = glm::normalize(data->position - m_center);
+			data->normal = glm::transpose(glm::inverse(glm::mat3(*m_transform))) * glm::normalize(data->position - m_center);
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
 				glm::acos(data->position.y / m_radius));
 

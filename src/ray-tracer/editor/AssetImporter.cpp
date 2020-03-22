@@ -610,15 +610,16 @@ namespace Chroma
 								int ind;
 								sscanf(data.c_str(), "%d", &ind);
 								ind = ind - 1;
-								scene_obj->SetPosition(vertices[ind]);
+								//scene_obj->SetPosition(vertices[ind]);
+								((Sphere*)(scene_obj->m_mesh->m_shapes[0].get()))->m_center = vertices[ind];
 							}
 							else if (std::string(object_prop->Value()).compare(RAD) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
 								float r;
 								sscanf(data.c_str(), "%f", &r);
-								scene_obj->SetScale(glm::vec3(r/2,r/2,r/2));
-								scene_obj->SetRadius(r);
+								scene_obj->SetScale(glm::vec3(1,1,1));
+								((Sphere*)(scene_obj->m_mesh->m_shapes[0].get()))->m_radius = r;
 							}
 							object_prop = object_prop->NextSibling();
 						}

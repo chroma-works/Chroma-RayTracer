@@ -32,7 +32,7 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/spheres.xml")));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/cornellbox_recursive.xml")));
 	//init editor
 	Chroma::Editor editor(&window, scene.get());
 

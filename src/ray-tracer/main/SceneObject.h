@@ -51,6 +51,7 @@ namespace Chroma
 		std::vector<glm::vec2> m_vertex_texcoords;
 
 		std::vector<unsigned int> m_indices;
+		std::vector<std::shared_ptr<Shape>> m_shapes;
 
 	private:
 		void CenterToPivot();
@@ -98,10 +99,31 @@ namespace Chroma
 		inline void SetRotation(const glm::vec3 rot) { m_rotation = rot; RecalculateModelMatrix(); }
 		inline void SetScale(const glm::vec3 sca) { m_scale = sca; RecalculateModelMatrix(); }
 
-		inline glm::mat4 GetModelMatrix() const { return m_model_matrix; }
+		inline glm::mat4 GetModelMatrix() const { return *m_model_matrix; }
 		inline glm::vec3 GetPosition() const { return m_position; }
 		inline glm::vec3 GetRotation() const { return m_rotation; }
 		inline glm::vec3 GetScale() const { return m_scale; }
+
+		inline glm::vec3 GetMaxBound() const 
+		{ 
+			if (m_shape_t == SHAPE_T::sphere)
+			{
+				float radius = ((Sphere*)(m_mesh->m_shapes[0].get()))->m_radius;
+				return glm::vec3(*m_model_matrix * glm::vec4(radius, radius, radius,1.0f));
+			}
+			else if(m_shape_t == SHAPE_T::triangle)
+				return glm::vec3(*m_model_matrix * glm::vec4(m_mesh->GetMaxBound(), 1.0f)); 
+		}
+		inline glm::vec3 GetMinBound() const 
+		{
+			if (m_shape_t == SHAPE_T::sphere)
+			{
+				float radius = ((Sphere*)(m_mesh->m_shapes[0].get()))->m_radius;
+				return glm::vec3(*m_model_matrix * glm::vec4(-radius, -radius, -radius, 1.0f));
+			}
+			else if (m_shape_t == SHAPE_T::triangle)
+				return glm::vec3(*m_model_matrix * glm::vec4(m_mesh->GetMinBound(), 1.0f));
+		}
 
 		inline void Translate(const glm::vec3 vec) { m_position += vec; RecalculateModelMatrix(); }
 		/*inline void RotateAngleAxis(const float angle, const glm::vec3 axis) {
@@ -113,11 +135,15 @@ namespace Chroma
 			RecalculateModelMatrix();
 		}*/
 		inline void Scale(const glm::vec3 scale) { m_scale *= scale; RecalculateModelMatrix(); }
-		inline void ResetTransforms() { m_model_matrix = glm::mat4(1.0f); }
+		inline void ResetTransforms() { *m_model_matrix = glm::mat4(1.0f); }
 
 
 		inline void SetTexture(Chroma::Texture tex) { m_texture = tex; }
-		inline void SetMaterial(Material* mat) { m_material = mat; }
+		inline void SetMaterial(Material* mat) { 
+			m_material = mat; 
+			for (auto shape : m_mesh->m_shapes)
+				shape->m_material = mat;
+		}
 
 		inline Material* GetMaterial() const { return m_material; }
 
@@ -126,21 +152,22 @@ namespace Chroma
 		inline std::string GetName() const { return m_name; }
 		inline void SetName(std::string n) { m_name = n; }
 
-		inline void SetRadius(float radius)
+		/*inline void SetRadius(float radius)
 		{
 			m_radius = radius;
 
 			m_mesh->SetMinBound(m_position - glm::vec3(radius, radius, radius));
 			m_mesh->SetMaxBound(m_position + glm::vec3(radius, radius, radius));
-		}
+		}*/
 
 		void Draw(DrawMode mode);
 
-		float m_radius;
+		//float m_radius;
 		std::shared_ptr<Mesh> m_mesh; //TODO: multiple mesh ?
 
 	private:
 		void RecalculateModelMatrix();
+		void InitOpenGLBuffers();
 
 		bool m_visible_in_editor = true;
 		bool m_visible = true;
@@ -152,7 +179,7 @@ namespace Chroma
 		glm::vec3 m_rotation;
 		glm::vec3 m_scale;
 
-		glm::mat4 m_model_matrix = glm::mat4(1.0);
+		glm::mat4* m_model_matrix = new glm::mat4(1.0);
 
 		Chroma::Texture m_texture;
 		Material* m_material;
