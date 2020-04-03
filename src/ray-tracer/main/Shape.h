@@ -148,12 +148,12 @@ namespace Chroma
 		Bounds3 GetBounds() const
 		{
 			glm::vec3 t1 = m_center -
-				m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
-			t1 = glm::vec3(*m_transform * glm::vec4(t1, 1.0f));
+				glm::vec3(*m_transform * glm::vec4(m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f),1.0f));
+			//t1 = glm::vec3(*m_transform * glm::vec4(t1, 1.0f));
 
 			glm::vec3 t2 = m_center +
-				m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
-			t2 = glm::vec3(*m_transform * glm::vec4(t2, 1.0f));
+				glm::vec3(*m_transform * glm::vec4(m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f),1.0f));
+			//t2 = glm::vec3(*m_transform * glm::vec4(t2, 1.0f));
 
 			glm::vec3 b_min = glm::min(t1, t2); //glm::vec3(1.732050, 1.732050, 1.732050);
 
@@ -198,7 +198,7 @@ namespace Chroma
 			data->t = t0;
 			data->material = m_material;
 			data->position = ray.PointAt(t0);
-			data->normal = glm::transpose(glm::inverse(glm::mat3(*m_transform))) * glm::normalize(data->position - m_center);
+			data->normal = glm::normalize(glm::transpose(glm::inverse(glm::mat3(*m_transform))) * glm::normalize(data->position - m_center));
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
 				glm::acos(data->position.y / m_radius));
 
