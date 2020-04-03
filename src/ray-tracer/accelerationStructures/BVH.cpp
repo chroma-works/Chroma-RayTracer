@@ -742,18 +742,18 @@ namespace Chroma
 			{
 				if(shape->m_type == SHAPE_T::triangle)
 				{
-					*((Triangle*)shape.get())->m_vertices[0] = glm::vec3(m *
+					*((Triangle*)shape.get())->m_vertices[0] = glm::vec3(
 						glm::vec4(*((Triangle*)shape.get())->m_vertices[0], 1.0f));
-					*((Triangle*)shape.get())->m_vertices[1] = glm::vec3(m *
+					*((Triangle*)shape.get())->m_vertices[1] = glm::vec3(
 						glm::vec4(*((Triangle*)shape.get())->m_vertices[1], 1.0f));
-					*((Triangle*)shape.get())->m_vertices[2] = glm::vec3(m *
+					*((Triangle*)shape.get())->m_vertices[2] = glm::vec3(
 						glm::vec4(*((Triangle*)shape.get())->m_vertices[2], 1.0f));
 
-					*((Triangle*)shape.get())->m_normals[0] = glm::vec3(glm::mat3(m) *
+					*((Triangle*)shape.get())->m_normals[0] = glm::vec3(
 						*((Triangle*)shape.get())->m_normals[0]);
-					*((Triangle*)shape.get())->m_normals[1] = glm::vec3(glm::mat3(m) *
+					*((Triangle*)shape.get())->m_normals[1] = glm::vec3(
 						*((Triangle*)shape.get())->m_normals[1]);
-					*((Triangle*)shape.get())->m_normals[2] = glm::vec3(glm::mat3(m) *
+					*((Triangle*)shape.get())->m_normals[2] = glm::vec3(
 						*((Triangle*)shape.get())->m_normals[2]);
 
 					//if (mesh->uvs.size() > 0)
@@ -765,7 +765,7 @@ namespace Chroma
 				}
 				else//Sphere
 				{
-					((Sphere*)shape.get())->m_center = glm::vec3(t *
+					((Sphere*)shape.get())->m_center = glm::vec3(
 						glm::vec4(((Sphere*)shape.get())->m_center, 1.0f));
 				}
 				m_shapes.push_back(shape.get());
