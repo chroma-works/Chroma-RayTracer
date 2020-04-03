@@ -1,17 +1,62 @@
 #include "AssetImporter.h"
 
-#include <thirdparty/hapPLY/happly.h>
-#include <thirdparty/OBJ_loader/OBJ_Loader.h>
-#include <ray-tracer/editor/Logger.h>
-#include <ray-tracer/main/Shape.h>
-#include <ray-tracer/main/Material.h>
 #include <iostream>
 #include <sstream>
 #include <string> 
 
+#include <ray-tracer/editor/Logger.h>
+#include <ray-tracer/main/Shape.h>
+#include <ray-tracer/main/Material.h>
+
+#include <thirdparty/hapPLY/happly.h>
+#include <thirdparty/OBJ_loader/OBJ_Loader.h>
+#include <thirdparty/glm/glm/gtx/quaternion.hpp>
+
 
 namespace Chroma
 {
+
+	const std::string ABS_COEF = "AbsorptionCoefficient";
+	const std::string ABS_IND = "AbsorptionIndex";
+	const std::string AM_LIG = "AmbientLight";//INIT as point light with very low constans
+	const std::string AM_REF = "AmbientReflectance";
+	const std::string BCK_COLOR = "BackgroundColor";
+	const std::string CAMS = "Cameras";
+	const std::string CNTR = "Center";
+	const std::string DIF_REF = "DiffuseReflectance";
+	const std::string FACES = "Faces";
+	const std::string GAZE = "Gaze";
+	const std::string I_TEST_EPS = "IntersectionTestEpsilon";
+	const std::string IM_NAME = "ImageName";
+	const std::string IND = "Indices";
+	const std::string INTEN = "Intensity";
+	const std::string LIGS = "Lights";
+	const std::string MAT = "Material";
+	const std::string MATS = "Materials";
+	const std::string MAX_RECUR = "MaxRecursionDepth";
+	const std::string MESH = "Mesh";
+	const std::string MIRROR_REF = "MirrorReflectance";
+	const std::string N_DIST = "NearDistance";
+	const std::string N_PLANE = "NearPlane";
+	const std::string NUM_SAMP = "NumSamples";
+	const std::string OBJ = "Objects";
+	const std::string UP = "Up";
+	const std::string P_LIG = "PointLight";
+	const std::string PHONG_EX = "PhongExponent";
+	const std::string POS = "Position";
+	const std::string RAD = "Radius";
+	const std::string REF_IND = "RefractionIndex";
+	const std::string RES = "ImageResolution";
+	const std::string ROT = "Rotation";
+	const std::string S_RAY_EPS = "ShadowRayEpsilon";
+	const std::string SPEC_REF = "SpecularReflectance";
+	const std::string SPHR = "Sphere";
+	const std::string TRIANGLE = "Triangle";
+	const std::string TRANSFORMS = "Transformations";
+	const std::string TRA = "Translation";
+	const std::string SCA = "Scaling";
+	const std::string VRTX_DATA = "VertexData";
+
     Mesh* AssetImporter::LoadMeshFromOBJ(const std::string& file_name, 
 		glm::vec3 t, glm::vec3 r, glm::vec3 s)
     {
@@ -81,7 +126,7 @@ namespace Chroma
 		Split(data, v, ' ');
 		glm::mat4 trnsfm = glm::mat4(1.0f);
 
-		for (int i = v.size()-1; i >= 0; i--)
+		for (int i = 0; i < v.size(); i++)
 		{
 			if (v[i].at(0) == 't')
 			{
@@ -99,6 +144,164 @@ namespace Chroma
 		return trnsfm;
 	}
 
+	Mesh* ParsePly(std::string ply_path)
+	{
+		std::vector<glm::vec3> mesh_verts;
+		std::vector<glm::vec2> mesh_uvs;
+		std::vector<glm::vec3> mesh_normals;
+		std::vector<unsigned int> mesh_indices;
+
+		happly::PLYData ply_in(ply_path);
+		std::vector<std::array<double, 3>> v_pos = ply_in.getVertexPositions();
+		std::vector<std::vector<size_t>> f_ind = ply_in.getFaceIndices<size_t>();
+
+		for (int i = 0; i < v_pos.size(); i++)
+		{
+			mesh_verts.push_back({ v_pos[i][0], v_pos[i][1], v_pos[i][2] });
+			/*mesh_verts.push_back({ v_pos[i+1][0], v_pos[i+1][1], v_pos[i+1][2] });
+			mesh_verts.push_back({ v_pos[i+2][0], v_pos[i+2][1], v_pos[i+2][2] });*/
+		}
+		for (auto faces : f_ind)
+		{
+			glm::vec3 a = (mesh_verts[faces[1]] - mesh_verts[faces[0]]);
+			glm::vec3 b = (mesh_verts[faces[2]] - mesh_verts[faces[0]]);
+			glm::vec3 normal = glm::normalize(glm::cross(-a, -b));
+			if(faces.size() ==3)		//triangle faces
+				for (int i = 0; i < faces.size(); i ++)
+				{
+					mesh_normals.push_back(normal);
+					mesh_indices.push_back(faces[i]);
+				}
+			else if(faces.size() == 4)	//quad faces
+			{
+				for (int start_ind = 1; start_ind+2 <= faces.size(); start_ind++)
+				{
+					mesh_normals.push_back(normal);
+					mesh_indices.push_back(faces[0]);
+					for (int i = start_ind; i < start_ind + 2; i++)
+					{
+						mesh_normals.push_back(normal);
+						mesh_indices.push_back(faces[i]);
+					}
+				}
+			}
+
+		}
+		return new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+	}
+
+	Camera* ParseCamera(tinyxml2::XMLNode* node)
+	{
+		Camera* cam = new Camera(1.0f * 1280,
+			1.0f * 720, 0.1f, 300.0f, 60.0f); //Standart Camera(raster pipeline parameters)
+		tinyxml2::XMLNode* cam_prop = node->FirstChild();
+
+		auto cam_type = node->ToElement()->FindAttribute("type");
+
+		while (cam_prop)//iterate over each cameras properties
+		{
+			//--------------Shared properties---------------
+			if (std::string(cam_prop->Value()).compare(POS) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::vec3 vec({ 0,0,0 });
+				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+				cam->SetPosition(vec);
+			}
+			else if (std::string(cam_prop->Value()).compare(UP) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::vec3 vec({ 0,0,0 });
+				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+				cam->SetUp(vec);
+			}
+			else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				float d;
+				sscanf(data.c_str(), "%f", &d);
+				cam->SetNearDist(d);
+			}
+			else if (std::string(cam_prop->Value()).compare(RES) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::ivec2 tmp;
+				sscanf(data.c_str(), "%d %d", &tmp.x, &tmp.y);
+				cam->SetResolution(tmp);
+			}
+			else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				cam->SetImageName(data);
+			}
+			else if (std::string(cam_prop->Value()).compare(NUM_SAMP) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				unsigned int tmp;
+				sscanf(data.c_str(), "%d", &tmp);
+				cam->SetNumberOfSamples(tmp);
+			}
+			//----------------Typeless cam-------------------
+			else if (!cam_type &&
+				std::string(cam_prop->Value()).compare(N_PLANE) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::vec2 vec[2];
+				sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
+				cam->SetNearPlane(vec);
+			}
+			else if (!cam_type &&
+				std::string(cam_prop->Value()).compare(GAZE) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::vec3 vec({ 0,0,0 });
+				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+				cam->SetGaze(vec);
+			}
+			//----------------Look at cam------------------
+			else if ((std::string(cam_type->Value()).compare("lookAt") == 0) &&
+				std::string(cam_prop->Value()).compare(POS) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::vec3 vec({ 0,0,0 });
+				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+				cam->SetPosition(vec);
+			}
+			else if ((std::string(cam_type->Value()).compare("lookAt") == 0) &&
+				std::string(cam_prop->Value()).compare("GazePoint") == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::vec3 vec({ 0,0,0 });
+				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+				cam->SetGaze(glm::normalize(vec - cam->GetPosition()));
+			}
+			else if ((std::string(cam_type->Value()).compare("lookAt") == 0) &&
+				std::string(cam_prop->Value()).compare("FovY") == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				float fovy;
+				sscanf(data.c_str(), "%f", &fovy);
+				float aspect_ratio;
+				glm::vec2 vec[2];
+				vec[0].x = -0.5f;
+				vec[1].x = -vec[0].x;
+				vec[0].y = std::tan(fovy * 0.5f);
+				vec[1].y = -std::tan(fovy * 0.5f);
+				cam->SetNearPlane(vec);
+
+			}
+			cam_prop = cam_prop->NextSibling();
+		}
+		if (glm::dot(cam->GetGaze(), cam->GetUp()) != 0)
+		{
+			CH_INFO("Camera Up and gaze are not orthogonal. Recalculating up...");
+			glm::vec3 u = glm::cross(cam->GetGaze(), cam->GetUp());
+			glm::vec3 v_prime = glm::cross(-cam->GetGaze(), u);
+			cam->SetUp(v_prime);
+		}
+		return cam;
+	}
+
 	Scene* AssetImporter::LoadSceneFromXML(Shader* shader, const std::string& file_path)
 	{
 		//Scene name from file name
@@ -107,45 +310,6 @@ namespace Chroma
 		std::string file_name = file_path.substr(found+1, found2-found-1);
 
 		Scene* scene = new Scene(file_name, shader);
-		const std::string ABS_COEF = "AbsorptionCoefficient";
-		const std::string ABS_IND = "AbsorptionIndex";
-		const std::string AM_LIG = "AmbientLight";//INIT as point light with very low constans
-		const std::string AM_REF = "AmbientReflectance";
-		const std::string BCK_COLOR = "BackgroundColor";
-		const std::string CAMS = "Cameras";
-		const std::string CNTR = "Center";
-		const std::string DIF_REF = "DiffuseReflectance";
-		const std::string FACES = "Faces";
-		const std::string GAZE = "Gaze";
-		const std::string I_TEST_EPS = "IntersectionTestEpsilon";
-		const std::string IM_NAME = "ImageName";
-		const std::string IND = "Indices";
-		const std::string INTEN = "Intensity";
-		const std::string LIGS = "Lights";
-		const std::string MAT = "Material";
-		const std::string MATS = "Materials";
-		const std::string MAX_RECUR = "MaxRecursionDepth";
-		const std::string MESH = "Mesh";
-		const std::string MIRROR_REF = "MirrorReflectance";
-		const std::string N_DIST = "NearDistance";
-		const std::string N_PLANE = "NearPlane";
-		const std::string OBJ = "Objects";
-		const std::string UP = "Up";
-		const std::string P_LIG = "PointLight";
-		const std::string PHONG_EX = "PhongExponent";
-		const std::string POS = "Position";
-		const std::string RAD = "Radius";
-		const std::string REF_IND = "RefractionIndex";
-		const std::string RES = "ImageResolution";
-		const std::string ROT = "Rotation";
-		const std::string S_RAY_EPS = "ShadowRayEpsilon";
-		const std::string SPEC_REF = "SpecularReflectance";
-		const std::string SPHR = "Sphere";
-		const std::string TRI = "Triangle";
-		const std::string TRANSFORMS = "Transformations";
-		const std::string TRA = "Translation";
-		const std::string SCA = "Scaling";
-		const std::string VRTX_DATA = "VertexData";
 
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile(file_path.c_str());
@@ -184,131 +348,9 @@ namespace Chroma
 				tinyxml2::XMLNode* child_node = node->FirstChild();
 				while (child_node)//iterate over cameras
 				{
-					Camera* cam = new Camera(1.0f * 1280,
-						1.0f * 720, 0.1f, 300.0f, 60.0f); //Standart Camera(raster pipeline parameters)
 					std::string cam_name = "camera_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-					tinyxml2::XMLNode* cam_prop = child_node->FirstChild();
+					Camera* cam = ParseCamera( child_node);
 
-					auto cam_type = child_node->ToElement()->FindAttribute("type");
-
-					while (cam_prop)//iterate over each cameras properties
-					{
-						if (!cam_type)//Typless camera
-						{
-							if (std::string(cam_prop->Value()).compare(POS) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::vec3 vec({ 0,0,0 });
-								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-								cam->SetPosition(vec);
-							}
-							else if (std::string(cam_prop->Value()).compare(GAZE) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::vec3 vec({ 0,0,0 });
-								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-								cam->SetGaze(vec);
-							}
-							else if (std::string(cam_prop->Value()).compare(UP) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::vec3 vec({ 0,0,0 });
-								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-								cam->SetUp(vec);
-							}
-							else if (std::string(cam_prop->Value()).compare(N_PLANE) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::vec2 vec[2];
-								sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
-								cam->SetNearPlane(vec);
-							}
-							else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								float d;
-								sscanf(data.c_str(), "%f", &d);
-								cam->SetNearDist(d);
-							}
-							else if (std::string(cam_prop->Value()).compare(RES) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::ivec2 tmp;
-								sscanf(data.c_str(), "%d %d", &tmp.x, &tmp.y);
-								cam->SetResolution(tmp);
-							}
-							else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								cam->SetImageName(data);
-							}
-						}
-						else if (std::string(cam_type->Value()).compare("lookAt") == 0)
-						{
-							if (std::string(cam_prop->Value()).compare(POS) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::vec3 vec({ 0,0,0 });
-								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-								cam->SetPosition(vec);
-							}
-							else if (std::string(cam_prop->Value()).compare("GazePoint") == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::vec3 vec({ 0,0,0 });
-								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-								cam->SetGaze(glm::normalize(vec - cam->GetPosition()));
-							}
-							else if (std::string(cam_prop->Value()).compare(UP) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::vec3 vec({ 0,0,0 });
-								sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-								cam->SetUp(vec);
-							}
-							else if (std::string(cam_prop->Value()).compare("FovY") == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								float fovy;
-								sscanf(data.c_str(), "%f", &fovy);
-								float aspect_ratio;
-								glm::vec2 vec[2];
-								vec[0].x = -0.5f;
-								vec[1].x = -vec[0].x;
-								vec[0].y = std::tan(fovy * 0.5f);
-								vec[1].y = -std::tan(fovy * 0.5f);
-								cam->SetNearPlane(vec);
-								
-							}
-							else if (std::string(cam_prop->Value()).compare(N_DIST) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								float d;
-								sscanf(data.c_str(), "%f", &d);
-								cam->SetNearDist(d);
-							}
-							else if (std::string(cam_prop->Value()).compare(RES) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								glm::ivec2 tmp;
-								sscanf(data.c_str(), "%d %d", &tmp.x, &tmp.y);
-								cam->SetResolution(tmp);
-							}
-							else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
-							{
-								std::string data = cam_prop->FirstChild()->Value();
-								cam->SetImageName(data);
-							}
-						}
-						cam_prop = cam_prop->NextSibling();
-					}
-					if (glm::dot(cam->GetGaze(), cam->GetUp()) != 0)
-					{
-						CH_INFO("Camera Up and gaze are not orthogonal. Recalculating up...");
-						glm::vec3 u = glm::cross(cam->GetGaze(), cam->GetUp());
-						glm::vec3 v_prime = glm::cross(-cam->GetGaze(), u);
-						cam->SetUp(v_prime);
-					}
 					scene->AddCamera(cam_name, cam);
 					child_node = child_node->NextSibling();
 				}
@@ -372,11 +414,11 @@ namespace Chroma
 					}
 					else if (std::string(child_node->Value()).compare(ROT) == 0)
 					{
-						glm::vec3 temp;
+						glm::vec3 axis;
+						float angle_d;
 						std::string data = child_node->FirstChild()->Value();
-						sscanf(data.c_str(), "%f %f %f", &temp.x, &temp.y, &temp.z);
-						t = glm::eulerAngleYXZ(glm::radians(temp.y), 
-							glm::radians(temp.x), glm::radians(temp.z));
+						sscanf(data.c_str(), "%f %f %f %f", &angle_d, &axis.x, &axis.y, &axis.z);
+						t = glm::toMat4(glm::angleAxis(glm::radians(angle_d), glm::normalize(axis)));
 						rotations.push_back(t);
 					}
 					else if (std::string(child_node->Value()).compare(SCA) == 0)
@@ -536,7 +578,6 @@ namespace Chroma
 
 						while (object_prop)
 						{
-							//CH_TRACE(object_prop->ToElement()->->Value());
 							if (std::string(object_prop->Value()).compare(MAT) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
@@ -548,37 +589,8 @@ namespace Chroma
 								auto ply_file_path = object_prop->ToElement()->FindAttribute("plyFile");
 								if (ply_file_path)
 								{
-									std::vector<glm::vec3> mesh_verts;
-									std::vector<glm::vec2> mesh_uvs;
-									std::vector<glm::vec3> mesh_normals;
-									std::vector<unsigned int> mesh_indices;
-
-									happly::PLYData ply_in(file_path.substr(0, found+1) + std::string(ply_file_path->Value()));
-									std::vector<std::array<double, 3>> v_pos = ply_in.getVertexPositions();
-									std::vector<std::vector<size_t>> f_ind = ply_in.getFaceIndices<size_t>();
-
-									for (int i = 0; i < v_pos.size(); i++)
-									{
-										mesh_verts.push_back({ v_pos[i][0], v_pos[i][1], v_pos[i][2] });
-										/*mesh_verts.push_back({ v_pos[i+1][0], v_pos[i+1][1], v_pos[i+1][2] });
-										mesh_verts.push_back({ v_pos[i+2][0], v_pos[i+2][1], v_pos[i+2][2] });*/
-									}
-									for (auto faces : f_ind)
-									{
-										for (int i = 0; i < faces.size(); i += 3)
-										{
-											glm::vec3 a = (mesh_verts[faces[i + 1]] - mesh_verts[faces[i]]);
-											glm::vec3 b = (mesh_verts[faces[i + 2]] - mesh_verts[faces[i]]);
-											mesh_normals.push_back((glm::cross(-a, -b)));
-											mesh_normals.push_back((glm::cross(-a, -b)));
-											mesh_normals.push_back((glm::cross(-a, -b)));
-											mesh_indices.push_back(faces[i]);
-											mesh_indices.push_back(faces[i + 1]);
-											mesh_indices.push_back(faces[i + 2]);
-										}
-									}
-									//ply_parsed = true;
-									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+									mesh = ParsePly(file_path.substr(0, found + 1) + std::string(ply_file_path->Value()));
+									//mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 								}
 								else
 								{
@@ -644,7 +656,7 @@ namespace Chroma
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
-					else if (std::string(child_node->Value()).compare(TRI) == 0)
+					else if (std::string(child_node->Value()).compare(TRIANGLE) == 0)
 					{
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());

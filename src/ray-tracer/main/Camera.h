@@ -8,6 +8,7 @@ namespace Chroma
 	{
 	public:
 		Camera(float width, float height, float near_clip, float far_clip, float fov);
+
 		//Getters
 		inline glm::vec3 GetPosition() { return m_pos; }
 		inline glm::vec3 GetGaze() { return m_gaze; }
@@ -17,6 +18,7 @@ namespace Chroma
 		inline unsigned int GetID() { return m_id; }
 		inline glm::ivec2 GetResolution() { return m_res; }
 		inline std::string GetImageName() { return m_img_name; }
+		inline unsigned int GetNumberOfSamples() { return m_num_samples; }
 
 		const glm::mat4& GetProjectionMatrix() const { return m_projection_matrix; }
 		const glm::mat4& GetViewMatrix() const { return m_view_matrix; }
@@ -31,9 +33,9 @@ namespace Chroma
 		inline void SetNearDist(float d) { m_near_dist = d; RecalculateProjectionMatrix(); }
 		inline void SetResolution(glm::ivec2 res) { m_res = res; RecalculateProjectionMatrix(); }
 		inline void SetImageName(std::string name) { m_img_name = name; }
+		inline void SetNumberOfSamples(unsigned int n_samp) { m_num_samples = n_samp; }
 
 	private:
-		glm::ivec2 m_res;
 		unsigned int m_id;
 		glm::vec3 m_pos;
 		glm::vec3 m_gaze;
@@ -41,6 +43,8 @@ namespace Chroma
 
 		glm::vec2 m_near_p[2];
 		float m_near_dist;
+		glm::ivec2 m_res;
+		unsigned int m_num_samples = 1;
 
 		std::string m_img_name = "not_set";
 
