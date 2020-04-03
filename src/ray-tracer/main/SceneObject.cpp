@@ -136,7 +136,7 @@ namespace Chroma
 		glm::vec3 scale)
 	{
 		auto mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj", 
-			s.m_center, glm::vec3(0, 0, 0), glm::vec3(s.m_radius, s.m_radius, s.m_radius) * 0.9f));
+			s.m_center, glm::vec3(0, 0, 0), glm::vec3(s.m_radius, s.m_radius, s.m_radius)));
 		if (mesh->GetVertexCount() != 0)
 		{
 			CH_WARN("Using sphere.obj file instead of provided mesh");
@@ -162,7 +162,8 @@ namespace Chroma
 	void SceneObject::RecalculateModelMatrix()
 	{
 		glm::mat4 translation = glm::translate(glm::mat4(1.0f), m_position);
-		glm::mat4 rotation = glm::eulerAngleYXZ(m_rotation.y, m_rotation.x, m_rotation.z);
+		glm::mat4 rotation = glm::eulerAngleYXZ(glm::radians(m_rotation.y),
+			glm::radians(m_rotation.x), glm::radians(m_rotation.z));
 		glm::mat4 scale = glm::scale(glm::mat4(1.0f), m_scale);
 
 		//scale[3][3] = 1.0f;
