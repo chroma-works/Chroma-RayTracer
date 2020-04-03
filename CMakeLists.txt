@@ -136,6 +136,9 @@ target_link_libraries(chroma-ray-tracer spdlog)
 add_definitions(-DNOC_FILE_DIALOG_IMPLEMENTATION)
 add_definitions(-DNOC_FILE_DIALOG_WIN32)
 
+#glm
+add_definitions(-DGLM_FORCE_RADIANS)
+
 
 set_target_properties(
    chroma-ray-tracer
