@@ -12,7 +12,8 @@
 
 namespace Chroma
 {
-    Mesh* AssetImporter::LoadMeshFromOBJ(const std::string& file_name)
+    Mesh* AssetImporter::LoadMeshFromOBJ(const std::string& file_name, 
+		glm::vec3 t, glm::vec3 r, glm::vec3 s)
     {
         Mesh* mesh = new Mesh();
 
@@ -25,12 +26,12 @@ namespace Chroma
             objl::Mesh curMesh = Loader.LoadedMeshes[0];
             for (int j = 0; j < curMesh.Vertices.size(); j++)
             {
-                mesh->m_vertex_positions.push_back(glm::vec3(curMesh.Vertices[j].Position.X, 
+                mesh->m_vertex_positions.push_back(glm::vec3(glm::eulerAngleYXZ(r.y, r.x, r.z) * glm::vec4(glm::vec3(curMesh.Vertices[j].Position.X,
                     curMesh.Vertices[j].Position.Y, 
-                    curMesh.Vertices[j].Position.Z ));
-                mesh->m_vertex_normals.push_back(glm::vec3(curMesh.Vertices[j].Normal.X, 
+                    curMesh.Vertices[j].Position.Z )*s + t, 1.0f)));
+                mesh->m_vertex_normals.push_back(glm::vec3(glm::eulerAngleYXZ(r.y, r.x, r.z) * glm::vec4(curMesh.Vertices[j].Normal.X,
                     curMesh.Vertices[j].Normal.Y,
-                    curMesh.Vertices[j].Normal.Z));
+                    curMesh.Vertices[j].Normal.Z,1)));
                 mesh->m_vertex_texcoords.push_back(glm::vec2(curMesh.Vertices[j].TextureCoordinate.X, 
                     curMesh.Vertices[j].TextureCoordinate.Y ));
             }
@@ -47,6 +48,56 @@ namespace Chroma
     {
         return new Texture(file_name);
     }
+
+	size_t Split(const std::string& txt, std::vector<std::string>& strs, char ch)
+	{
+		size_t pos = txt.find(ch);
+		size_t initialPos = 0;
+		strs.clear();
+
+		// Decompose statement
+		while (pos != std::string::npos) {
+			strs.push_back(txt.substr(initialPos, pos - initialPos));
+			initialPos = pos + 1;
+
+			pos = txt.find(ch, initialPos);
+		}
+
+		// Add the last one
+		strs.push_back(txt.substr(initialPos, std::min(pos, txt.size()) - initialPos + 1));
+
+		return strs.size();
+	}
+
+	glm::mat4 CalculateTransforms(
+		std::vector<glm::mat4> translations,
+		std::vector<glm::mat4> rotations, 
+		std::vector<glm::mat4> scalings,
+		tinyxml2::XMLNode* node)
+	{
+		std::string data = node->FirstChild()->Value();
+		std::vector<std::string> v;
+
+		Split(data, v, ' ');
+		glm::mat4 trnsfm = glm::mat4(1.0f);
+
+		for (int i = v.size()-1; i >= 0; i--)
+		{
+			if (v[i].at(0) == 't')
+			{
+				trnsfm *= translations[ std::stoi(v[i].substr(1)) -1];
+			}
+			else if (v[i].at(0) == 'r')
+			{
+				trnsfm *= rotations[ std::stoi(v[i].substr(1)) -1];
+			}
+			else if (v[i].at(0) == 's')
+			{
+				trnsfm *= scalings[ std::stoi(v[i].substr(1)) -1];
+			}
+		}
+		return trnsfm;
+	}
 
 	Scene* AssetImporter::LoadSceneFromXML(Shader* shader, const std::string& file_path)
 	{
@@ -86,16 +137,24 @@ namespace Chroma
 		const std::string RAD = "Radius";
 		const std::string REF_IND = "RefractionIndex";
 		const std::string RES = "ImageResolution";
+		const std::string ROT = "Rotation";
 		const std::string S_RAY_EPS = "ShadowRayEpsilon";
 		const std::string SPEC_REF = "SpecularReflectance";
 		const std::string SPHR = "Sphere";
 		const std::string TRI = "Triangle";
+		const std::string TRANSFORMS = "Transformations";
+		const std::string TRA = "Translation";
+		const std::string SCA = "Scaling";
 		const std::string VRTX_DATA = "VertexData";
 
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile(file_path.c_str());
 		std::vector<Material*> materials;
 		std::vector<glm::vec3> vertices;
+
+		std::vector<glm::mat4> translations;
+		std::vector<glm::mat4> rotations;
+		std::vector<glm::mat4> scalings;
 
 		tinyxml2::XMLNode* node = doc.RootElement()->FirstChild();
 		while (node)
@@ -297,6 +356,40 @@ namespace Chroma
 					child_node = child_node->NextSibling();
 				}
 			}
+			else if (std::string(node->Value()).compare(TRANSFORMS) == 0)
+			{
+				tinyxml2::XMLNode* child_node = node->FirstChild();
+				while (child_node)//iterate over Transformations
+				{
+					glm::mat4 t = glm::mat4(1.0f);
+					if (std::string(child_node->Value()).compare(TRA) == 0)
+					{
+						glm::vec3 temp;
+						std::string data = child_node->FirstChild()->Value();
+						sscanf(data.c_str(), "%f %f %f", &temp.x, &temp.y, &temp.z);
+						t = glm::translate(glm::mat4(1.0f), temp);
+						translations.push_back(t);
+					}
+					else if (std::string(child_node->Value()).compare(ROT) == 0)
+					{
+						glm::vec3 temp;
+						std::string data = child_node->FirstChild()->Value();
+						sscanf(data.c_str(), "%f %f %f", &temp.x, &temp.y, &temp.z);
+						t = glm::eulerAngleYXZ(glm::radians(temp.y), 
+							glm::radians(temp.x), glm::radians(temp.z));
+						rotations.push_back(t);
+					}
+					else if (std::string(child_node->Value()).compare(SCA) == 0)
+					{
+						glm::vec3 temp;
+						std::string data = child_node->FirstChild()->Value();
+						sscanf(data.c_str(), "%f %f %f", &temp.x, &temp.y, &temp.z);
+						t = glm::scale(glm::mat4(1.0f), temp);
+						scalings.push_back(t);
+					}
+					child_node = child_node->NextSibling();
+				}
+			}
 			else if (std::string(node->Value()).compare(MATS) == 0)
 			{
 				tinyxml2::XMLNode* child_node = node->FirstChild();
@@ -439,6 +532,7 @@ namespace Chroma
 						Mesh* mesh = nullptr;
 						int mat_ind = 0;
 						bool ply_parsed = false;
+						glm::mat4 transform = glm::mat4(1.0f);
 
 						while (object_prop)
 						{
@@ -538,10 +632,15 @@ namespace Chroma
 								}
 
 							}
+							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
+							{
+								transform = CalculateTransforms(translations, rotations,scalings, object_prop);
+							}
 							object_prop = object_prop->NextSibling();
 						}
 						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(*mesh), name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle);
 						scene_obj->SetMaterial(materials[mat_ind]);
+						scene_obj->SetTransforms(transform);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
@@ -551,6 +650,8 @@ namespace Chroma
 						std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						Mesh* mesh = nullptr;
 						int mat_ind = 0;
+						glm::mat4 transform = glm::mat4(1.0f);
+
 						while (object_prop)
 						{
 							if (std::string(object_prop->Value()).compare(MAT) == 0)
@@ -581,17 +682,24 @@ namespace Chroma
 								mesh_uvs.push_back({ 0.0f, 1.0f });
 								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 							}
+							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
+							{
+								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
+							}
 							object_prop = object_prop->NextSibling();
 						}
 						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(*mesh), name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle);
 						scene_obj->SetMaterial(materials[mat_ind]);
+						scene_obj->SetTransforms(transform);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}
 					else if (std::string(child_node->Value()).compare(SPHR) == 0)
 					{
 						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(), name, glm::vec3(), glm::vec3(), glm::vec3(), SHAPE_T::sphere);
+						SceneObject* scene_obj; //= new SceneObject(std::make_shared<Mesh>(), name, glm::vec3(), glm::vec3(), glm::vec3(), SHAPE_T::sphere);
+						glm::mat4 transform = glm::mat4(1.0f);
+						Sphere s(NULL, true);
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
@@ -602,7 +710,8 @@ namespace Chroma
 								int ind;
 								sscanf(data.c_str(), "%d", &ind);
 								ind = ind - 1;
-								scene_obj->SetMaterial(materials[ind]);
+								s.m_material = materials[ind];
+								//scene_obj->SetMaterial(materials[ind]);
 							}
 							else if (std::string(object_prop->Value()).compare("Center") == 0)
 							{
@@ -611,18 +720,26 @@ namespace Chroma
 								sscanf(data.c_str(), "%d", &ind);
 								ind = ind - 1;
 								//scene_obj->SetPosition(vertices[ind]);
-								((Sphere*)(scene_obj->m_mesh->m_shapes[0].get()))->m_center = vertices[ind];
+								//((Sphere*)(scene_obj->m_mesh->m_shapes[0].get()))->m_center = vertices[ind];
+								s.m_center = vertices[ind];
 							}
 							else if (std::string(object_prop->Value()).compare(RAD) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
 								float r;
 								sscanf(data.c_str(), "%f", &r);
-								scene_obj->SetScale(glm::vec3(1,1,1));
-								((Sphere*)(scene_obj->m_mesh->m_shapes[0].get()))->m_radius = r;
+								//scene_obj->SetScale(glm::vec3(1,1,1));
+								//((Sphere*)(scene_obj->m_mesh->m_shapes[0].get()))->m_radius = r;
+								s.m_radius = r;
+							}
+							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
+							{
+								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
 							}
 							object_prop = object_prop->NextSibling();
 						}
+						scene_obj = SceneObject::ConstructSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3());
+						scene_obj->SetTransforms(transform);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
 					}

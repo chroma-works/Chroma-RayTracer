@@ -12,7 +12,10 @@ namespace Chroma
     class AssetImporter
     {
     public:
-        static Mesh* LoadMeshFromOBJ(const std::string& file_name);
+        static Mesh* LoadMeshFromOBJ(const std::string& file_name, 
+			glm::vec3 t = { 0,0,0 },
+			glm::vec3 r = { 0,0,0 },
+			glm::vec3 s = { 1,1,1 });
 
         Texture * LoadTexture(const std::string & file_name);
 

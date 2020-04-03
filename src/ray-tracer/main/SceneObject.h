@@ -85,6 +85,9 @@ namespace Chroma
 			SHAPE_T t = SHAPE_T::triangle);
 		//~SceneObject();
 
+		static SceneObject* ConstructSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
+			glm::vec3 scale);
+
 
 		inline void HideInEditor(bool hide) { m_visible_in_editor = hide; }
 		inline void SetVisible(bool visible) { m_visible = visible; }
@@ -134,6 +137,44 @@ namespace Chroma
 			m_rotation = glm::quat(euler_angles) * m_rotation;
 			RecalculateModelMatrix();
 		}*/
+		inline void SetTransforms(glm::mat4 mat) 
+		{ 
+			*m_model_matrix = mat; 
+			m_position = { mat[3][0],mat[3][1], mat[3][2] };
+			glm::vec3 sx, sy, sz;
+			sx = { mat[0][0],mat[0][1], mat[0][2] };
+			sy = { mat[1][0],mat[1][1], mat[1][2] };
+			sz = { mat[2][0],mat[2][1], mat[2][2] };
+			m_scale = {glm::length(sx), glm::length(sy) , glm::length(sz) };
+			glm::mat4 rot_mat = mat;
+			rot_mat[3][0] = rot_mat[3][1] = rot_mat[3][2] = 0.0f;
+			rot_mat[0] /= glm::length(sx);
+			rot_mat[1] /= glm::length(sy);
+			rot_mat[2] /= glm::length(sz);
+			float yaw, pitch, roll;
+
+			if (rot_mat[0][0] == 1.0f)
+			{
+				yaw = atan2f(rot_mat[2][0], rot_mat[3][2]);
+				pitch = 0;
+				roll = 0;
+
+			}
+			else if (rot_mat[0][0] == -1.0f)
+			{
+				yaw = atan2f(rot_mat[2][0], rot_mat[3][2]);
+				pitch = 0;
+				roll = 0;
+			}
+			else
+			{
+
+				yaw = atan2(-rot_mat[0][2], rot_mat[0][0]);
+				pitch = asin(rot_mat[0][1]);
+				roll = atan2(-rot_mat[2][1], rot_mat[1][1]);
+			}
+			m_rotation = { roll, pitch, yaw };
+		}
 		inline void Scale(const glm::vec3 scale) { m_scale *= scale; RecalculateModelMatrix(); }
 		inline void ResetTransforms() { *m_model_matrix = glm::mat4(1.0f); }
 

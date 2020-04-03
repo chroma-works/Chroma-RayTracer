@@ -89,27 +89,14 @@ namespace Chroma
 	}
 
 
-	SceneObject::SceneObject(std::shared_ptr<Mesh> mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t)
+	SceneObject::SceneObject(std::shared_ptr<Mesh> mesh, std::string name, glm::vec3 pos, glm::vec3 rot, 
+		glm::vec3 scale, SHAPE_T t)
 		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
 	{
-		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid all black shaded objects
+		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid black shaded objects
 		m_material = new Material();
 
-		if (m_shape_t == SHAPE_T::sphere)
-		{
-			if (m_mesh->GetVertexCount() != 0)
-			{
-				CH_WARN("Using sphere.obj file instead of provided mesh");
-			}
-			m_mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj"));
-
-			Sphere sphere = Sphere(GetMaterial(), IsVisible());
-			//sphere.m_center = GetPosition();
-			sphere.m_transform = m_model_matrix;
-
-			m_mesh->m_shapes.push_back(std::make_shared<Sphere>(sphere));
-		}
-		else
+		if(m_shape_t != SHAPE_T::sphere)
 		{
 			for (int j = 0; j < mesh->m_indices.size(); j += 3)
 			{
@@ -135,14 +122,34 @@ namespace Chroma
 
 				m_mesh->m_shapes.push_back(std::make_shared<Triangle>(tri));
 			}
+			//For editor preview render
+			InitOpenGLBuffers();
 		}
-		//For editor preview render
-		InitOpenGLBuffers();
 	}
 
 	SceneObject::SceneObject(Mesh* mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t)
 	{
 		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t);
+	}
+
+	SceneObject* SceneObject::ConstructSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
+		glm::vec3 scale)
+	{
+		auto mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj", 
+			s.m_center, glm::vec3(0, 0, 0), glm::vec3(s.m_radius, s.m_radius, s.m_radius) * 0.9f));
+		if (mesh->GetVertexCount() != 0)
+		{
+			CH_WARN("Using sphere.obj file instead of provided mesh");
+		}
+		SceneObject* obj = new SceneObject(mesh, name, pos, rot, scale, SHAPE_T::sphere);
+		obj->m_material = s.m_material;
+		s.m_is_visible = obj->IsVisible();
+		s.m_transform = obj->m_model_matrix;
+
+		obj->m_mesh->m_shapes.push_back(std::make_shared<Sphere>(s));
+		//For editor preview render
+		obj->InitOpenGLBuffers();
+		return obj;
 	}
 
 	void SceneObject::Draw(DrawMode mode)
