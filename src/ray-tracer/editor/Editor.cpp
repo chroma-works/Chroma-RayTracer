@@ -192,7 +192,7 @@ namespace Chroma
 			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.002f, 0.0f, 1.0f, "%.3f");
 			ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.002f, 0.0f, 1.0f, "%.3f");
 			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.002f, 0.0f, 1.0f, "%.3f");
-
+			ImGui::DragFloat("Roughness", &(mat->m_roughness), 0.002f, 0.0f, 1.0f, "%.3f");
 			ImGui::Separator();
 			static std::string mat_names []= { "Diffuse", "Mirror", "Dielectric", "Conductor" };
 			static int selected_mat_type;
