@@ -187,6 +187,24 @@ Also material has beed made a base class from c++ struct to support proper hiera
 * Conductor
 * Dielectric  
 
+## Week 7 & 8
+Due to Corona virus spread development is slowed. Yet despite the chaos some new features are implemented. Most significant one of these features is Multi-Sampling. Currently Chroma Ray-tracer can Anti-Alias(AA) using Jittered Sampling Algorithm and Box filtering.  
+
+As usual C++ development is not devoid of trials and errors in the path of properly operating ray-tracer. So here are some of the bugs created and logical errors I made:  
+* Mis-calculation of world coordinates of samples caused rays directions to be shifted drasticly (**Figure 17 a)**).  
+* During uniform sampling random sample offsets did yield a value between 0-1 therefore it rendered a very blurry image(out-of focus)(**Figure 17 b)**).  
+* Forgot to apply filter to jittered sample. Whoops :](**Figure 17 c)**).   
+
+<img src= "resources/cornellbox_just_shifted.png" width = "250"> <img src= "resources/cornellbox_no_dof.png" width = "250"> <img src= "resources/cornellbox_just_sample.png" width = "250">  
+**Figure 17:** Render failures in the CornellBox scene due to;  **a)** an Error in world calculation causing shift of ray directions.  
+**b)** random offsets not being between 0-1.  **c)** No filtering.  
+
+After fixing and patching all the bugs it is easy to observe the effects of AA( see **Figure 18**). Escpecially in the areas such as wall corners or edges of objects.
+
+<img src= "resources/cornellbox_1.png" width = "400"> <img src= "resources/cornellbox_400.png" width = "400">  
+**Figure 17:** Cornell box scene with  **a)** 1 sample per pixel(no AA).  **b)** 400 sample per pixel.  
+
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
