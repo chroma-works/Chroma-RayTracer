@@ -23,7 +23,6 @@ namespace Chroma
 			{
 				samples[x][y] = glm::vec2((x + dis(gen) )/ sub_pixel_dim.x,
 					(y + dis(gen))/ sub_pixel_dim.y);
-				//CH_TRACE(glm::to_string(samples[x][y]));
 			}
 		}
 		return samples;
