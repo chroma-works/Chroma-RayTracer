@@ -210,7 +210,7 @@ The calculation for glossy reflection ray direction can be formulated as follows
 ```
 r_glossy = normalize(r + material.roughness * (u * rand(range) + v * rand(range)));
 ```
-where r is the perfect reflection direction rand() is random number between range parameter which in our case -0.5,0.5.
+where r is the perfect reflection direction rand() is random number between range parameter which in our case -0.5,0.5. u and v are vectors for orthonormal basis to origin of the reflection ray.
 
 <img src= "resources/cornellbox_flower_artifact.png" width = "400"> <img src= "resources/cornellbox_brushed_metal.png" width = "400">  
 **Figure 19:** Cornell box scene with  **a)** flower artifacts due to wrong range for random sampler.  **b)** proper glossy reflections.
