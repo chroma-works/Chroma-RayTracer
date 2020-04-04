@@ -202,8 +202,18 @@ As usual C++ development is not devoid of trials and errors in the path of prope
 After fixing and patching all the bugs it is easy to observe the effects of AA( see **Figure 18**). Escpecially in the areas such as wall corners or edges of objects.
 
 <img src= "resources/cornellbox_1.png" width = "400"> <img src= "resources/cornellbox_400.png" width = "400">  
-**Figure 17:** Cornell box scene with  **a)** 1 sample per pixel(no AA).  **b)** 400 sample per pixel.  
+**Figure 18:** Cornell box scene with  **a)** 1 sample per pixel(no AA).  **b)** 400 sample per pixel.  
 
+## Week 9  
+To begin with the week, glossy reflections are implemented as desribed in the paper by Cook et. al [[6]](#6). Although it was fairly easy to achieve the desired effect there was one particular error that caused what I now call "flower" artifacts. These artifacts were caused by the random uniform sampling of the coefficients not being between -0.5,0.5. The value range initially picked was 0,1(caused flower artifacts in **Figure 19**).
+The calculation for glossy reflection ray direction can be formulated as follows:
+```
+r_glossy = normalize(r + material.roughness * (u * rand(range) + v * rand(range)));
+```
+where r is the perfect reflection direction rand() is random number between range parameter which in our case -0.5,0.5.
+
+<img src= "resources/cornellbox_flower_artifact.png" width = "400"> <img src= "resources/cornellbox_brushed_metal.png" width = "400">  
+**Figure 19:** Cornell box scene with  **a)** flower artifacts due to wrong range for random sampler.  **b)** proper glossy reflections.
 
 ## References
 <a id="1">[1]</a>
@@ -217,4 +227,7 @@ Scratchapixel, Ray Tracing: Rendering a Triangle (Möller-Trumbore algorithm), 1
 Scratchapixel, “Introduction to Acceleration Structures,” Scratchapixel, 08-Oct-2015. [Online]. Available: https://www.scratchapixel.com/lessons/advanced-rendering/introduction-acceleration-structure/introduction. [Accessed: 29-Feb-2020].
 
 <a id="5">[5]</a>
-M. Pharr, W. Jakob , and G. Humphreys , “Physically Based Rendering,” Physically Based Rendering, 2017.
+M. Pharr, W. Jakob , and G. Humphreys , “Physically Based Rendering,” Physically Based Rendering, 2017.  
+
+<a id="6">[6]</a>
+R. L. Cook, T. Porter, and L. Carpenter, “Distributed ray tracing,” Proceedings of the 11th annual conference on Computer graphics and interactive techniques - SIGGRAPH 84, 1984.
