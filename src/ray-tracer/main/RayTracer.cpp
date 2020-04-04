@@ -3,9 +3,31 @@
 #include <thirdparty/glm/glm/gtx/string_cast.hpp>
 #include <limits>
 #include <thirdparty\glm\glm\gtx\norm.hpp>
+#include <random>
 
 namespace Chroma
 {
+
+	//Returns a jittered samples([n][n])
+	std::vector<std::vector<glm::vec2>> SampleJittered(glm::ivec2 sub_pixel_dim)
+	{
+		std::random_device rd;  //Will be used to obtain a seed for the random number engine
+		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+
+		std::vector<std::vector<glm::vec2>> samples(sub_pixel_dim.x);
+		for (int x = 0; x < sub_pixel_dim.x; x++)
+		{
+			samples[x].resize(sub_pixel_dim.y);
+			for (int y = 0; y < sub_pixel_dim.y; y++)
+			{
+				samples[x][y] = glm::vec2((x + dis(gen) )/ sub_pixel_dim.x,
+					(y + dis(gen))/ sub_pixel_dim.y);
+				//CH_TRACE(glm::to_string(samples[x][y]));
+			}
+		}
+		return samples;
+	}
 
 	RayTracer::RayTracer()
 	{
@@ -168,14 +190,27 @@ namespace Chroma
 		int col_end = idx == m_settings.thread_count - 1 ? m_settings.resolution.x :
 			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
 
-		glm::vec3 color = scene.m_sky_color;
+		const glm::ivec2 sub_pixel_dim = { sqrt(cam->GetNumberOfSamples()), sqrt(cam->GetNumberOfSamples()) };
+
 		for (int i = col_start; i < col_end; i++)
 		{
 			for (int j = 0; j < m_settings.resolution.y; j++)
 			{
+				glm::vec3 color = scene.m_sky_color;
 
-				primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
-				color = RecursiveTrace(primary_ray, scene, 0);
+				auto sub_pixel_offsets = SampleJittered(sub_pixel_dim);
+				for (int x = 0; x < sub_pixel_dim.x; x++)
+				{
+					for (int y = 0; y < sub_pixel_dim.y; y++)
+					{
+						auto offset = sub_pixel_offsets[x][y];
+						primary_ray.direction = glm::normalize(top_left_w + right_step * (i + offset.x) 
+							+ down_step * (j + offset.y) - primary_ray.origin);
+
+						glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
+						color += sample_color/(float)cam->GetNumberOfSamples();//Box Filter
+					}
+				}
 
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
 

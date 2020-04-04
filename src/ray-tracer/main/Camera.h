@@ -1,4 +1,5 @@
 #pragma once
+#include <ray-tracer/editor/Logger.h>
 #include <thirdparty/glm/glm/glm.hpp>
 #include <string>
 
@@ -33,7 +34,20 @@ namespace Chroma
 		inline void SetNearDist(float d) { m_near_dist = d; RecalculateProjectionMatrix(); }
 		inline void SetResolution(glm::ivec2 res) { m_res = res; RecalculateProjectionMatrix(); }
 		inline void SetImageName(std::string name) { m_img_name = name; }
-		inline void SetNumberOfSamples(unsigned int n_samp) { m_num_samples = n_samp; }
+		inline void SetNumberOfSamples(unsigned int n_samp) 
+		{ 
+			if ((sqrt(n_samp) - floor(sqrt(n_samp))) != 0)
+			{
+				CH_WARN("Sample size is not perfect square: Setting to closest square number.");
+				int floor_squared = floor(sqrt(n_samp)) * floor(sqrt(n_samp));
+				int ceil_squared = ceil(sqrt(n_samp)) * ceil(sqrt(n_samp));
+
+				int dist_floor = n_samp - floor_squared;
+				int dis_ceil = ceil_squared - n_samp;
+				n_samp = dist_floor <= dis_ceil ? floor_squared : ceil_squared;
+			}
+			m_num_samples = n_samp; 
+		}
 
 	private:
 		unsigned int m_id;

@@ -18,6 +18,7 @@ namespace Chroma
 
 		void SetRenderMode(RT_MODE mode);
 
+
 	private:
 		friend class Editor;
 		Image* m_rendered_image ;
