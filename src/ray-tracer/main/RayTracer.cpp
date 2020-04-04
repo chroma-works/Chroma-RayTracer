@@ -1,9 +1,9 @@
 #include "RayTracer.h"
-#include <thirdparty/glm/glm/glm.hpp>
-#include <thirdparty/glm/glm/gtx/string_cast.hpp>
-#include <limits>
-#include <thirdparty\glm\glm\gtx\norm.hpp>
 #include <random>
+#include <limits>
+#include <thirdparty\glm\glm\glm.hpp>
+#include <thirdparty\glm\glm\gtx\norm.hpp>
+#include <thirdparty\glm\glm\gtx\component_wise.hpp>
 
 namespace Chroma
 {
@@ -26,6 +26,15 @@ namespace Chroma
 			}
 		}
 		return samples;
+	}
+	glm::vec3 CalculateNonColinearTo(glm::vec3 r)
+	{
+		glm::vec3 r_abs = glm::abs(r);
+		//Find smallest r component
+		int ind = r_abs.x > r_abs.y ? (r_abs.y > r_abs.z ? 2 : 1) : (r_abs.x > r_abs.z ? 2 : 0);
+		glm::vec3 r_prime = r;
+		r_prime[ind] = 1.0f;
+		return r_prime;
 	}
 
 	RayTracer::RayTracer()
@@ -212,7 +221,6 @@ namespace Chroma
 				}
 
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
-
 			}
 
 			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
@@ -230,17 +238,29 @@ namespace Chroma
 		glm::vec3 color = { 0,0,0 };
 		bool inside = false;
 
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> dis(-0.5, 0.5);
+
 		if (!isect_data.hit)
 		{
 			//delete isect_data;
 			return scene.m_sky_color;
 		}
-
 		else if (m_settings.calc_reflections && 
-			isect_data.material->type == MAT_TYPE::mirror && depth < scene.m_recur_dept) {
+			isect_data.material->type == MAT_TYPE::mirror && depth < scene.m_recur_dept) 
+		{
 			// compute reflection
 			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
-			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
+			//For glossy objects
+			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
+			glm::vec3 r_prime = CalculateNonColinearTo(r);
+			glm::vec3 u, v;
+			//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
+			u = glm::normalize(glm::cross(r, r_prime));
+			v = glm::cross(r,u);
+			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
+				(dis(gen) * u + dis(gen) * v));
 			reflection_ray.intersect_eps = scene.m_intersect_eps;
 
 			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
@@ -251,7 +271,15 @@ namespace Chroma
 		{
 			// compute reflection
 			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
-			reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, isect_data.normal) );
+			//For glossy objects
+			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
+			glm::vec3 r_prime = CalculateNonColinearTo(r);
+			glm::vec3 u, v;
+			//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
+			u = glm::normalize(glm::cross(r, r_prime));
+			v = glm::cross(r, u);
+			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
+				(dis(gen) * u + dis(gen) * v));
 			reflection_ray.intersect_eps = scene.m_intersect_eps;
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
@@ -280,7 +308,15 @@ namespace Chroma
 			if (m_settings.calc_reflections)
 			{
 				Ray reflection_ray(isect_data.position + proper_normal * m_settings.shadow_eps);
-				reflection_ray.direction = glm::normalize(glm::reflect(ray.direction, proper_normal));
+				//For glossy objects
+				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
+				glm::vec3 r_prime = CalculateNonColinearTo(r);
+				glm::vec3 u, v;
+				//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
+				u = glm::normalize(glm::cross(r, r_prime));
+				v = glm::cross(r, u);
+				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
+					(dis(gen) * u + dis(gen) * v));
 				reflection_ray.intersect_eps = scene.m_intersect_eps;
 				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * fr;
 			}
