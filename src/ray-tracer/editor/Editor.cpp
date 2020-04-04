@@ -478,8 +478,13 @@ namespace Chroma
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 
-		ImGui::InputInt("Thread Count", &m_settings.thread_count);
+		ImGui::PushItemWidth(100);
+		int n_sample = m_scene->GetCamera(m_settings.act_rt_cam_name)->GetNumberOfSamples();
+		ImGui::InputInt("# of Samples ", &n_sample,1 ,100, ImGuiInputTextFlags_CallbackHistory);
+		m_scene->GetCamera(m_settings.act_rt_cam_name)->SetNumberOfSamples(n_sample);
 
+		ImGui::InputInt("Thread Count", &m_settings.thread_count);
+		ImGui::PopItemWidth();
 		ImGui::Separator();
 
 		bool chng_color = false;
