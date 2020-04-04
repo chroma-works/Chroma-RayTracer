@@ -21,36 +21,12 @@ namespace Chroma
 			m_diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), m_specular(glm::vec3(1.0f)), m_shininess(60.0f), type(MAT_TYPE::none)
 		{}
 
-		/*Material(Material&& othr)
-		{
-			shader_var_name = othr.shader_var_name;
-			m_ambient = othr.m_ambient;
-			m_diffuse = othr.m_diffuse;
-			m_specular = othr.m_specular;
-			m_shininess = othr.m_shininess;
-		}
-		Material(Material const& othr)
-		{
-			shader_var_name = othr.shader_var_name;
-			m_ambient = othr.m_ambient;
-			m_diffuse = othr.m_diffuse;
-			m_specular = othr.m_specular;
-			m_shininess = othr.m_shininess;
-		}
-		Material& operator=(Material othr)
-		{
-			if (this != &othr) {
-				return Material(othr.shader_var_name,
-					othr.m_ambient, othr.m_diffuse, othr.m_specular,
-					othr.m_shininess);
-			}
-		}*/
-
 		std::string shader_var_name;
 		glm::vec3 m_ambient;
 		glm::vec3 m_diffuse;
 		glm::vec3 m_specular;
 		float m_shininess;
+		float m_roughness = 0.0f;
 		MAT_TYPE type = MAT_TYPE::none;
 
 		inline float GetFr(float cos_i)
@@ -109,7 +85,6 @@ namespace Chroma
 		glm::vec3 m_mirror_reflec = glm::vec3(0.0f);
 		float m_refraction_ind = NAN;
 		float m_absorption_ind = NAN;
-
 	};
 
 	class Dielectric : public Material

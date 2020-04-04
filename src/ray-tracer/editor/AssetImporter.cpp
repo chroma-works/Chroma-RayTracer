@@ -48,6 +48,7 @@ namespace Chroma
 	const std::string REF_IND = "RefractionIndex";
 	const std::string RES = "ImageResolution";
 	const std::string ROT = "Rotation";
+	const std::string ROUGH = "Roughness";
 	const std::string S_RAY_EPS = "ShadowRayEpsilon";
 	const std::string SPEC_REF = "SpecularReflectance";
 	const std::string SPHR = "Sphere";
@@ -532,6 +533,11 @@ namespace Chroma
 						{
 							std::string data = material_prop->FirstChild()->Value();
 							sscanf(data.c_str(), "%f", &mat->m_shininess);
+						}
+						else if (std::string(material_prop->Value()).compare(ROUGH) == 0)
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &mat->m_roughness);
 						}
 
 						material_prop = material_prop->NextSibling();
