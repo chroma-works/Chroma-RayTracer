@@ -27,6 +27,26 @@ namespace Chroma
 		}
 		return samples;
 	}
+
+	glm::vec2 SampleUnitSquare()
+	{
+		std::random_device rd;  //Will be used to obtain a seed for the random number engine
+		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		std::uniform_real_distribution<> dis(0.0, 1.0);
+		return {dis(gen), dis(gen)};
+	}
+	glm::vec2 SampleUnitDisk()
+	{
+		std::random_device rd;  //Will be used to obtain a seed for the random number engine
+		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+		std::uniform_real_distribution<double> dis(0.0, 1.0f);
+		const double pi2 = 2.0f * glm::pi<double>();
+		double theta = pi2 * dis(gen);
+		double r = dis(gen);
+
+		return { r*cos(theta), r*sin(theta) };
+	}
+
 	glm::vec3 CalculateNonColinearTo(glm::vec3 r)
 	{
 		glm::vec3 r_abs = glm::abs(r);
@@ -198,28 +218,31 @@ namespace Chroma
 		int col_end = idx == m_settings.thread_count - 1 ? m_settings.resolution.x :
 			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
 
-		const glm::ivec2 sub_pixel_dim = { sqrt(cam->GetNumberOfSamples()), sqrt(cam->GetNumberOfSamples()) };
-
 		for (int i = col_start; i < col_end; i++)
 		{
 			for (int j = 0; j < m_settings.resolution.y; j++)
 			{
 				glm::vec3 color = scene.m_sky_color;
 
-				auto sub_pixel_offsets = SampleJittered(sub_pixel_dim);
-				for (int x = 0; x < sub_pixel_dim.x; x++)
+				for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 				{
-					for (int y = 0; y < sub_pixel_dim.y; y++)
-					{
-						auto offset = sub_pixel_offsets[x][y];
-						primary_ray.direction = glm::normalize(top_left_w + right_step * (i + offset.x) 
-							+ down_step * (j + offset.y) - primary_ray.origin);
+					auto offset = SampleUnitSquare();
+					auto lens_offset = SampleUnitDisk();
+					//DoF Lens calculation
+					glm::vec3 lens_point = cam_pos + 
+						cam->GetApertureSize() * (lens_offset.x * right + lens_offset.y * up);
+					glm::vec3 pixel_point = top_left_w + 
+						right_step * (i + offset.x)
+						+ down_step * (j + offset.y);
+					glm::vec3 dir = glm::normalize(pixel_point - cam_pos);
+					glm::vec3 focal_point = cam_pos +
+						cam->GetFocalDistance()/glm::dot(dir, cam->GetGaze()) * dir;
 
-						glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
-						color += sample_color/(float)cam->GetNumberOfSamples();//Box Filter
-					}
+					primary_ray.origin = lens_point;
+					primary_ray.direction = glm::normalize(focal_point - primary_ray.origin);
+					glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
+					color += sample_color/(float)cam->GetNumberOfSamples();//Box Filter
 				}
-
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
 			}
 

@@ -8,7 +8,9 @@ namespace Chroma
 	class Camera
 	{
 	public:
-		Camera(float width, float height, float near_clip, float far_clip, float fov);
+		Camera(float width = 1280, float height = 720, 
+			float near_clip = 0.1f, float far_clip = 300.0f, 
+			float fov = 60.0f);
 
 		//Getters
 		inline glm::vec3 GetPosition() { return m_pos; }
@@ -20,6 +22,8 @@ namespace Chroma
 		inline glm::ivec2 GetResolution() { return m_res; }
 		inline std::string GetImageName() { return m_img_name; }
 		inline unsigned int GetNumberOfSamples() { return m_num_samples; }
+		inline float GetFocalDistance() { return m_focal_dist; }
+		inline float GetApertureSize() { return m_aperture_size; }
 
 		const glm::mat4& GetProjectionMatrix() const { return m_projection_matrix; }
 		const glm::mat4& GetViewMatrix() const { return m_view_matrix; }
@@ -48,6 +52,8 @@ namespace Chroma
 			}
 			m_num_samples = n_samp; 
 		}
+		inline void SetFocalDistance(float focal_dist) { m_focal_dist = focal_dist; }
+		inline void SetApertureSize(float aperture_size) { m_aperture_size = aperture_size; }
 
 	private:
 		unsigned int m_id;
@@ -59,6 +65,9 @@ namespace Chroma
 		float m_near_dist;
 		glm::ivec2 m_res;
 		unsigned int m_num_samples = 1;
+
+		float m_focal_dist = 20.0f;
+		float m_aperture_size = 0.0f;
 
 		std::string m_img_name = "not_set";
 

@@ -15,16 +15,17 @@
 
 namespace Chroma
 {
-
 	const std::string ABS_COEF = "AbsorptionCoefficient";
 	const std::string ABS_IND = "AbsorptionIndex";
-	const std::string AM_LIG = "AmbientLight";//INIT as point light with very low constans
+	const std::string AM_LIG = "AmbientLight";
 	const std::string AM_REF = "AmbientReflectance";
+	const std::string APERTURE = "ApertureSize";
 	const std::string BCK_COLOR = "BackgroundColor";
 	const std::string CAMS = "Cameras";
 	const std::string CNTR = "Center";
 	const std::string DIF_REF = "DiffuseReflectance";
 	const std::string FACES = "Faces";
+	const std::string FOCUS = "FocusDistance";
 	const std::string GAZE = "Gaze";
 	const std::string I_TEST_EPS = "IntersectionTestEpsilon";
 	const std::string IM_NAME = "ImageName";
@@ -242,6 +243,20 @@ namespace Chroma
 				sscanf(data.c_str(), "%d", &tmp);
 				cam->SetNumberOfSamples(tmp);
 			}
+			else if (std::string(cam_prop->Value()).compare(FOCUS) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				float d;
+				sscanf(data.c_str(), "%f", &d);
+				cam->SetFocalDistance(d);
+			}
+			else if (std::string(cam_prop->Value()).compare(APERTURE) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				float d;
+				sscanf(data.c_str(), "%f", &d);
+				cam->SetApertureSize(d);
+			}
 			//----------------Typeless cam-------------------
 			else if (!cam_type &&
 				std::string(cam_prop->Value()).compare(N_PLANE) == 0)
@@ -289,7 +304,6 @@ namespace Chroma
 				vec[0].y = std::tan(fovy * 0.5f);
 				vec[1].y = -std::tan(fovy * 0.5f);
 				cam->SetNearPlane(vec);
-
 			}
 			cam_prop = cam_prop->NextSibling();
 		}
