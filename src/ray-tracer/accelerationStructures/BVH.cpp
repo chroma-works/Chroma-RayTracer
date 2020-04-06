@@ -767,7 +767,9 @@ namespace Chroma
 				{
 					((Sphere*)shape.get())->m_center = glm::vec3(
 						glm::vec4(((Sphere*)shape.get())->m_center, 1.0f));
+					//((Sphere*)shape.get())->m_radius = obj.second->GetScale().x * ((Sphere*)shape.get())->m_radius;//!!!!!
 				}
+				shape->m_is_visible = obj.second->IsVisible();
 				m_shapes.push_back(shape.get());
 			}
 		}
