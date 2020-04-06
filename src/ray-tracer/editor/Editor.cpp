@@ -285,9 +285,19 @@ namespace Chroma
 			m_scene->m_cameras[selected_name]->SetUp(glm::normalize(tmp_up));
 
 			ImGui::Separator();
+			float tmp_f = m_scene->m_cameras[selected_name]->GetFocalDistance();
+			ImGui::DragFloat("Focal Dist.", &tmp_f, 0.05f, 0.0f, INFINITY, "%.3f");
+			m_scene->m_cameras[selected_name]->SetFocalDistance(tmp_f);
+
+			float tmp_a = m_scene->m_cameras[selected_name]->GetApertureSize();
+			ImGui::DragFloat("Apert. Size", &tmp_a, 0.05f, 0.0f, INFINITY, "%.3f");
+			m_scene->m_cameras[selected_name]->SetApertureSize(tmp_a);
+
+			ImGui::Separator();
 			char* tmp_buf = strdup(m_scene->m_cameras[selected_name]->GetImageName().c_str());
 			ImGui::InputText("Image Name", tmp_buf, 20, 0);
 			m_scene->m_cameras[selected_name]->SetImageName(tmp_buf);
+
 		}
 		else if (selected_item_type == SELECTION_TYPE::p_light)
 		{
@@ -418,6 +428,7 @@ namespace Chroma
 		}
 		if (m_render)
 		{
+			//m_scene->m_cameras[m_settings.act_rt_cam_name]->SetFocalDistance(m_scene->m_cameras[m_settings.act_rt_cam_name]->GetFocalDistance() + 1.0f);
 			ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name],  *m_scene);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings.resolution.x, m_settings.resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
