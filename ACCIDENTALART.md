@@ -18,9 +18,17 @@ This page is dedicated for "artsy" looking render fails that are too damn specia
 
 <img src= "resources/fail3.png" width = "300" > <img src= "resources/light_bug.gif" >  
 *"That rectangle has more dept than my master thesis"*  
+
 <img src= "resources/halıkilimtravel.png" width = "300" >  
 *"Cornell box re-imagined as a **Middle-Eastern Carpet pattern**"*  
+
 <img src= "resources/flower.png" width = "300" >  
-*Flower artifacts effect DLC for 9.99$* 
+*Flower artifacts effect DLC for 9.99$*  
+
+<img src= "resources/scary_spheres.png" width = "300" > <img src= "resources/gort.jpg" height = "300" >  
+*Somebody call [Keanu Reeves his robot friend]( https://www.imdb.com/title/tt0970416/ ) is here*  
+
+<img src= "resources/mystic_prizm.png" width = "300" >  
+*I have succesfully implemented X-Ray tracing! What is next? ray-traced Moratal Kombat !?*  
 
 
