@@ -15,7 +15,7 @@ namespace Chroma
 	{
 	public:
 		Shape(Material* mat= nullptr, bool visible=true)
-			:m_material(mat), m_is_visible(visible)
+			:m_material(mat), m_visible(visible)
 		{}
 		virtual bool Intersect(const Ray ray, IntersectionData* data) const = 0;
 		/*{
@@ -27,7 +27,7 @@ namespace Chroma
 			return Bounds3(glm::vec3(), glm::vec3());
 		}*/
 
-		bool m_is_visible = true;
+		bool m_visible = true;
 		Material* m_material = nullptr;
 		glm::mat4* m_transform = nullptr;
 		SHAPE_T m_type = SHAPE_T::none;

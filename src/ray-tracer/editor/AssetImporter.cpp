@@ -770,7 +770,7 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						scene_obj = SceneObject::ConstructSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3());
+						scene_obj = SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3());
 						scene_obj->SetTransforms(transform);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));

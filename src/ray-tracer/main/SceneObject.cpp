@@ -112,7 +112,7 @@ namespace Chroma
 				tri.m_normals[2] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j + 2]]));
 
 				tri.m_transform = m_model_matrix;
-				tri.m_is_visible = IsVisible();
+				tri.m_visible = IsVisible();
 
 				//if (mesh->uvs.size() > 0)
 				//{
@@ -133,18 +133,18 @@ namespace Chroma
 		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t);
 	}
 
-	SceneObject* SceneObject::ConstructSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
+	SceneObject* SceneObject::CreateSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
 		glm::vec3 scale)
 	{
 		auto mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj", 
 			s.m_center, glm::vec3(0, 0, 0), glm::vec3(s.m_radius, s.m_radius, s.m_radius)));
 		if (mesh->GetVertexCount() != 0)
 		{
-			CH_WARN("Using sphere.obj file instead of provided mesh");
+			CH_WARN("Using sphere.obj file in preview-render");
 		}
 		SceneObject* obj = new SceneObject(mesh, name, pos, rot, scale, SHAPE_T::sphere);
 		obj->m_material = s.m_material;
-		s.m_is_visible = obj->IsVisible();
+		s.m_visible = obj->IsVisible();
 		s.m_transform = obj->m_model_matrix;
 
 		obj->m_mesh->m_shapes.push_back(std::make_shared<Sphere>(s));

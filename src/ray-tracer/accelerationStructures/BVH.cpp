@@ -679,7 +679,7 @@ namespace Chroma
 							m_shapes[node->primitives_offset + i];
 						// Check one primitive inside leaf node
 						probe_data.t = INFINITY;
-						if (s->Intersect(ray, &probe_data) && s->m_is_visible)
+						if (s->Intersect(ray, &probe_data) && s->m_visible)
 						{
 							if (probe_data.t < intersection_data->t /*&& probe_data->t >ray.intersect_eps*/)
 							{

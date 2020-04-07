@@ -87,12 +87,17 @@ namespace Chroma
 			SHAPE_T t = SHAPE_T::triangle);
 		//~SceneObject();
 
-		static SceneObject* ConstructSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
+		static SceneObject* CreateSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
 			glm::vec3 scale);
 
 
 		inline void HideInEditor(bool hide) { m_visible_in_editor = hide; }
-		inline void SetVisible(bool visible) { m_visible = visible; }
+		inline void SetVisible(bool visible) 
+		{ 
+			m_visible = visible; 
+			for (auto shape : m_mesh->m_shapes)
+				shape->m_visible = visible;
+		}
 		inline void SetPickable(bool pickable) { m_pickable = pickable; }
 
 		inline bool IsVisibleInEditor() const { return m_visible_in_editor; }
