@@ -112,6 +112,7 @@ namespace Chroma
 				tri.m_normals[2] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j + 2]]));
 
 				tri.m_transform = m_model_matrix;
+				tri.m_is_visible = IsVisible();
 
 				//if (mesh->uvs.size() > 0)
 				//{
