@@ -202,7 +202,6 @@ namespace Chroma
 			for (int j = 0; j < m_settings.resolution.y; j++)
 			{
 				glm::vec3 color = scene.m_sky_color;
-
 				for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 				{
 					auto offset = SampleUnitSquare();
@@ -354,7 +353,7 @@ namespace Chroma
 
 				//Shadow calculation	
 				bool shadowed = false;
-				Ray shadow_ray(isect_data.position + l_vec* scene.m_shadow_eps);
+				Ray shadow_ray(isect_data.position + l_vec * scene.m_shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 				shadow_ray.intersect_eps = 0.009f;
 
