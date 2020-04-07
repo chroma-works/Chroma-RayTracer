@@ -17,7 +17,7 @@ namespace Chroma
 		Shape(Material* mat= nullptr, bool visible=true)
 			:m_material(mat), m_is_visible(visible)
 		{}
-		virtual bool Intersect(Ray ray, IntersectionData* data) const = 0;
+		virtual bool Intersect(const Ray ray, IntersectionData* data) const = 0;
 		/*{
 			return false;
 		}*/
@@ -81,10 +81,11 @@ namespace Chroma
 			return Bounds3(b_min, b_max);
 		}
 
-		bool Intersect(Ray ray, IntersectionData* data) const
+		bool Intersect(const Ray _ray, IntersectionData* data) const
 		{
-			ray.direction = glm::inverse(*m_transform) * glm::vec4(ray.direction, 1.0f);
-			ray.origin = glm::inverse(*m_transform) * glm::vec4(ray.origin, 1.0f);
+			Ray ray;
+			ray.direction = glm::inverse(*m_transform) * glm::vec4(_ray.direction, 1.0f);
+			ray.origin = glm::inverse(*m_transform) * glm::vec4(_ray.origin, 1.0f);
 
 			data->t = std::numeric_limits<float>().max();
 
@@ -147,26 +148,29 @@ namespace Chroma
 
 		Bounds3 GetBounds() const
 		{
-			glm::vec3 t1 = m_center -
-				glm::vec3(*m_transform * glm::vec4(m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f),1.0f));
+			glm::vec3 t1 = m_center - m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
 			//t1 = glm::vec3(*m_transform * glm::vec4(t1, 1.0f));
 
-			glm::vec3 t2 = m_center +
-				glm::vec3(*m_transform * glm::vec4(m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f),1.0f));
+			glm::vec3 t2 = m_center + m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
 			//t2 = glm::vec3(*m_transform * glm::vec4(t2, 1.0f));
 
 			glm::vec3 b_min = glm::min(t1, t2); //glm::vec3(1.732050, 1.732050, 1.732050);
-
 			glm::vec3 b_max = glm::max(t1, t2);//glm::vec3(1.732050, 1.732050, 1.732050);
-			
 
-			return Bounds3(b_min, b_max);
+			b_min = *m_transform * glm::vec4(b_min, 1.0f);
+			b_max = *m_transform * glm::vec4(b_max, 1.0f);
+
+			glm::vec3 b_min_f = glm::min(b_min, b_max);
+			glm::vec3 b_max_f = glm::max(b_min, b_max);
+
+			return Bounds3(b_min_f, b_max_f);
 		}
 
-		bool Intersect(Ray ray, IntersectionData* data) const
+		bool Intersect(const Ray _ray, IntersectionData* data) const
 		{
-			ray.direction = glm::inverse(*m_transform) * glm::vec4(ray.direction, 1.0f);
-			ray.origin = glm::inverse(*m_transform) * glm::vec4(ray.origin, 1.0f);
+			Ray ray;
+			ray.direction = glm::inverse(*m_transform) * glm::vec4(_ray.direction, 1.0f);
+			ray.origin = glm::inverse(*m_transform) * glm::vec4(_ray.origin, 1.0f);
 
 			float a = glm::dot(ray.direction, ray.direction);
 			float b = 2.0f * glm::dot(ray.direction, (ray.origin - m_center));
@@ -198,10 +202,9 @@ namespace Chroma
 			data->t = t0;
 			data->material = m_material;
 			data->position = ray.PointAt(t0);
-			data->normal = glm::normalize(glm::transpose(glm::inverse(glm::mat3(*m_transform))) * glm::normalize(data->position - m_center));
+			data->normal = glm::normalize(glm::transpose(glm::inverse(glm::mat3(*m_transform))) * (data->position - m_center));
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
 				glm::acos(data->position.y / m_radius));
-
 			return data->hit;
 		}
 
