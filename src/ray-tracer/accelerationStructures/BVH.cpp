@@ -742,7 +742,7 @@ namespace Chroma
 			{
 				if(shape->m_type == SHAPE_T::triangle)
 				{
-					*((Triangle*)shape.get())->m_vertices[0] = glm::vec3(
+					/**((Triangle*)shape.get())->m_vertices[0] = glm::vec3(
 						glm::vec4(*((Triangle*)shape.get())->m_vertices[0], 1.0f));
 					*((Triangle*)shape.get())->m_vertices[1] = glm::vec3(
 						glm::vec4(*((Triangle*)shape.get())->m_vertices[1], 1.0f));
@@ -754,7 +754,7 @@ namespace Chroma
 					*((Triangle*)shape.get())->m_normals[1] = glm::vec3(
 						*((Triangle*)shape.get())->m_normals[1]);
 					*((Triangle*)shape.get())->m_normals[2] = glm::vec3(
-						*((Triangle*)shape.get())->m_normals[2]);
+						*((Triangle*)shape.get())->m_normals[2]);*/
 
 					//if (mesh->uvs.size() > 0)
 					//{
@@ -765,11 +765,11 @@ namespace Chroma
 				}
 				else//Sphere
 				{
-					((Sphere*)shape.get())->m_center = glm::vec3(
-						glm::vec4(((Sphere*)shape.get())->m_center, 1.0f));
+					/*((Sphere*)shape.get())->m_center = glm::vec3(
+						glm::vec4(((Sphere*)shape.get())->m_center, 1.0f));*/
 					//((Sphere*)shape.get())->m_radius = obj.second->GetScale().x * ((Sphere*)shape.get())->m_radius;//!!!!!
 				}
-				shape->m_is_visible = obj.second->IsVisible();
+				//*(shape->m_transform) = m;
 				m_shapes.push_back(shape.get());
 			}
 		}
