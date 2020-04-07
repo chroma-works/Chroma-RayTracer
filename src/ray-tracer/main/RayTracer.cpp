@@ -7,27 +7,6 @@
 
 namespace Chroma
 {
-
-	//Returns a jittered samples([n][n])
-	std::vector<std::vector<glm::vec2>> SampleJittered(glm::ivec2 sub_pixel_dim)
-	{
-		std::random_device rd;  //Will be used to obtain a seed for the random number engine
-		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<> dis(0.0, 1.0);
-
-		std::vector<std::vector<glm::vec2>> samples(sub_pixel_dim.x);
-		for (int x = 0; x < sub_pixel_dim.x; x++)
-		{
-			samples[x].resize(sub_pixel_dim.y);
-			for (int y = 0; y < sub_pixel_dim.y; y++)
-			{
-				samples[x][y] = glm::vec2((x + dis(gen) )/ sub_pixel_dim.x,
-					(y + dis(gen))/ sub_pixel_dim.y);
-			}
-		}
-		return samples;
-	}
-
 	glm::vec2 SampleUnitSquare()
 	{
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
