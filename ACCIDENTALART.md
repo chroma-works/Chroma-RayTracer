@@ -29,6 +29,6 @@ This page is dedicated for "artsy" looking render fails that are too damn specia
 *Somebody call [Keanu Reeves his robot friend]( https://www.imdb.com/title/tt0970416/ ) is here*  
 
 <img src= "resources/mystic_prizm.png" width = "300" >  
-*I have succesfully implemented X-Ray tracing! What is next? ray-traced Moratal Kombat !?*  
+*I have succesfully implemented X-Ray tracing! What is next? ray-traced Mortal Kombat !?*  
 
 
