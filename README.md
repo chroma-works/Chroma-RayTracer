@@ -2,7 +2,7 @@
 ## Development Blog 
 ### Author:Alper Şahıstan([STLKRv1](https://github.com/STLKRv1))  
 
-[Accidental Art Page](ACCIDENTALART.html)
+[Accidental Art Page](ACCIDENTALART.html)<img src= "resources/new.png" height="15">
 
 <p align="center">
 <img src= "resources/logo_w.png" height="100">
@@ -196,13 +196,15 @@ As usual C++ development is not devoid of trials and errors in the path of prope
 * Forgot to apply filter to jittered sample. Whoops :](**Figure 17 c)**).   
 
 <img src= "resources/cornellbox_just_shifted.png" width = "250"> <img src= "resources/cornellbox_no_dof.png" width = "250"> <img src= "resources/cornellbox_just_sample.png" width = "250">  
-**Figure 17:** Render failures in the CornellBox scene due to;  **a)** an Error in world calculation causing shift of ray directions.  
+**Figure 17:** Render failures in the CornellBox scene due to;  
+**a)** an Error in world calculation causing shift of ray directions.  
 **b)** random offsets not being between 0-1.  **c)** No filtering.  
 
 After fixing and patching all the bugs it is easy to observe the effects of AA( see **Figure 18**). Escpecially in the areas such as wall corners or edges of objects.
 
 <img src= "resources/cornellbox_1.png" width = "400"> <img src= "resources/cornellbox_400.png" width = "400">  
-**Figure 18:** Cornell box scene with  **a)** 1 sample per pixel(no AA).  **b)** 400 sample per pixel.  
+**Figure 18:** Cornell box scene with  
+**a)** 1 sample per pixel(no AA).  **b)** 400 sample per pixel.  
 
 ## Week 9  
 To begin with the week, glossy reflections are implemented as desribed in the paper by Cook et. al [[6]](#6). Although it was fairly easy to achieve the desired effect there was one particular error that caused what I now call "flower" artifacts. These artifacts were caused by the random uniform sampling of the coefficients not being between -0.5,0.5. The value range initially picked was 0,1(caused flower artifacts in **Figure 19**).
@@ -213,7 +215,29 @@ r_glossy = normalize(r + material.roughness * (u * rand(range) + v * rand(range)
 where r is the perfect reflection direction rand() is random number between range parameter which in our case -0.5,0.5. u and v are vectors for orthonormal basis to origin of the reflection ray.
 
 <img src= "resources/cornellbox_flower_artifact.png" width = "400"> <img src= "resources/cornellbox_brushed_metal.png" width = "400">  
-**Figure 19:** Cornell box scene with  **a)** flower artifacts due to wrong range for random sampler.  **b)** proper glossy reflections.
+**Figure 19:** Cornell box scene with  **a)** flower artifacts due to wrong range for random sampler.  **b)** proper glossy reflections.  
+## Week 10  
+This week transformations have been implemented. If I had to describe the process in a sentence: *It was a damn tough cookie to crack*. Like always there were many errors and bugs along the way. To summarize the significant ones:
+* While calculating the rays in object space ray origin and direction had to be multiplied with inverse transformation matrix. What I missed out on was that the ray origin is a point where as direction is a vector. Therefore their multiplication with inverse transformation matrix should have been padded with 0 and 1 respectfully(due to homogeneous coordinates). 
+```
+inverse_ray.origin = inverse_transform * vec4(ray.origin, 1.0);
+inverse_ray.direction = inverse_transform * vec4(ray.direction, 0.0);  
+```
+* Normal calculation was bit problematic due to sphere objects. The problem turns out to be the center point provided in the scene files. Since Chroma RT was using centers as seprate fields rather than translation it needs to be transformed when calculating normal of the spheres using the transformation matrix.  
+```
+transformed_center = transform * vec4(center, 1.0);
+normal = normalize(inverse_transpose_transform_mat * (intersection_point - transformed_center));
+```  
+* Also BVH bound calculations for the spheres contained logical mistakes. Mistake was after applying transformations to bounds, bounds had to be rebounded since the tranformed bounds may not be axis-alligned (see **Figure 20**).  
+
+<img src= "resources/bounding.PNG" width = "700">  
+**Figure 20:** The axis-aligned bounding box of the rotated bounding box is larger than the
+axis-aligned bounding box of the rotated object [[7]](#7).  
+
+Many solutions to these bugs came from Kevin Suffern's "*Ray Tracing from the Ground Up*" book [[7]](#7).  
+Depth of field(DoF) effects were also implemented this week. Although image plane and focal point calculations were little confusing at start internet and Suffern's book helped a lot [[7]](#7). Side note on my implementation of DoF rather than sampling on a unit square for lens point Chroma does the proper thing and samples on a unit disk although the difference is minimal(so does the effort put into it).   
+<img src= "resources/spheres_dof.png" width = "300">  
+**Figure 21:** Sphere transformations and depth of field effect demontrated in an example scene.  
 
 ## References
 <a id="1">[1]</a>
@@ -230,4 +254,7 @@ Scratchapixel, “Introduction to Acceleration Structures,” Scratchapixel, 08-
 M. Pharr, W. Jakob , and G. Humphreys , “Physically Based Rendering,” Physically Based Rendering, 2017.  
 
 <a id="6">[6]</a>
-R. L. Cook, T. Porter, and L. Carpenter, “Distributed ray tracing,” Proceedings of the 11th annual conference on Computer graphics and interactive techniques - SIGGRAPH 84, 1984.
+R. L. Cook, T. Porter, and L. Carpenter, “Distributed ray tracing,” Proceedings of the 11th annual conference on Computer graphics and interactive techniques - SIGGRAPH 84, 1984.  
+
+<a id="7">[7]</a>  
+K. Suffern, Ray Tracing from the Ground Up. Natick: Chapman and Hall/CRC, 2016.
