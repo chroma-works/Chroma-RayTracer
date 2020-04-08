@@ -153,6 +153,27 @@ namespace Chroma
 		return obj;
 	}
 
+	SceneObject* SceneObject::CreateInstance(std::string name, std::shared_ptr<SceneObject> base, bool reset_transforms)
+	{
+		auto mesh = std::make_shared<Mesh>(base->m_mesh->m_vertex_positions, 
+			base->m_mesh->m_vertex_normals, base->m_mesh->m_vertex_texcoords,
+			base->m_mesh->m_vertex_colors, base->m_mesh->m_indices);
+		for (int i = 0; i< base->m_mesh->m_shapes.size(); i++)//deep copy mesh
+		{
+			mesh->m_shapes.push_back(std::make_shared<Instance>(base->m_mesh->m_shapes[i].get(), reset_transforms));
+		}
+
+		SceneObject* instance = new SceneObject(mesh, name);
+		if (!reset_transforms)
+		{
+			instance->SetTransforms(base->GetModelMatrix());
+		}
+
+		//int i = 0;
+
+		return instance;
+	}
+
 	void SceneObject::Draw(DrawMode mode)
 	{
 		m_texture.Bind();

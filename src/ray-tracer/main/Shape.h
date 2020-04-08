@@ -63,6 +63,11 @@ namespace Chroma
 				}
 			}
 		}
+
+		~Triangle()
+		{
+			printf("Triangle deleted\n");
+		}
 		std::shared_ptr<glm::vec3> m_vertices[3];
 		std::shared_ptr<glm::vec3> m_normals[3];
 		std::shared_ptr<glm::vec2> m_uvs[3];
@@ -127,8 +132,7 @@ namespace Chroma
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material;
-			data->normal = glm::normalize(
-				glm::vec4(glm::normalize((glm::cross(t_v0v1, t_v0v2))), 0.0f)); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
+			data->normal = glm::normalize((glm::cross(t_v0v1, t_v0v2))); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
 
 			return data->hit;
 		}
@@ -217,5 +221,81 @@ namespace Chroma
 
 		float m_radius;
 		glm::vec3 m_center = glm::vec3(0,0,0);
+	};
+
+	class Instance : public Shape
+	{
+	public:
+		Instance(Shape* s, bool reset_transform = false)
+			:Shape(*s), m_base_ptr(s), m_reset_transform(reset_transform)
+		{
+			m_base_ptr = s;
+		}
+
+		Bounds3 GetBounds() const
+		{
+			Bounds3 base_bounds = m_base_ptr->GetBounds();
+			if (m_reset_transform)
+			{
+				glm::vec3 b_min, b_max;
+				base_bounds.min = glm::inverse(*(m_base_ptr->m_transform)) *
+					glm::vec4(base_bounds.min, 1.0f);
+				base_bounds.max = glm::inverse(*(m_base_ptr->m_transform)) * 
+					glm::vec4(base_bounds.max, 1.0f);
+				
+				b_min = glm::min(base_bounds.min, base_bounds.max);
+				b_max = glm::max(base_bounds.min, base_bounds.max);
+
+				base_bounds = Bounds3(b_min, b_max);
+			}
+			glm::vec3 t1 = *m_transform * glm::vec4(base_bounds.min,1.0f);
+			glm::vec3 t2 = *m_transform * glm::vec4(base_bounds.max, 1.0f);
+
+			glm::vec3 b_min, b_max;
+			b_min = glm::min(t1, t2);
+			b_max= glm::max(t1, t2);
+
+			return Bounds3(b_min, b_max);
+		}
+
+		bool Intersect(const Ray ray, IntersectionData* data) const
+		{
+			bool hit = false;
+			if (m_reset_transform)
+			{
+				Ray inv_ray;
+				inv_ray.origin = *(m_base_ptr->m_transform) * glm::inverse(*m_transform) * glm::vec4(ray.origin, 1.0f);
+				inv_ray.direction = *(m_base_ptr->m_transform) * glm::inverse(*m_transform) * glm::vec4(ray.direction, 0.0f);
+				hit = m_base_ptr->Intersect(ray, data);
+
+				if (hit)
+				{
+					data->normal = glm::normalize(glm::inverse(glm::transpose(*m_transform)) * glm::vec4(data->normal, 0.0f));
+					data->position = ray.PointAt(data->t);
+				}
+			}
+			else
+			{
+				Ray inv_ray;
+				inv_ray.origin = glm::inverse(*m_transform) * glm::vec4(ray.origin, 1.0f);
+				inv_ray.direction = glm::inverse(*m_transform) * glm::vec4(ray.direction, 0.0f);
+				hit = m_base_ptr->Intersect(ray, data);	
+
+				if (hit)
+				{
+					data->normal = glm::normalize(glm::inverse(glm::transpose(*m_transform)) * glm::vec4(data->normal, 0.0f));
+					data->position = ray.PointAt(data->t);
+				}
+			}
+
+			if (hit && m_material)
+				data->material = m_base_ptr->m_material;
+
+			return hit;
+		}
+
+	private:
+		const Shape* m_base_ptr;
+		bool m_reset_transform = false;
 	};
 }

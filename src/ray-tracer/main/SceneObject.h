@@ -89,6 +89,7 @@ namespace Chroma
 
 		static SceneObject* CreateSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
 			glm::vec3 scale);
+		static SceneObject* CreateInstance(std::string name, std::shared_ptr<SceneObject> base, bool reset_transforms = false);
 
 
 		inline void HideInEditor(bool hide) { m_visible_in_editor = hide; }
