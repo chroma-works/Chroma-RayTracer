@@ -64,10 +64,6 @@ namespace Chroma
 			}
 		}
 
-		~Triangle()
-		{
-			printf("Triangle deleted\n");
-		}
 		std::shared_ptr<glm::vec3> m_vertices[3];
 		std::shared_ptr<glm::vec3> m_normals[3];
 		std::shared_ptr<glm::vec2> m_uvs[3];
@@ -270,7 +266,8 @@ namespace Chroma
 
 				if (hit)
 				{
-					data->normal = glm::normalize(glm::inverse(glm::transpose(*m_transform)) * glm::vec4(data->normal, 0.0f));
+					glm::vec3 raw_normal = glm::transpose(*m_base_ptr->m_transform) * glm::vec4(data->normal, 0.0f);
+					data->normal = glm::normalize(*m_transform * glm::vec4(raw_normal, 0.0f));
 					data->position = ray.PointAt(data->t);
 				}
 			}

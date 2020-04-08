@@ -783,7 +783,7 @@ namespace Chroma
 					{
 						std::string name = "Instance_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						int base_mesh_index = atoi(child_node->ToElement()->FindAttribute("baseMeshId")->Value()) - 1;
-						bool reset_transform = std::string(child_node->ToElement()->FindAttribute("baseMeshId")->Value()).compare("true") == 0;
+						bool reset_transform = std::string(child_node->ToElement()->FindAttribute("resetTransform")->Value()).compare("true") == 0;
 						auto it = scene->m_scene_objects.begin();
 						std::advance(it, base_mesh_index);
 						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateInstance(name, it->second, reset_transform));
