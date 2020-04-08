@@ -120,11 +120,15 @@ namespace Chroma
 
 			if (t < inverse_ray.intersect_eps) data->hit = false;
 
+			glm::vec3 t_v0v1, t_v0v2;
+			t_v0v1 = *m_transform * glm::vec4(v0v1, 0.0f);
+			t_v0v2 = *m_transform * glm::vec4(v0v2, 0.0f);
+
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material;
-			data->normal = glm::normalize(glm::inverse(glm::transpose(*m_transform)) *
-				glm::vec4(glm::normalize((glm::cross(v0v1, v0v2))), 0.0f)); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
+			data->normal = glm::normalize(
+				glm::vec4(glm::normalize((glm::cross(t_v0v1, t_v0v2))), 0.0f)); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
 
 			return data->hit;
 		}
