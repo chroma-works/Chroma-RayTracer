@@ -176,7 +176,7 @@ namespace Chroma
 		// Build BVH tree for primitives using _primitiveInfo_
 		MemoryArena arena(1024 * 1024);
 		int totalNodes = 0;
-		std::vector<Shape*> orderedPrims;
+		std::vector<std::shared_ptr<Shape>> orderedPrims;
 		orderedPrims.reserve(m_shapes.size());
 		BVHBuildNode* root;
 		if (splitMethod == SplitMethod::HLBVH)
@@ -220,7 +220,7 @@ namespace Chroma
 	BVHBuildNode* BVH::RecursiveBuild(
 		MemoryArena& arena, std::vector<BVHPrimitiveInfo>& primitiveInfo, int start,
 		int end, int* totalNodes,
-		std::vector<Shape*>& orderedPrims) {
+		std::vector<std::shared_ptr<Shape>>& orderedPrims) {
 		//CHECK_NE(start, end);
 		BVHBuildNode* node = arena.Alloc<BVHBuildNode>();
 		(*totalNodes)++;
@@ -391,7 +391,7 @@ namespace Chroma
 	BVHBuildNode* BVH::HLBVHBuild(
 		MemoryArena& arena, const std::vector<BVHPrimitiveInfo>& primitiveInfo,
 		int* totalNodes,
-		std::vector<Shape*>& orderedPrims) const {
+		std::vector<std::shared_ptr<Shape>>& orderedPrims) const {
 		// Compute bounding box of all primitive centroids
 		Bounds3 bounds;
 		for (const BVHPrimitiveInfo& pi : primitiveInfo)
@@ -462,7 +462,7 @@ namespace Chroma
 		BVHBuildNode*& buildNodes,
 		const std::vector<BVHPrimitiveInfo>& primitiveInfo,
 		MortonPrimitive* mortonPrims, int nPrimitives, int* totalNodes,
-		std::vector<Shape*>& orderedPrims,
+		std::vector<std::shared_ptr<Shape>>& orderedPrims,
 		std::atomic<int>* orderedPrimsOffset, int bitIndex) const {
 		//CHECK_GT(nPrimitives, 0);
 		if (bitIndex == -1 || nPrimitives < m_max_prims_in_node) {
@@ -675,7 +675,7 @@ namespace Chroma
 					// Intersect ray with primitives in leaf BVH node
 					for (int i = 0; i < node->nPrimitives; ++i)
 					{
-						const Shape* s =
+						const auto s =
 							m_shapes[node->primitives_offset + i];
 						// Check one primitive inside leaf node
 						probe_data.t = INFINITY;
@@ -731,46 +731,16 @@ namespace Chroma
 
 		for (auto obj : scene.m_scene_objects)
 		{
-			glm::mat4 t = glm::translate(glm::mat4(1.0f), obj.second->GetPosition());
+			/*glm::mat4 t = glm::translate(glm::mat4(1.0f), obj.second->GetPosition());
 			glm::vec3 rot = glm::radians(obj.second->GetRotation());
 			glm::mat4 r = glm::eulerAngleYXZ(rot.y, rot.x, rot.z);
 			glm::mat4 s = glm::scale(glm::mat4(1.0), obj.second->GetScale());
 			s[3][3] = 1;
 
-			glm::mat4 m = t * r * s;
+			glm::mat4 m = t * r * s;*/
 			for (auto shape : obj.second->m_mesh->m_shapes)
 			{
-				if(shape->m_type == SHAPE_T::triangle)
-				{
-					/**((Triangle*)shape.get())->m_vertices[0] = glm::vec3(
-						glm::vec4(*((Triangle*)shape.get())->m_vertices[0], 1.0f));
-					*((Triangle*)shape.get())->m_vertices[1] = glm::vec3(
-						glm::vec4(*((Triangle*)shape.get())->m_vertices[1], 1.0f));
-					*((Triangle*)shape.get())->m_vertices[2] = glm::vec3(
-						glm::vec4(*((Triangle*)shape.get())->m_vertices[2], 1.0f));
-
-					*((Triangle*)shape.get())->m_normals[0] = glm::vec3(
-						*((Triangle*)shape.get())->m_normals[0]);
-					*((Triangle*)shape.get())->m_normals[1] = glm::vec3(
-						*((Triangle*)shape.get())->m_normals[1]);
-					*((Triangle*)shape.get())->m_normals[2] = glm::vec3(
-						*((Triangle*)shape.get())->m_normals[2]);*/
-
-					//if (mesh->uvs.size() > 0)
-					//{
-					//    shape.uvs[0] = mesh->uvs[j + 0];
-					//    shape.uvs[1] = mesh->uvs[j + 1];
-					//    shape.uvs[2] = mesh->uvs[j + 2];
-					//}
-				}
-				else//Sphere
-				{
-					/*((Sphere*)shape.get())->m_center = glm::vec3(
-						glm::vec4(((Sphere*)shape.get())->m_center, 1.0f));*/
-					//((Sphere*)shape.get())->m_radius = obj.second->GetScale().x * ((Sphere*)shape.get())->m_radius;//!!!!!
-				}
-				//*(shape->m_transform) = m;
-				m_shapes.push_back(shape.get());
+				m_shapes.push_back(shape);
 			}
 		}
 	}

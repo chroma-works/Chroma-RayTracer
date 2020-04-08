@@ -44,16 +44,16 @@ namespace Chroma
 		BVHBuildNode* RecursiveBuild(
 			MemoryArena& arena, std::vector<BVHPrimitiveInfo>& primitiveInfo,
 			int start, int end, int* totalNodes,
-			std::vector<Shape*>& orderedPrims);
+			std::vector<std::shared_ptr<Shape>>& orderedPrims);
 		BVHBuildNode* HLBVHBuild(
 			MemoryArena& arena, const std::vector<BVHPrimitiveInfo>& primitiveInfo,
 			int* totalNodes,
-			std::vector<Shape*>& orderedPrims) const;
+			std::vector<std::shared_ptr<Shape>>& orderedPrims) const;
 		BVHBuildNode* EmitLBVH(
 			BVHBuildNode*& buildNodes,
 			const std::vector<BVHPrimitiveInfo>& primitiveInfo,
 			MortonPrimitive* mortonPrims, int nPrimitives, int* totalNodes,
-			std::vector<Shape*>& orderedPrims,
+			std::vector<std::shared_ptr<Shape>>& orderedPrims,
 			std::atomic<int>* orderedPrimsOffset, int bitIndex) const;
 		BVHBuildNode* BuildUpperSAH(MemoryArena& arena,
 			std::vector<BVHBuildNode*>& treeletRoots,
@@ -62,7 +62,7 @@ namespace Chroma
 
 		std::vector<Bounds3> m_prim_bounds, m_leaf_bounds;
 		Scene* m_scene_ptr;
-		std::vector<Shape*> m_shapes;
+		std::vector<std::shared_ptr<Shape>> m_shapes;
 
 		// Bvh Private Data
 		const int m_max_prims_in_node;
