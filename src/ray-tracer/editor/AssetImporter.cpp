@@ -36,6 +36,7 @@ namespace Chroma
 	const std::string MATS = "Materials";
 	const std::string MAX_RECUR = "MaxRecursionDepth";
 	const std::string MESH = "Mesh";
+	const std::string MESH_INS = "MeshInstance";
 	const std::string MIRROR_REF = "MirrorReflectance";
 	const std::string N_DIST = "NearDistance";
 	const std::string N_PLANE = "NearPlane";
@@ -591,7 +592,7 @@ namespace Chroma
 					{ 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						Mesh* mesh = nullptr;
+						std::shared_ptr<Mesh> mesh = nullptr;
 						int mat_ind = 0;
 						bool ply_parsed = false;
 						glm::mat4 transform = glm::mat4(1.0f);
@@ -609,7 +610,7 @@ namespace Chroma
 								auto ply_file_path = object_prop->ToElement()->FindAttribute("plyFile");
 								if (ply_file_path)
 								{
-									mesh = ParsePly(file_path.substr(0, found + 1) + std::string(ply_file_path->Value()));
+									mesh = std::shared_ptr<Mesh>(ParsePly(file_path.substr(0, found + 1) + std::string(ply_file_path->Value())));
 									//mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 								}
 								else
@@ -660,7 +661,8 @@ namespace Chroma
 											mesh_normals[i] = glm::normalize(mesh_normals[i]); /// (float)num_shared_faces[i];//average vert. normals for shared faces
 										}*/
 									}
-									mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+									mesh = std::shared_ptr<Mesh>
+										(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices));
 								}
 
 							}
@@ -670,17 +672,17 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(*mesh), name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle);
+						auto scene_obj = std::shared_ptr<SceneObject>
+							(new SceneObject(mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle));
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
-						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
-						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
+						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					else if (std::string(child_node->Value()).compare(TRIANGLE) == 0)
 					{
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						Mesh* mesh = nullptr;
+						std::shared_ptr<Mesh> mesh = nullptr;
 						int mat_ind = 0;
 						glm::mat4 transform = glm::mat4(1.0f);
 
@@ -712,7 +714,8 @@ namespace Chroma
 								mesh_uvs.push_back({ 0.0f, 0.0f });
 								mesh_uvs.push_back({ 1.0f, 0.0f });
 								mesh_uvs.push_back({ 0.0f, 1.0f });
-								mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+								mesh = std::shared_ptr<Mesh>
+									(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices));
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
@@ -720,16 +723,17 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						SceneObject* scene_obj = new SceneObject(std::make_shared<Mesh>(*mesh), name, glm::vec3(), glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle);
+						auto scene_obj = std::shared_ptr<SceneObject>
+							(new SceneObject(mesh, name, glm::vec3(), 
+								glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle));
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
-						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
+						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					else if (std::string(child_node->Value()).compare(SPHR) == 0)
 					{
 						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						SceneObject* scene_obj; //= new SceneObject(std::make_shared<Mesh>(), name, glm::vec3(), glm::vec3(), glm::vec3(), SHAPE_T::sphere);
 						glm::mat4 transform = glm::mat4(1.0f);
 						Sphere s(NULL, true);
 
@@ -770,10 +774,43 @@ namespace Chroma
 							}
 							object_prop = object_prop->NextSibling();
 						}
-						scene_obj = SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3());
+						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3()));
 						scene_obj->SetTransforms(transform);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
-						scene->AddSceneObject(scene_obj->GetName(), std::make_shared<SceneObject>(*scene_obj));
+						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
+					}
+					else if (std::string(child_node->Value()).compare(MESH_INS) == 0)
+					{
+						std::string name = "Instance_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						int base_mesh_index = atoi(child_node->ToElement()->FindAttribute("baseMeshId")->Value()) - 1;
+						bool reset_transform = std::string(child_node->ToElement()->FindAttribute("baseMeshId")->Value()).compare("true") == 0;
+						auto it = scene->m_scene_objects.begin();
+						std::advance(it, base_mesh_index);
+						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateInstance(name, it->second, reset_transform));
+
+						glm::mat4 transform = glm::mat4(1.0f);
+
+						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						while (object_prop)
+						{
+							if (std::string(object_prop->Value()).compare(MAT) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								int ind;
+								sscanf(data.c_str(), "%d", &ind);
+								ind = ind - 1;
+								scene_obj->SetMaterial(materials[ind]);
+							}
+							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
+							{
+								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
+							}
+							object_prop = object_prop->NextSibling();
+						}
+						if (!reset_transform)
+							transform = transform * it->second->GetModelMatrix();
+						scene_obj->SetTransforms(transform);
+						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					child_node = child_node->NextSibling();
 				}
