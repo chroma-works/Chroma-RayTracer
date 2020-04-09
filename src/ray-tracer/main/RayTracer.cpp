@@ -202,6 +202,7 @@ namespace Chroma
 			for (int j = 0; j < m_settings.resolution.y; j++)
 			{
 				glm::vec3 color = scene.m_sky_color;
+				//if(i>460&& i<480 && j> 360 && j<400)
 				for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 				{
 					auto offset = SampleUnitSquare();
@@ -353,12 +354,15 @@ namespace Chroma
 
 				//Shadow calculation	
 				bool shadowed = false;
-				Ray shadow_ray(isect_data.position + l_vec * scene.m_shadow_eps);
+				Ray shadow_ray(isect_data.position + isect_data.normal * scene.m_shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
-				shadow_ray.intersect_eps = 0.009f;
+				shadow_ray.intersect_eps = 0.09f;
 
-				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-					shadow_data.t < glm::distance(isect_data.position, pl->position));
+				shadowed = m_settings.calc_shadows && //TODO: Fix
+					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
+					/*shadow_data.t*/glm::distance(isect_data.position, shadow_data.position) < glm::distance(isect_data.position, pl->position))
+					&& (isect_data.material != shadow_data.material && shadow_data.t + 1 < glm::distance(isect_data.position, pl->position))//WTF ADHOC solution 
+					;
 				/*CH_TRACE(std::to_string(shadow_data->t) + ", " +
 					std::to_string(glm::distance(isect_data.position, pl->position)));*/
 				if (!shadowed)
