@@ -3,8 +3,7 @@
 #include <algorithm>
 #include <ctime>
 #include <iostream>
-
-
+#include <random>
 
 #include <thirdparty/glm/glm/glm.hpp>
 #include <thirdparty/glm/glm/gtx/euler_angles.hpp>
@@ -169,7 +168,7 @@ namespace Chroma
 		{
 			glm::vec3 b_min, b_max;
 			
-			Bounds3 b = m_shapes[i]->GetBounds();
+			Bounds3 b = m_shapes[i]->GetWorldBounds();
 			primitiveInfo[i] = { i, b};
 		}
 
@@ -666,6 +665,11 @@ namespace Chroma
 		int nodesToVisit[64];
 		float t_min = std::numeric_limits<float>().max();
 		IntersectionData probe_data;
+
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> dis(0.0, 1.0);
+
 		while (true) 
 		{
 			const LinearBVHNode* node = &m_nodes[currentNodeIndex];
