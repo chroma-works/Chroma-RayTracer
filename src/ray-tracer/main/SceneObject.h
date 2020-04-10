@@ -136,6 +136,8 @@ namespace Chroma
 				return glm::vec3(*m_model_matrix * glm::vec4(m_mesh->GetMinBound(), 1.0f));
 		}
 
+		inline glm::vec3 GetMotionBlur() { return m_motion_blur; }
+
 		inline void Translate(const glm::vec3 vec) { m_position += vec; RecalculateModelMatrix(); }
 		/*inline void RotateAngleAxis(const float angle, const glm::vec3 axis) {
 			m_rotation = glm::angleAxis(angle, axis) * m_rotation;
@@ -172,6 +174,12 @@ namespace Chroma
 
 		inline std::string GetName() const { return m_name; }
 		inline void SetName(std::string n) { m_name = n; }
+		inline void SetMotionBlur(glm::vec3 mb) 
+		{ 
+			m_motion_blur = mb; 
+			for (auto shape : m_mesh->m_shapes)
+				shape->m_motion_blur = mb;
+		}
 
 		/*inline void SetRadius(float radius)
 		{
@@ -199,6 +207,8 @@ namespace Chroma
 		glm::vec3 m_position;
 		glm::vec3 m_rotation;
 		glm::vec3 m_scale;
+
+		glm::vec3 m_motion_blur = { 0,0,0 };
 
 		glm::mat4* m_model_matrix = new glm::mat4(1.0);
 
