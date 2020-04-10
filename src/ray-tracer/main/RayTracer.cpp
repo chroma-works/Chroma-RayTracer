@@ -1,12 +1,37 @@
-#include "RayTracer.h"
+﻿#include "RayTracer.h"
+
+#include <future>
 #include <random>
 #include <limits>
+
 #include <thirdparty\glm\glm\glm.hpp>
 #include <thirdparty\glm\glm\gtx\norm.hpp>
 #include <thirdparty\glm\glm\gtx\component_wise.hpp>
+#include <iostream>
 
 namespace Chroma
 {
+	std::atomic<float> progress_pers;
+	void PrintProgressBar(std::string tag)
+	{
+		while (progress_pers < 1.0) {
+			int barWidth = 70;
+			int pos = barWidth * progress_pers;
+
+			Sleep(100);
+
+			std::cout << tag + std::string(" [");
+			for (int i = 0; i < barWidth; i++) {
+				if (i < pos) std::cout << "=";
+				else if (i == pos) std::cout << ">";
+				else std::cout << " ";
+			}
+			std::cout << "]" << int(progress_pers * 100.0) << " %\r";
+			std::cout.flush();
+		}
+		std::cout << std::endl;
+	}
+
 	glm::vec2 SampleUnitSquare()
 	{
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -54,7 +79,6 @@ namespace Chroma
 		m_rt_worker = &RayTracer::RecursiveTraceWorker;
 	}
 
-	std::atomic<float> progress_pers;
 
 	void RayTracer::Render(Camera* cam, Scene& scene)
 	{
@@ -62,7 +86,10 @@ namespace Chroma
 		{
 			return;
 		}
+
 		progress_pers = 0.0f;
+		auto future_function = async(std::launch::async, PrintProgressBar, "Rendering");
+
 		std::thread** threads = new std::thread * [m_settings.thread_count];
 
 		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
@@ -94,6 +121,10 @@ namespace Chroma
 			glm::vec3 min = it->second->m_mesh->GetMinBound();
 			glm::vec3 max = it->second->m_mesh->GetMaxBound();
 		}
+		//while (progress_pers != 1.0f)
+		//	if (progress_pers == 1.0f)
+		//		break;
+		Sleep(100);
 		CH_TRACE("Render info:\n\tTriangles :" + std::to_string(triangle_count) +
 			"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y) +
 			")\n\tRendered in " + std::to_string(fs.count()) + "s" 
@@ -175,8 +206,8 @@ namespace Chroma
 			}
 			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
 
-			if(idx == m_settings.thread_count - 1)
-				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));
+			/*if(idx == m_settings.thread_count - 1)
+				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
 		}
 	}
 
@@ -238,8 +269,8 @@ namespace Chroma
 
 			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
 
-			if (idx == m_settings.thread_count - 1)
-				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));
+			/*if (idx == m_settings.thread_count - 1)
+				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
 		}
 	}
 
