@@ -186,6 +186,11 @@ namespace Chroma
 			m_scene->m_scene_objects[selected_name]->SetScale(tmp_sca);
 			ImGui::Separator();
 
+			glm::vec3 tmp_mb = m_scene->m_scene_objects[selected_name]->GetMotionBlur();
+			ImGui::DragFloat3("Motion Blur", &(tmp_mb.x), 0.05f, 0, 0, "%.3f");
+			m_scene->m_scene_objects[selected_name]->SetMotionBlur(tmp_mb);
+			ImGui::Separator();
+
 			Material* mat = m_scene->m_scene_objects[selected_name]->GetMaterial();
 			ImGui::Text("Material");
 			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.002f, 0.0f, 1.0f, "%.3f");

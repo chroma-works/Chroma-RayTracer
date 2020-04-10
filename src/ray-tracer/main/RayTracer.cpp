@@ -26,6 +26,15 @@ namespace Chroma
 		return { r*cos(theta), r*sin(theta) };
 	}
 
+	float RandFloat(float l = 0.0f, float u = 1.0f)
+	{
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> dis(l,u);
+
+		return dis(gen);
+	}
+
 	glm::vec3 CalculateNonColinearTo(glm::vec3 r)
 	{
 		glm::vec3 r_abs = glm::abs(r);
@@ -219,6 +228,8 @@ namespace Chroma
 
 					primary_ray.origin = lens_point;
 					primary_ray.direction = glm::normalize(focal_point - primary_ray.origin);
+					primary_ray.motion_blur_t = RandFloat();
+
 					glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
 					color += sample_color/(float)cam->GetNumberOfSamples();//Box Filter
 				}
@@ -240,10 +251,6 @@ namespace Chroma
 		glm::vec3 color = { 0,0,0 };
 		bool inside = false;
 
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_real_distribution<float> dis(-0.5, 0.5);
-
 		if (!isect_data.hit)
 		{
 			//delete isect_data;
@@ -262,8 +269,9 @@ namespace Chroma
 			u = glm::normalize(glm::cross(r, r_prime));
 			v = glm::cross(r,u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
-				(dis(gen) * u + dis(gen) * v));
+				(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = scene.m_intersect_eps;
+			reflection_ray.motion_blur_t = RandFloat();
 
 			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
@@ -281,8 +289,9 @@ namespace Chroma
 			u = glm::normalize(glm::cross(r, r_prime));
 			v = glm::cross(r, u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-				(dis(gen) * u + dis(gen) * v));
+				(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = scene.m_intersect_eps;
+			reflection_ray.motion_blur_t = RandFloat();
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
 
@@ -318,8 +327,10 @@ namespace Chroma
 				u = glm::normalize(glm::cross(r, r_prime));
 				v = glm::cross(r, u);
 				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-					(dis(gen) * u + dis(gen) * v));
+					(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
 				reflection_ray.intersect_eps = scene.m_intersect_eps;
+				reflection_ray.motion_blur_t = RandFloat();
+
 				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * fr;
 			}
 
@@ -330,6 +341,8 @@ namespace Chroma
 				Ray refraction_ray(isect_data.position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
 				refraction_ray.intersect_eps = scene.m_intersect_eps;
+				refraction_ray.motion_blur_t = RandFloat();
+
 				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1) * (1.0f - fr);
 			}
 
@@ -357,10 +370,11 @@ namespace Chroma
 				Ray shadow_ray(isect_data.position + isect_data.normal * scene.m_shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 				shadow_ray.intersect_eps = 0.09f;
+				shadow_ray.motion_blur_t = ray.motion_blur_t;
 
 				shadowed = m_settings.calc_shadows && //TODO: Fix
 					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-					/*shadow_data.t*/glm::distance(isect_data.position, shadow_data.position) < glm::distance(isect_data.position, pl->position))
+					shadow_data.t < glm::distance(isect_data.position, pl->position))
 					&& (isect_data.material != shadow_data.material && shadow_data.t + 1 < glm::distance(isect_data.position, pl->position))//WTF ADHOC solution 
 					;
 				/*CH_TRACE(std::to_string(shadow_data->t) + ", " +

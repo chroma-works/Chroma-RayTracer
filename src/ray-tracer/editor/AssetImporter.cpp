@@ -38,6 +38,7 @@ namespace Chroma
 	const std::string MESH = "Mesh";
 	const std::string MESH_INS = "MeshInstance";
 	const std::string MIRROR_REF = "MirrorReflectance";
+	const std::string MOTION_B = "MotionBlur";
 	const std::string N_DIST = "NearDistance";
 	const std::string N_PLANE = "NearPlane";
 	const std::string NUM_SAMP = "NumSamples";
@@ -597,6 +598,8 @@ namespace Chroma
 						bool ply_parsed = false;
 						glm::mat4 transform = glm::mat4(1.0f);
 
+						glm::vec3 m_b = {0,0,0};
+
 						while (object_prop)
 						{
 							if (std::string(object_prop->Value()).compare(MAT) == 0)
@@ -670,12 +673,18 @@ namespace Chroma
 							{
 								transform = CalculateTransforms(translations, rotations,scalings, object_prop);
 							}
+							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &m_b.x, &m_b.y, &m_b.z);
+							}
 							object_prop = object_prop->NextSibling();
 						}
 						auto scene_obj = std::shared_ptr<SceneObject>
 							(new SceneObject(mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle));
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
+						scene_obj->SetMotionBlur(m_b);
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					else if (std::string(child_node->Value()).compare(TRIANGLE) == 0)
@@ -685,6 +694,8 @@ namespace Chroma
 						std::shared_ptr<Mesh> mesh = nullptr;
 						int mat_ind = 0;
 						glm::mat4 transform = glm::mat4(1.0f);
+
+						glm::vec3 m_b = { 0,0,0 };
 
 						while (object_prop)
 						{
@@ -721,6 +732,11 @@ namespace Chroma
 							{
 								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
 							}
+							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &m_b.x, &m_b.y, &m_b.z);
+							}
 							object_prop = object_prop->NextSibling();
 						}
 						auto scene_obj = std::shared_ptr<SceneObject>
@@ -728,6 +744,7 @@ namespace Chroma
 								glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle));
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
+						scene_obj->SetMotionBlur(m_b);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -736,6 +753,8 @@ namespace Chroma
 						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						glm::mat4 transform = glm::mat4(1.0f);
 						Sphere s(NULL, true);
+
+						glm::vec3 m_b = { 0,0,0 };
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
@@ -772,10 +791,16 @@ namespace Chroma
 							{
 								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
 							}
+							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &m_b.x, &m_b.y, &m_b.z);
+							}
 							object_prop = object_prop->NextSibling();
 						}
 						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3()));
 						scene_obj->SetTransforms(transform);
+						scene_obj->SetMotionBlur(m_b);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -789,6 +814,7 @@ namespace Chroma
 						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateInstance(name, it->second, reset_transform));
 
 						glm::mat4 transform = glm::mat4(1.0f);
+						glm::vec3 m_b = { 0,0,0 };
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
@@ -804,6 +830,12 @@ namespace Chroma
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
 								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
+							}
+							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &m_b.x, &m_b.y, &m_b.z);
+								scene_obj->SetMotionBlur(m_b);
 							}
 							object_prop = object_prop->NextSibling();
 						}
