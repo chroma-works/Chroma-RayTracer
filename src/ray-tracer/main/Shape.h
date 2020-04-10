@@ -80,6 +80,9 @@ namespace Chroma
 			b_max = glm::max(b_max, glm::vec3(*m_transform * glm::vec4(*m_vertices[1], 1.0f)));
 			b_max = glm::max(b_max, glm::vec3(*m_transform * glm::vec4(*m_vertices[2], 1.0f)));
 
+			b_min = glm::min(b_min, b_min + m_motion_blur);
+			b_max = glm::max(b_max, b_max + m_motion_blur);
+
 			return Bounds3(b_min, b_max);
 		}
 
@@ -103,7 +106,7 @@ namespace Chroma
 			glm::mat4 final_transform = *m_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				final_transform = glm::translate(glm::mat4(1.0f), ray.motion_blur_t * m_motion_blur) * *m_transform;
+				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
 			}
 
 			inverse_ray.direction = glm::inverse(final_transform) * glm::vec4(ray.direction, 0.0f);
@@ -189,6 +192,10 @@ namespace Chroma
 			glm::vec3 b_min_f = glm::min(b_min, b_max);
 			glm::vec3 b_max_f = glm::max(b_min, b_max);
 
+			b_min_f = glm::min(b_min_f, b_min_f + m_motion_blur);
+			b_max_f = glm::max(b_max_f, b_max_f + m_motion_blur);
+
+
 			return Bounds3(b_min_f, b_max_f);
 		}
 
@@ -201,6 +208,7 @@ namespace Chroma
 			glm::vec3 b_min = glm::min(t1, t2); //glm::vec3(1.732050, 1.732050, 1.732050);
 			glm::vec3 b_max = glm::max(t1, t2);//glm::vec3(1.732050, 1.732050, 1.732050);
 
+			
 			return Bounds3(b_min, b_max);
 		}
 
@@ -210,7 +218,7 @@ namespace Chroma
 			glm::mat4 final_transform = *m_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				final_transform = glm::translate(glm::mat4(1.0f), ray.motion_blur_t * m_motion_blur) * *m_transform;
+				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
 			}
 
 			inverse_ray.direction = glm::inverse(final_transform) * glm::vec4(ray.direction, 0.0f);
@@ -324,35 +332,38 @@ namespace Chroma
 			b_min = glm::min(base_bounds.min, base_bounds.max);
 			b_max = glm::max(base_bounds.min, base_bounds.max);
 
+			b_min = glm::min(b_min, b_min + m_motion_blur);
+			b_max = glm::max(b_max, b_max + m_motion_blur);
+
 			return Bounds3(b_min, b_max);
 		}
 		
 		Bounds3 GetLocalBounds() const
 		{
-			return m_base_ptr->GetLocalBounds();
+			Bounds3 base_bounds = m_base_ptr->GetLocalBounds();
+			/*base_bounds.min = glm::min(base_bounds.min, base_bounds.min + m_motion_blur);
+			base_bounds.max = glm::max(base_bounds.max, base_bounds.max + m_motion_blur);*/
+			return base_bounds;
 		}
 
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			bool hit = false;
 			glm::mat4 final_transform = *m_transform;
-			Ray ray2(ray);
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				final_transform = *m_transform * glm::translate(glm::mat4(1.0f), ray.motion_blur_t * m_motion_blur);
-				ray2.origin = glm::inverse(glm::translate(glm::mat4(1.0f), ray.motion_blur_t * m_motion_blur)) * glm::vec4(ray2.origin, 1.0f);
-				ray2.direction = glm::inverse(glm::translate(glm::mat4(1.0f), ray.motion_blur_t * m_motion_blur)) * glm::vec4(ray2.direction, 0.0f);
+				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
 			}
 			Ray inv_ray;
-			inv_ray.origin = *(m_base_ptr->m_transform) * glm::inverse(*m_transform) * glm::vec4(ray2.origin, 1.0f);
-			inv_ray.direction = *(m_base_ptr->m_transform) * glm::inverse(*m_transform) * glm::vec4(ray2.direction, 0.0f);
+			inv_ray.origin = *(m_base_ptr->m_transform) * glm::inverse(final_transform) * glm::vec4(ray.origin, 1.0f);
+			inv_ray.direction = *(m_base_ptr->m_transform) * glm::inverse(final_transform) * glm::vec4(ray.direction, 0.0f);
 			inv_ray.intersect_eps = ray.intersect_eps;
 
 			if (hit = m_base_ptr->Intersect(inv_ray, data))
 			{
 				data->normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(final_transform))) *
 					glm::inverse(glm::mat3(glm::transpose(glm::inverse(*(m_base_ptr->m_transform))))) * data->normal);
-				data->position = ray2.PointAt(data->t);
+				data->position = ray.PointAt(data->t);
 				if (m_material)
 					data->material = m_material;
 			}
