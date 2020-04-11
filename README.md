@@ -252,6 +252,13 @@ To top it off:
 * Implemented a async. progress bar printed on to console(can be seen in the Introduction previews) since successive prints effected the cpu efficiency.  
 * Smooth shading option for meshes.  
 
+<img src= "resources/simple_transform.png" width = "400"> <img src= "resources/spheres_dof.png" width = "400">  
+<img src= "resources/cornellbox_brushed_metal.png" width = "400"> <img src= "resources/cornellbox_boxes_dynamic.png" width = "400">  
+<img src= "resources/metal_glass_plates.png" width = "400"> <img src= "resources/tap_0200.png" width = "400">  
+<img src= "resources/dragon_dynamic.png" width = "800">  
+
+**Figure 23:** Final renders for HW3. 
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
