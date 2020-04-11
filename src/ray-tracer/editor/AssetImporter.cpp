@@ -838,13 +838,13 @@ namespace Chroma
 							{
 								std::string data = object_prop->FirstChild()->Value();
 								sscanf(data.c_str(), "%f %f %f", &m_b.x, &m_b.y, &m_b.z);
-								scene_obj->SetMotionBlur(m_b);
 							}
 							object_prop = object_prop->NextSibling();
 						}
 						if (!reset_transform)
 							transform = transform * it->second->GetModelMatrix();
 						scene_obj->SetTransforms(transform);
+						scene_obj->SetMotionBlur(m_b);
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					child_node = child_node->NextSibling();

@@ -357,12 +357,13 @@ namespace Chroma
 			glm::mat4 final_transform = *m_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
+				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform; //TODO
 			}
 			Ray inv_ray;
 			inv_ray.origin = *(m_base_ptr->m_transform) * glm::inverse(final_transform) * glm::vec4(ray.origin, 1.0f);
 			inv_ray.direction = *(m_base_ptr->m_transform) * glm::inverse(final_transform) * glm::vec4(ray.direction, 0.0f);
 			inv_ray.intersect_eps = ray.intersect_eps;
+			inv_ray.jitter_t = 0.0f;
 
 			if (hit = m_base_ptr->Intersect(inv_ray, data))
 			{

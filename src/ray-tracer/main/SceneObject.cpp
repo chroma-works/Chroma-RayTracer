@@ -146,6 +146,7 @@ namespace Chroma
 
 				m_mesh->m_shapes.push_back(std::make_shared<Triangle>(tri));
 			}
+			m_mesh->m_shapes.shrink_to_fit();
 			//For editor preview render
 			InitOpenGLBuffers();
 		}
@@ -171,6 +172,7 @@ namespace Chroma
 		s.m_transform = obj->m_model_matrix;
 
 		obj->m_mesh->m_shapes.push_back(std::make_shared<Sphere>(s));
+		obj->m_mesh->m_shapes.shrink_to_fit();
 		//For editor preview render
 		obj->InitOpenGLBuffers();
 		return obj;
@@ -188,8 +190,8 @@ namespace Chroma
 		}
 
 		SceneObject* instance = new SceneObject(mesh, name);
-		instance->m_mesh->m_shapes.shrink_to_fit();
 		instance->m_mesh->m_shapes.resize(instance->m_mesh->m_shapes.size() / 2);
+		instance->m_mesh->m_shapes.shrink_to_fit();
 
 		for (int i = 0; i < base->m_mesh->m_shapes.size(); i++)//deep copy mesh
 		{
