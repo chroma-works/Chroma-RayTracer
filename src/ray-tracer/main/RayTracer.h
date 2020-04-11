@@ -24,6 +24,7 @@ namespace Chroma
 		Image* m_rendered_image ;
 
 		Settings m_settings;
+		std::atomic<int> job_index{ 0 };
 
 		void(RayTracer::* m_rt_worker)(Camera* cam, Scene& scene, int idx);
 

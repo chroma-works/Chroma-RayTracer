@@ -731,8 +731,6 @@ namespace Chroma
 	{
 		Scene& scene = *m_scene_ptr;
 
-		std::vector<SceneObject*> scene_objects;
-
 		for (auto obj : scene.m_scene_objects)
 		{
 			/*glm::mat4 t = glm::translate(glm::mat4(1.0f), obj.second->GetPosition());

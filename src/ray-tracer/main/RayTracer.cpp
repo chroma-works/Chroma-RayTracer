@@ -90,6 +90,7 @@ namespace Chroma
 
 		progress_pers = 0.0f;
 		done = false;
+		job_index = { 0 };
 		auto future_function = async(std::launch::async, PrintProgressBar, "Rendering");
 
 		std::thread** threads = new std::thread * [m_settings.thread_count];
@@ -208,14 +209,15 @@ namespace Chroma
 				}
 				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
 			}
-			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
 
+			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
 			/*if(idx == m_settings.thread_count - 1)
 				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
 		}
 	}
 
-	void RayTracer::RecursiveTraceWorker(Camera* cam, Scene& scene, int idx)
+	int tile_size = 8;
+	void RayTracer::RecursiveTraceWorker(Camera* cam, Scene& scene, int thread_idx)
 	{
 		glm::vec3 cam_pos = cam->GetPosition();
 		glm::vec2 top_left = cam->GetNearPlane()[0];
@@ -237,58 +239,55 @@ namespace Chroma
 		IntersectionData intersection_data;
 		IntersectionData shadow_data;
 
-		/*int tile_size = 8;
+		const int tile_count_x = (m_settings.resolution.x + tile_size - 1) / tile_size;
+		const int tile_count_y = (m_settings.resolution.y + tile_size - 1) / tile_size;
+		const int max_job_index = tile_count_x * tile_count_y;
 
-		int col_start_x = idx * tile_size % m_settings.resolution.x ;
-		int col_end_x = (idx + 1) * tile_size % m_settings.resolution.x < m_settings.resolution.x ?
-			(idx + 1) * tile_size % m_settings.resolution.x : m_settings.resolution.x;
-
-		int col_start_y = idx * tile_size / m_settings.resolution.x;
-		int col_end_y = (idx + 1) * tile_size / m_settings.resolution.x < m_settings.resolution.x ?
-			(idx + 1) * m_settings.resolution.x / tile_size : m_settings.resolution.x;*/
+		int idx = thread_idx;
 
 
-		int col_start_x = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
-		int col_end_x = idx == m_settings.thread_count - 1 ? m_settings.resolution.x :
-			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
-
-		int col_start_y = (float)idx / (float)m_settings.thread_count * m_settings.resolution.y;
-		int col_end_y = idx == m_settings.thread_count - 1 ? m_settings.resolution.y :
-			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.y;
-
-		for (int i = col_start_x; i < col_end_x; i++)
+		while (idx < max_job_index)
 		{
-			for (int j = 0; j < m_settings.resolution.y; j++)
+			glm::ivec2 rect_min = glm::ivec2((idx % tile_count_x) * tile_size, (idx / tile_count_x) * tile_size);
+			glm::ivec2 rect_max = rect_min + glm::ivec2(tile_size, tile_size);
+
+			rect_max = (glm::min)(rect_max, m_settings.resolution);
+
+			for (int j = rect_min.y; j < rect_max.y; j++)
 			{
-				glm::vec3 color = scene.m_sky_color;
-				for (int n = 0; n < cam->GetNumberOfSamples(); n++)
+				for (int i = rect_min.x; i < rect_max.x; i++)
 				{
-					auto offset = SampleUnitSquare();
-					auto lens_offset = SampleUnitDisk();
-					//DoF Lens calculation
-					glm::vec3 lens_point = cam_pos + 
-						cam->GetApertureSize() * (lens_offset.x * right + lens_offset.y * up);
-					glm::vec3 pixel_point = top_left_w + 
-						right_step * (i + offset.x)
-						+ down_step * (j + offset.y);
-					glm::vec3 dir = glm::normalize(pixel_point - cam_pos);
-					glm::vec3 focal_point = cam_pos +
-						cam->GetFocalDistance()/glm::dot(dir, cam->GetGaze()) * dir;
+					glm::vec3 color = scene.m_sky_color;
+					for (int n = 0; n < cam->GetNumberOfSamples(); n++)
+					{
+						auto offset = SampleUnitSquare();
+						auto lens_offset = SampleUnitDisk();
+						//DoF Lens calculation
+						glm::vec3 lens_point = cam_pos +
+							cam->GetApertureSize() * (lens_offset.x * right + lens_offset.y * up);
+						glm::vec3 pixel_point = top_left_w +
+							right_step * (i + offset.x)
+							+ down_step * (j + offset.y);
+						glm::vec3 dir = glm::normalize(pixel_point - cam_pos);
+						glm::vec3 focal_point = cam_pos +
+							cam->GetFocalDistance() / glm::dot(dir, cam->GetGaze()) * dir;
 
-					primary_ray.origin = lens_point;
-					primary_ray.direction = glm::normalize(focal_point - primary_ray.origin);
-					primary_ray.jitter_t = RandFloat();
+						primary_ray.origin = lens_point;
+						primary_ray.direction = glm::normalize(focal_point - primary_ray.origin);
+						primary_ray.jitter_t = RandFloat();
 
-					glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
-					color += sample_color/(float)cam->GetNumberOfSamples();//Box Filter
+						glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
+						color += sample_color / (float)cam->GetNumberOfSamples();//Box Filter
+					}
+					m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
+					progress_pers = progress_pers + (1.0f) / ((float)(glm::compMul(m_settings.resolution)));
 				}
-				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
+
+
+				/*if (idx == m_settings.thread_count - 1)
+					CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
 			}
-
-			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
-
-			/*if (idx == m_settings.thread_count - 1)
-				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
+			idx = job_index++;
 		}
 	}
 
