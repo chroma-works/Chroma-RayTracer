@@ -12,7 +12,7 @@
 This repository is meant to contain a simple implementation of the ray tracing algorithm. Hopefully will surpass its humble conception. This page will also be used as a blog to update on the development process. Developed for CENG795 course at METU(2019-2020 Spring Semester).
 
 <p align="center">
-<img src= "resources/editorprev.png" height="400">
+<img src= "resources/editorprev.png" height="400"> <img src= "resources/console_prev.PNG" height="400"> 
  </p>
 
 Here is a full preview of Chroma-Ray Tracer enviroment
@@ -237,7 +237,17 @@ axis-aligned bounding box of the rotated object [[7]](#7).
 Many solutions to these bugs came from Kevin Suffern's "*Ray Tracing from the Ground Up*" book [[7]](#7).  
 Depth of field(DoF) effects were also implemented this week. Although image plane and focal point calculations were little confusing at start internet and Suffern's book helped a lot [[7]](#7). Side note on my implementation of DoF rather than sampling on a unit square for lens point Chroma does the proper thing and samples on a unit disk although the difference is minimal(so does the effort put into it).   
 <img src= "resources/spheres_dof.png" width = "300">  
-**Figure 21:** Sphere transformations and depth of field effect demontrated in an example scene.  
+**Figure 21:** Sphere transformations and depth of field effect demonstrated in an example scene.  
+
+While deadline closes in I was able to patch up some errors and implement instancing and motion blur effect(for translation only). One of the difficulties faced during the development of motion blur was BVH integration. Since BVH sets up tight bounds for shapes when the Intersect for that particular object is called it will only be for it's still position and inverse transforming the rays will only make the look of the object noisier/transparent. **Figure 22** illustrates this problem in 2D.  
+
+<img src= "resources/blur_bvh_1.png" width = "250"> <img src= "resources/blur_bvh_2.png" width = "250">  
+**Figure 22:** Diagram on the left displays the mistakenly tight bounded BVH bounding box where the rays that are supposed to give the blur effect fails to intersect the box. Diagram on the right displays the correct bounding box construction.
+
+To top it off:
+* Some optimizations are made regarding memory efficiency(using stack objects rather than heap).  
+* Implemented a async. progress bar printed on to console(can be seen in the Introduction previews) since successive prints effected the cpu efficiency.  
+* Smooth shading option for meshes.  
 
 ## References
 <a id="1">[1]</a>
@@ -256,5 +266,5 @@ M. Pharr, W. Jakob , and G. Humphreys , “Physically Based Rendering,” Physic
 <a id="6">[6]</a>
 R. L. Cook, T. Porter, and L. Carpenter, “Distributed ray tracing,” Proceedings of the 11th annual conference on Computer graphics and interactive techniques - SIGGRAPH 84, 1984.  
 
-<a id="7">[7]</a>  
+<a id="7">[7]</a>
 K. Suffern, Ray Tracing from the Ground Up. Natick: Chapman and Hall/CRC, 2016.
