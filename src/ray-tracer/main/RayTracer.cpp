@@ -1,4 +1,4 @@
-﻿#include "RayTracer.h"
+#include "RayTracer.h"
 
 #include <future>
 #include <random>
@@ -12,9 +12,10 @@
 namespace Chroma
 {
 	std::atomic<float> progress_pers;
+	bool done = false;
 	void PrintProgressBar(std::string tag)
 	{
-		while (progress_pers < 1.0) {
+		while (progress_pers <= 9.89999999 && !done) {
 			int barWidth = 70;
 			int pos = barWidth * progress_pers;
 
@@ -88,6 +89,7 @@ namespace Chroma
 		}
 
 		progress_pers = 0.0f;
+		done = false;
 		auto future_function = async(std::launch::async, PrintProgressBar, "Rendering");
 
 		std::thread** threads = new std::thread * [m_settings.thread_count];
@@ -124,10 +126,12 @@ namespace Chroma
 		//while (progress_pers != 1.0f)
 		//	if (progress_pers == 1.0f)
 		//		break;
+		done = true;
 		Sleep(100);
 		CH_TRACE("Render info:\n\tTriangles :" + std::to_string(triangle_count) +
-			"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y) +
-			")\n\tRendered in " + std::to_string(fs.count()) + "s" 
+			"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y)
+			+")\n\tSample per pixel: " + std::to_string(cam->GetNumberOfSamples()) + 
+			"\n\tRendered in " + std::to_string(fs.count()) + "s" 
 			+ "\n\tThreads: " + std::to_string(m_settings.thread_count));
 	}
 
@@ -233,16 +237,30 @@ namespace Chroma
 		IntersectionData intersection_data;
 		IntersectionData shadow_data;
 
-		int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
-		int col_end = idx == m_settings.thread_count - 1 ? m_settings.resolution.x :
+		/*int tile_size = 8;
+
+		int col_start_x = idx * tile_size % m_settings.resolution.x ;
+		int col_end_x = (idx + 1) * tile_size % m_settings.resolution.x < m_settings.resolution.x ?
+			(idx + 1) * tile_size % m_settings.resolution.x : m_settings.resolution.x;
+
+		int col_start_y = idx * tile_size / m_settings.resolution.x;
+		int col_end_y = (idx + 1) * tile_size / m_settings.resolution.x < m_settings.resolution.x ?
+			(idx + 1) * m_settings.resolution.x / tile_size : m_settings.resolution.x;*/
+
+
+		int col_start_x = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
+		int col_end_x = idx == m_settings.thread_count - 1 ? m_settings.resolution.x :
 			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
 
-		for (int i = col_start; i < col_end; i++)
+		int col_start_y = (float)idx / (float)m_settings.thread_count * m_settings.resolution.y;
+		int col_end_y = idx == m_settings.thread_count - 1 ? m_settings.resolution.y :
+			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.y;
+
+		for (int i = col_start_x; i < col_end_x; i++)
 		{
 			for (int j = 0; j < m_settings.resolution.y; j++)
 			{
 				glm::vec3 color = scene.m_sky_color;
-				//if(i>460&& i<480 && j> 360 && j<400)
 				for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 				{
 					auto offset = SampleUnitSquare();
@@ -400,13 +418,13 @@ namespace Chroma
 				bool shadowed = false;
 				Ray shadow_ray(isect_data.position + isect_data.normal * scene.m_shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
-				shadow_ray.intersect_eps = 0.09f;
+				shadow_ray.intersect_eps = 0.009f;
 				shadow_ray.jitter_t = ray.jitter_t;
 
 				shadowed = m_settings.calc_shadows && //TODO: Fix
 					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
 					shadow_data.t < glm::distance(isect_data.position, pl->position))
-					&& (isect_data.material != shadow_data.material && shadow_data.t + 1 < glm::distance(isect_data.position, pl->position))//WTF ADHOC solution 
+					//&& (isect_data.material != shadow_data.material && shadow_data.t + 1 < glm::distance(isect_data.position, pl->position))//WTF ADHOC solution 
 					;
 				/*CH_TRACE(std::to_string(shadow_data->t) + ", " +
 					std::to_string(glm::distance(isect_data.position, pl->position)));*/
