@@ -66,7 +66,8 @@ namespace Chroma
 		HandleKeyBoardNavigation();
 		m_window->OnUpdate();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		m_scene->Render(m_scene->GetCamera(m_settings.act_editor_cam_name));
+		if(m_preview_render)
+			m_scene->Render(m_scene->GetCamera(m_settings.act_editor_cam_name));
 	}
 
 	void Editor::OnDraw()
@@ -496,7 +497,7 @@ namespace Chroma
 
 		ImGui::PushItemWidth(100);
 		int n_sample = m_scene->GetCamera(m_settings.act_rt_cam_name)->GetNumberOfSamples();
-		ImGui::InputInt("# of Samples ", &n_sample,1 ,100, ImGuiInputTextFlags_CallbackHistory);
+		ImGui::InputInt("# of Samples ", &n_sample, 1 ,100);
 		m_scene->GetCamera(m_settings.act_rt_cam_name)->SetNumberOfSamples(n_sample);
 
 		ImGui::InputInt("Thread Count", &m_settings.thread_count);
@@ -714,12 +715,13 @@ namespace Chroma
 	void Editor::DrawEditorInfo()
 	{
 		ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | 
-			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs;
+			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings;
 		ImGui::Begin("Editor Info", 0, flags);
 		ImGui::SetWindowPos(ImVec2(5, 5));
 		ImGui::Text("Camera Movement Speed: %f", m_settings.camera_move_speed);
 		ImGui::SetWindowPos(ImVec2(5, 10));
 		ImGui::Text("Camera Rotation Speed: %f", m_settings.camera_rotate_speed);
+		ImGui::Checkbox("Preview Render", &m_preview_render);
 		ImGui::End();
 	}
 	float yaw = -90.0f;

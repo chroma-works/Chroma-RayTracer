@@ -25,6 +25,7 @@ namespace Chroma
 
 		inline void SetScene(Scene* scene) { m_scene = scene; }
 		inline void SetRayTracer(RayTracer* rt) { ray_tracer = rt; }
+		inline void TogglePreviewRender(bool toggle) { m_preview_render = toggle; }
 
 		void OnUpdate();
 		void OnDraw();
@@ -37,6 +38,7 @@ namespace Chroma
 
 		Window* m_window;
 		bool m_render;
+		bool m_preview_render;
 		Scene* m_scene;
 
 		Settings m_settings;
