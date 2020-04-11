@@ -37,15 +37,17 @@ namespace Chroma
 
 		inline unsigned int GetFaceCount() const { return m_face_count; }
 		inline unsigned int GetVertexCount() const { return m_vertex_count; }
-
-		inline void SetFaceCount(unsigned int f_c) { m_face_count = f_c; }
-		inline void SetVertexCount(unsigned int v_c) { m_vertex_count = v_c; }
-
 		inline glm::vec3 GetMaxBound() const { return m_bound_max; }
 		inline glm::vec3 GetMinBound() const { return m_bound_min; }
 
+		inline void SetFaceCount(unsigned int f_c) { m_face_count = f_c; }
+		inline void SetVertexCount(unsigned int v_c) { m_vertex_count = v_c; }
 		inline void SetMaxBound(glm::vec3 max_b) { m_bound_max = max_b; }
 		inline void SetMinBound(glm::vec3 min_b) { m_bound_min = min_b; }
+
+
+
+		void SmoothNormals();
 
 		std::vector<glm::vec3> m_vertex_positions;
 		std::vector<glm::vec3> m_vertex_normals;
@@ -90,6 +92,8 @@ namespace Chroma
 		static SceneObject* CreateSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
 			glm::vec3 scale);
 		static SceneObject* CreateInstance(std::string name, std::shared_ptr<SceneObject> base, bool reset_transforms = false);
+
+		void SmoothNormals();
 
 
 		inline void HideInEditor(bool hide) { m_visible_in_editor = hide; }

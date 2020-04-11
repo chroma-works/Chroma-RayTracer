@@ -10,6 +10,7 @@
 namespace Chroma
 {
 	enum class SHAPE_T { none, triangle, sphere };
+	enum class SHADING_M { flat, smooth };
 	class Shape
 	{
 	public:
@@ -68,6 +69,8 @@ namespace Chroma
 		std::shared_ptr<glm::vec3> m_vertices[3];
 		std::shared_ptr<glm::vec3> m_normals[3];
 		std::shared_ptr<glm::vec2> m_uvs[3];
+
+		SHADING_M m_shading_mode = SHADING_M::flat;
 
 		Bounds3 GetWorldBounds() const
 		{
@@ -148,12 +151,14 @@ namespace Chroma
 			/*glm::vec3 t_v0v1, t_v0v2;
 			t_v0v1 = glm::transpose(glm::inverse(final_transform)) * glm::vec4(v0v1, 0.0f);
 			t_v0v2 = glm::transpose(glm::inverse(final_transform)) * glm::vec4(v0v2, 0.0f);*/
-
+			bool smooth_normals = m_shading_mode == SHADING_M::smooth;
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material;
-			data->normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(final_transform)))
-				*(glm::cross(v0v1, v0v2))); //u *(*normals[1]) + v * (*normals[2]) + (1 - u - v) * (*normals[0]); //Smooth shading
+			data->normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(final_transform))) *
+				( smooth_normals ? 
+				(u * (*m_normals[1]) + v * (*m_normals[2]) + (1 - u - v) * (*m_normals[0])) :	//Smooth shading
+				(glm::cross(v0v1, v0v2))) );													// Flat shading
 
 			return data->hit;
 		}

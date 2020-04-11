@@ -87,6 +87,29 @@ namespace Chroma
 			}
 		}
 	}
+	void Mesh::SmoothNormals()
+	{
+		for (int i = 0; i < m_indices.size(); i ++)
+		{
+			m_vertex_normals[m_indices[i]] = {0,0,0};
+		}
+		for (int i = 0; i < m_indices.size(); i += 3)
+		{
+			glm::vec3 a, b;
+			a = m_vertex_positions[m_indices[i + 1]] - m_vertex_positions[m_indices[i + 0]];
+			b = m_vertex_positions[m_indices[i + 2]] - m_vertex_positions[m_indices[i + 0]];
+
+			glm::vec3 normal = glm::cross(a, b);
+
+			m_vertex_normals[m_indices[i]] += normal;
+			m_vertex_normals[m_indices[i+1]] += normal;
+			m_vertex_normals[m_indices[i+2]] += normal;
+		}
+		for (int i = 0; i < m_indices.size(); i++)
+		{
+			m_vertex_normals[m_indices[i]] = glm::normalize(m_vertex_normals[m_indices[i]]);
+		}
+	}
 
 
 	SceneObject::SceneObject(std::shared_ptr<Mesh> mesh, std::string name, glm::vec3 pos, glm::vec3 rot, 
@@ -181,6 +204,19 @@ namespace Chroma
 		//int i = 0;
 
 		return instance;
+	}
+
+	void SceneObject::SmoothNormals()
+	{
+		m_mesh->SmoothNormals();
+
+		for (auto shape : m_mesh->m_shapes)
+		{
+			if (shape->m_type == SHAPE_T::triangle)
+			{
+				((Triangle*)shape.get())->m_shading_mode = SHADING_M::smooth;
+			}
+		}
 	}
 
 	void SceneObject::Draw(DrawMode mode)
