@@ -198,7 +198,8 @@ As usual C++ development is not devoid of trials and errors in the path of prope
 <img src= "resources/cornellbox_just_shifted.png" width = "250"> <img src= "resources/cornellbox_no_dof.png" width = "250"> <img src= "resources/cornellbox_just_sample.png" width = "250">  
 **Figure 17:** Render failures in the CornellBox scene due to;  
 **a)** an Error in world calculation causing shift of ray directions.  
-**b)** random offsets not being between 0-1.  **c)** No filtering.  
+**b)** random offsets not being between 0-1.  
+**c)** No filtering.  
 
 After fixing and patching all the bugs it is easy to observe the effects of AA( see **Figure 18**). Escpecially in the areas such as wall corners or edges of objects.
 
@@ -215,7 +216,9 @@ r_glossy = normalize(r + material.roughness * (u * rand(range) + v * rand(range)
 where r is the perfect reflection direction rand() is random number between range parameter which in our case -0.5,0.5. u and v are vectors for orthonormal basis to origin of the reflection ray.
 
 <img src= "resources/cornellbox_flower_artifact.png" width = "400"> <img src= "resources/cornellbox_brushed_metal.png" width = "400">  
-**Figure 19:** Cornell box scene with  **a)** flower artifacts due to wrong range for random sampler.  **b)** proper glossy reflections.  
+**Figure 19:** Cornell box scene with  
+**a)** flower artifacts due to wrong range for random sampler.  
+**b)** proper glossy reflections.  
 ## Week 10  
 This week transformations have been implemented. If I had to describe the process in a sentence: *It was a damn tough cookie to crack*. Like always there were many errors and bugs along the way. To summarize the significant ones:
 * While calculating the rays in object space ray origin and direction had to be multiplied with inverse transformation matrix. What I missed out on was that the ray origin is a point where as direction is a vector. Therefore their multiplication with inverse transformation matrix should have been padded with 0 and 1 respectfully(due to homogeneous coordinates). 
@@ -241,7 +244,7 @@ Depth of field(DoF) effects were also implemented this week. Although image plan
 
 While deadline closes in I was able to patch up some errors and implement instancing and motion blur effect(for translation only). One of the difficulties faced during the development of motion blur was BVH integration. Since BVH sets up tight bounds for shapes when the Intersect for that particular object is called it will only be for it's still position and inverse transforming the rays will only make the look of the object noisier/transparent. **Figure 22** illustrates this problem in 2D.  
 
-<img src= "resources/blur_bvh_1.png" width = "250"> <img src= "resources/blur_bvh_2.png" width = "250">  
+<img src= "resources/blur_bvh_1.png" height = "300"> <img src= "resources/blur_bvh_2.png" height = "300">  
 **Figure 22:** Diagram on the left displays the mistakenly tight bounded BVH bounding box where the rays that are supposed to give the blur effect fails to intersect the box. Diagram on the right displays the correct bounding box construction.
 
 To top it off:
