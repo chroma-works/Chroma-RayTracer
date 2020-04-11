@@ -52,6 +52,8 @@ namespace Chroma
 	const std::string RES = "ImageResolution";
 	const std::string ROT = "Rotation";
 	const std::string ROUGH = "Roughness";
+	const std::string SHADING_M = "shadingMode";
+	const std::string SMOOTH = "smooth";
 	const std::string S_RAY_EPS = "ShadowRayEpsilon";
 	const std::string SPEC_REF = "SpecularReflectance";
 	const std::string SPHR = "Sphere";
@@ -595,7 +597,10 @@ namespace Chroma
 						std::string name = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						std::shared_ptr<Mesh> mesh = nullptr;
 						int mat_ind = 0;
-						bool ply_parsed = false;
+						auto shading_mode = child_node->ToElement()->FindAttribute(SHADING_M.c_str());
+						bool smooth_normals = (shading_mode ? (std::string(shading_mode->Value()).compare(SMOOTH) == 0 ? 
+							true : false) : false);
+							std::string().compare(SMOOTH) == 0;
 						glm::mat4 transform = glm::mat4(1.0f);
 
 						glm::vec3 m_b = {0,0,0};
@@ -648,15 +653,7 @@ namespace Chroma
 											for (int j = 0; j < 3; j++)
 											{
 												mesh_indices.push_back(ind[j] - 1);
-												if (std::isnan(mesh_normals[ind[j] - 1].x))
-												{
-													mesh_normals[ind[j] - 1] = (normal);
-												}
-												else
-												{
-													mesh_normals[ind[j] - 1] += normal;
-												}
-
+												mesh_normals[ind[j] - 1] = normal;
 											}
 										}
 										/*for (int i = 0; i < mesh_normals.size(); i++)
@@ -685,6 +682,12 @@ namespace Chroma
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
+
+						if (smooth_normals)
+						{
+							CH_TRACE("Smoothing out normals");
+							scene_obj->SmoothNormals();
+						}
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					else if (std::string(child_node->Value()).compare(TRIANGLE) == 0)
