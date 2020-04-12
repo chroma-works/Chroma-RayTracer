@@ -106,20 +106,17 @@ namespace Chroma
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
-			glm::mat4 final_transform = *m_transform;
+			glm::mat4 inverse_transform = *m_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
+				inverse_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
 			}
+			inverse_transform = glm::inverse(inverse_transform);
 
-			inverse_ray.direction = glm::inverse(final_transform) * glm::vec4(ray.direction, 0.0f);
-			inverse_ray.origin = glm::inverse(final_transform) * glm::vec4(ray.origin, 1.0f);
+			inverse_ray.direction = inverse_transform * glm::vec4(ray.direction, 0.0f);
+			inverse_ray.origin = inverse_transform * glm::vec4(ray.origin, 1.0f);
 
 			data->t = std::numeric_limits<float>().max();
-
-			/*norms[0] = &m_mesh.m_vertex_normals[m_mesh.m_indices[0]];
-			norms[1] = &m_mesh.m_vertex_normals[m_mesh.m_indices[1]];
-			norms[2] = &m_mesh.m_vertex_normals[m_mesh.m_indices[2]];*/
 
 			glm::vec3 v0 = *m_vertices[0];
 			glm::vec3 v1 = *m_vertices[1];
@@ -148,14 +145,11 @@ namespace Chroma
 
 			if (t < inverse_ray.intersect_eps) data->hit = false;
 
-			/*glm::vec3 t_v0v1, t_v0v2;
-			t_v0v1 = glm::transpose(glm::inverse(final_transform)) * glm::vec4(v0v1, 0.0f);
-			t_v0v2 = glm::transpose(glm::inverse(final_transform)) * glm::vec4(v0v2, 0.0f);*/
 			bool smooth_normals = m_shading_mode == SHADING_M::smooth;
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material;
-			data->normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(final_transform))) *
+			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
 				( smooth_normals ? 
 				(u * (*m_normals[1]) + v * (*m_normals[2]) + (1 - u - v) * (*m_normals[0])) :	//Smooth shading
 				(glm::cross(v0v1, v0v2))) );													// Flat shading
@@ -220,58 +214,15 @@ namespace Chroma
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
-			glm::mat4 final_transform = *m_transform;
+			glm::mat4 f_transform = *m_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
+				f_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform; //TODO
 			}
+			glm::mat4 inverse_transform = glm::inverse(f_transform);
 
-			inverse_ray.direction = glm::inverse(final_transform) * glm::vec4(ray.direction, 0.0f);
-			inverse_ray.origin = glm::inverse(final_transform) * glm::vec4(ray.origin, 1.0f);
-
-			/*double t;
-			glm::vec3 temp = inverse_ray.origin - m_center;
-			double a = glm::dot(inverse_ray.direction, inverse_ray.direction);
-			double b = 2.0 * glm::dot(temp, inverse_ray.direction);
-			double c = glm::dot(temp, temp) - m_radius * m_radius;
-			double disc = b * b - 4.0 * a * c;
-			if (disc < 0.0)
-			{
-				data->hit = false;
-				return data->hit;
-			}
-			else
-			{
-				glm::vec3 transformed_center = final_transform * glm::vec4(m_center, 1.0f);
-				data->material = m_material;
-
-				double e = sqrt(disc);
-				double denom = 2.0 * a;
-				t = (-b - e) / denom; // smaller root
-				if (ray.intersect_eps < t) {
-					data->hit = true;
-					data->t = t;
-					data->position = ray.PointAt(t);
-					data->normal = glm::normalize(glm::inverse(glm::transpose(final_transform)) *
-						glm::vec4((data->position - transformed_center), 0.0f));
-					data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
-						glm::acos(data->position.y / m_radius));
-					return data->hit;
-				}
-				t = (-b + e) / denom; // larger root
-				if ( ray.intersect_eps < t) {
-					data->hit = true;
-					data->t = t;
-					data->position = ray.PointAt(t);
-					data->normal = glm::normalize(glm::inverse(glm::transpose(final_transform)) *
-						glm::vec4((data->position - transformed_center), 0.0f));
-					data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
-						glm::acos(data->position.y / m_radius));
-					return data->hit;
-				}
-
-				return false;
-			}*/
+			inverse_ray.direction = inverse_transform * glm::vec4(ray.direction, 0.0f);
+			inverse_ray.origin = inverse_transform * glm::vec4(ray.origin, 1.0f);
 
 			float t0, t1;
 
@@ -301,12 +252,13 @@ namespace Chroma
 				if (t0 < 0.0) data->hit = false; // both t0 and t1 are negative 
 			}
 
-			glm::vec3 transformed_center = final_transform * glm::vec4(m_center, 1.0f);
+			glm::vec3 transformed_center = f_transform * glm::vec4(m_center, 1.0f);
 
 			data->t = t0;
 			data->position = ray.PointAt(t0);
 			data->material = m_material;
-			data->normal = glm::normalize(glm::inverse(glm::transpose(final_transform)) * glm::vec4((data->position - transformed_center), 0.0f));
+			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform))* 
+				glm::vec4((data->position - transformed_center), 0.0f));
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
 				glm::acos(data->position.y / m_radius));
 			return data->hit;
@@ -346,28 +298,27 @@ namespace Chroma
 		Bounds3 GetLocalBounds() const
 		{
 			Bounds3 base_bounds = m_base_ptr->GetLocalBounds();
-			/*base_bounds.min = glm::min(base_bounds.min, base_bounds.min + m_motion_blur);
-			base_bounds.max = glm::max(base_bounds.max, base_bounds.max + m_motion_blur);*/
 			return base_bounds;
 		}
 
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			bool hit = false;
-			glm::mat4 final_transform = *m_transform;
+			glm::mat4 inverse_transform = *m_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				final_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform; //TODO
+				inverse_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform; //TODO
 			}
+			inverse_transform = glm::inverse(inverse_transform);
 			Ray inv_ray;
-			inv_ray.origin = *(m_base_ptr->m_transform) * glm::inverse(final_transform) * glm::vec4(ray.origin, 1.0f);
-			inv_ray.direction = *(m_base_ptr->m_transform) * glm::inverse(final_transform) * glm::vec4(ray.direction, 0.0f);
+			inv_ray.origin = *(m_base_ptr->m_transform) * inverse_transform * glm::vec4(ray.origin, 1.0f);
+			inv_ray.direction = *(m_base_ptr->m_transform) * inverse_transform * glm::vec4(ray.direction, 0.0f);
 			inv_ray.intersect_eps = ray.intersect_eps;
 			inv_ray.jitter_t = 0.0f;
 
 			if (hit = m_base_ptr->Intersect(inv_ray, data))
 			{
-				data->normal = glm::normalize(glm::mat3(glm::transpose(glm::inverse(final_transform))) *
+				data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
 					glm::inverse(glm::mat3(glm::transpose(glm::inverse(*(m_base_ptr->m_transform))))) * data->normal);
 				data->position = ray.PointAt(data->t);
 				if (m_material)

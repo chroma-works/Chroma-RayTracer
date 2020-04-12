@@ -21,7 +21,7 @@ const unsigned int SCR_HEIGHT = 1440;
 int main()
 {
 	Chroma::Logger::Init();
-	CH_INFO("Chroma Ray Tracer v. 1.10.1");
+	CH_INFO("Chroma Ray Tracer v. 1.10.2");
 
 	Chroma::Window window = Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
 	Chroma::RayTracer* rt = new Chroma::RayTracer();
@@ -32,7 +32,7 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw3/tap_0200.xml")));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/dragon.xml")));
 	//init editor
 	Chroma::Editor editor(&window, scene.get());
 
