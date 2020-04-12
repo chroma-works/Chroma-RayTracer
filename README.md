@@ -251,6 +251,7 @@ To top it off:
 * Some optimizations are made regarding memory efficiency(using stack objects rather than heap).  
 * Implemented a async. progress bar printed on to console(can be seen in the Introduction previews) since successive prints effected the cpu efficiency.  
 * Smooth shading option for meshes.  
+**Figure 23** shows the final renders of HW3 and **Table 4** shows the render statistics for those scenes.
 
 <img src= "resources/simple_transform.png" width = "400"> <img src= "resources/spheres_dof.png" width = "400">  
 <img src= "resources/cornellbox_brushed_metal.png" width = "400"> <img src= "resources/cornellbox_boxes_dynamic.png" width = "400">  
@@ -258,6 +259,19 @@ To top it off:
 <img src= "resources/dragon_dynamic.png" width = "800">  
 
 **Figure 23:** Final renders for HW3. 
+
+**Table 4:** Scene and render statistics for HW3 scenes.
+  
+| Scene Name    |# of Triangles & Spheres | Resolution & Sample per pixel | # of Treads   |Render time(s) | Recursion Depth| BVH size(MB) | # of BVH nodes |  
+| ------------- | ----------------------- | ------------- | ------------- | ------------- |----------------|--------------|-------------------|  
+| Simple Transform | 3,1                  | 800x800,1     |  8            | 0.8255        | 1              | 0.0002       | 7 |  
+| Spheres DoF      | 2,4                  | 800x800,100   |  8            | 95.8729       | 6              | 0.0003       | 9 |  
+| Cornell Box Brushed Metal| 10,2         | 800 x800,400  |  8            | 515.727       | 3              |0.0004        | 14 |  
+| Cornell Box Dynamic Boxes| 36,0         | 750x600,900   |  8            | 845.3153      | 4              | 0.0012       | 39 |  
+| Metal Glass Plates| 38,1                | 800x800,36    |  8            | 202.5724      | 6              | 0.0014       | 47 |  
+| Tap  | 50316,0                          | 1000x1000,100 |  8            | 353.9330      | 6              | 2.8705       | 94061 |  
+| Dynamic Dragon  | 3697206,0             | 800x480,100   |  8            | 16752.1317    | 6              | 225.6457     | 7393959 |  
+
 
 ## References
 <a id="1">[1]</a>
