@@ -16,7 +16,8 @@ namespace Chroma
 		m_bound_max = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
 	}
 
-	Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> texcoords, std::vector<glm::vec3> colors, unsigned int face_count, bool cntr_piv)
+	Mesh::Mesh(std::vector<std::shared_ptr<glm::vec3>> vertices, std::vector<std::shared_ptr<glm::vec3>> normals, 
+		std::vector<std::shared_ptr<glm::vec2>> texcoords, std::vector<std::shared_ptr<glm::vec3>> colors, unsigned int face_count, bool cntr_piv)
 	{
 		m_vertex_positions = vertices;
 		m_vertex_normals = normals;
@@ -35,7 +36,8 @@ namespace Chroma
 			CenterToPivot();
 	}
 
-	Mesh::Mesh(std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> texcoords, std::vector<glm::vec3> colors, std::vector<unsigned int> indices, bool cntr_piv)
+	Mesh::Mesh(std::vector<std::shared_ptr<glm::vec3>> vertices, std::vector<std::shared_ptr<glm::vec3>> normals,
+		std::vector<std::shared_ptr<glm::vec2>> texcoords, std::vector<std::shared_ptr<glm::vec3>> colors, std::vector<unsigned int> indices, bool cntr_piv)
 		:Mesh(vertices, normals, texcoords, colors, indices.size() / 3, cntr_piv)
 	{
 		m_indices = indices;
@@ -45,7 +47,9 @@ namespace Chroma
 	{
 		for (int i = 0; i < m_indices.size(); i+=3)
 		{
-			glm::mat3 mat(m_vertex_positions[m_indices[i]], m_vertex_positions[m_indices[i + 1]], m_vertex_positions[m_indices[i + 2]]);
+			glm::mat3 mat(*(m_vertex_positions[m_indices[i]]), 
+				*(m_vertex_positions[m_indices[i+1]]),
+				*(m_vertex_positions[m_indices[i+2]]));
 			if (glm::determinant(mat) < 0)
 			{
 				//CH_INFO("CW traingle swapped to be CCW");
@@ -59,10 +63,10 @@ namespace Chroma
 		glm::vec3 center(0, 0, 0);
 
 		for (int i = 0; i < m_vertex_count; i++)
-			center += m_vertex_positions[i] / (1.0f * m_vertex_count);
+			center += *(m_vertex_positions[i]) / (1.0f * m_vertex_count);
 
 		for (int i = 0; i < m_vertex_count; i++)
-			m_vertex_positions[i] -= center;
+			*m_vertex_positions[i] -= center;
 
 		m_bound_max -= center;
 		m_bound_min -= center;
@@ -77,13 +81,13 @@ namespace Chroma
 		}
 		else
 		{
-			m_bound_min = m_vertex_positions[0];
-			m_bound_max = m_vertex_positions[0];
+			m_bound_min = *m_vertex_positions[0];
+			m_bound_max = *m_vertex_positions[0];
 
 			for (int i = 0; i < m_vertex_count; i++)
 			{
-				m_bound_min = glm::min(m_vertex_positions[i], m_bound_min);
-				m_bound_max = glm::max(m_vertex_positions[i], m_bound_max);
+				m_bound_min = glm::min(*m_vertex_positions[i], m_bound_min);
+				m_bound_max = glm::max(*m_vertex_positions[i], m_bound_max);
 			}
 		}
 	}
@@ -91,23 +95,23 @@ namespace Chroma
 	{
 		for (int i = 0; i < m_indices.size(); i ++)
 		{
-			m_vertex_normals[m_indices[i]] = {0,0,0};
+			*m_vertex_normals[m_indices[i]] = {0,0,0};
 		}
 		for (int i = 0; i < m_indices.size(); i += 3)
 		{
 			glm::vec3 a, b;
-			a = m_vertex_positions[m_indices[i + 1]] - m_vertex_positions[m_indices[i + 0]];
-			b = m_vertex_positions[m_indices[i + 2]] - m_vertex_positions[m_indices[i + 0]];
+			a = *m_vertex_positions[m_indices[i + 1]] - *m_vertex_positions[m_indices[i + 0]];
+			b = *m_vertex_positions[m_indices[i + 2]] - *m_vertex_positions[m_indices[i + 0]];
 
-			glm::vec3 normal = glm::cross(a, b);
+			glm::vec3 normal = glm::normalize(glm::cross(a, b));
 
-			m_vertex_normals[m_indices[i]] += normal;
-			m_vertex_normals[m_indices[i+1]] += normal;
-			m_vertex_normals[m_indices[i+2]] += normal;
+			*m_vertex_normals[m_indices[i]] += normal;
+			*m_vertex_normals[m_indices[i+1]] += normal;
+			*m_vertex_normals[m_indices[i+2]] += normal;
 		}
 		for (int i = 0; i < m_indices.size(); i++)
 		{
-			m_vertex_normals[m_indices[i]] = glm::normalize(m_vertex_normals[m_indices[i]]);
+			*m_vertex_normals[m_indices[i]] = glm::normalize(*m_vertex_normals[m_indices[i]]);
 		}
 	}
 
@@ -126,13 +130,13 @@ namespace Chroma
 
 				Triangle tri = Triangle(GetMaterial(), IsVisible());
 
-				tri.m_vertices[0] = MK_SHRD(mesh->m_vertex_positions[mesh->m_indices[j]]);
-				tri.m_vertices[1] = MK_SHRD(mesh->m_vertex_positions[mesh->m_indices[j + 1]]);
-				tri.m_vertices[2] = MK_SHRD(mesh->m_vertex_positions[mesh->m_indices[j + 2]]);
+				tri.m_vertices[0] = (mesh->m_vertex_positions[mesh->m_indices[j]]);
+				tri.m_vertices[1] = (mesh->m_vertex_positions[mesh->m_indices[j + 1]]);
+				tri.m_vertices[2] = (mesh->m_vertex_positions[mesh->m_indices[j + 2]]);
 
-				tri.m_normals[0] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j]]));
-				tri.m_normals[1] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j + 1]]));
-				tri.m_normals[2] = MK_SHRD(glm::normalize(mesh->m_vertex_normals[mesh->m_indices[j + 2]]));
+				tri.m_normals[0] = (mesh->m_vertex_normals[mesh->m_indices[j]]);
+				tri.m_normals[1] = (mesh->m_vertex_normals[mesh->m_indices[j + 1]]);
+				tri.m_normals[2] = (mesh->m_vertex_normals[mesh->m_indices[j + 2]]);
 
 				tri.m_transform = m_model_matrix;
 				tri.m_visible = IsVisible();
@@ -242,7 +246,20 @@ namespace Chroma
 	void SceneObject::InitOpenGLBuffers()
 	{
 		//Vertex positions buffer
-		std::shared_ptr<Chroma::OpenGLVertexBuffer> position_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)m_mesh->m_vertex_positions.data(),
+		std::vector<glm::vec3> positions(m_mesh->m_vertex_positions.size()), normals(m_mesh->m_vertex_normals.size());
+		std::vector<glm::vec2> uvs(m_mesh->m_vertex_texcoords.size());
+
+		for (int i = 0; i < m_mesh->m_vertex_positions.size(); i++)
+			positions[i] = *m_mesh->m_vertex_positions[i];
+
+		for (int i = 0; i<m_mesh->m_vertex_normals.size(); i++)
+			if(m_mesh->m_vertex_normals[i].get())
+				normals[i] = *m_mesh->m_vertex_normals[i];
+
+		for (int i = 0; i<m_mesh->m_vertex_texcoords.size(); i++)
+			uvs[i] = *m_mesh->m_vertex_texcoords[i];
+
+		std::shared_ptr<Chroma::OpenGLVertexBuffer> position_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)positions.data(),
 			m_mesh->m_vertex_positions.size() * sizeof(GLfloat) * 3);
 
 		Chroma::VertexAttribute layout_attribute("in_Position", Chroma::Shader::POS_LAY, Chroma::ShaderDataType::Float3, GL_FALSE);
@@ -253,7 +270,7 @@ namespace Chroma
 		m_vertex_buffers.push_back(position_buffer);
 
 		//Vertex normals buffer
-		std::shared_ptr<Chroma::OpenGLVertexBuffer> normal_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)m_mesh->m_vertex_normals.data(),
+		std::shared_ptr<Chroma::OpenGLVertexBuffer> normal_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)normals.data(),
 			m_mesh->m_vertex_normals.size() * sizeof(GLfloat) * 3);
 
 		Chroma::VertexAttribute layout_attribute2("in_Normal", Chroma::Shader::NORM_LAY, Chroma::ShaderDataType::Float3, GL_FALSE);
@@ -264,7 +281,7 @@ namespace Chroma
 		m_vertex_buffers.push_back(normal_buffer);
 
 		//Vertex texture coords buffer
-		std::shared_ptr<Chroma::OpenGLVertexBuffer> tex_coord_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)m_mesh->m_vertex_texcoords.data(),
+		std::shared_ptr<Chroma::OpenGLVertexBuffer> tex_coord_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)uvs.data(),
 			m_mesh->m_vertex_texcoords.size() * sizeof(GLfloat) * 2);
 
 		Chroma::VertexAttribute layout_attribute3("in_TexCoord", Chroma::Shader::TEXC_LAY, Chroma::ShaderDataType::Float2, GL_FALSE);

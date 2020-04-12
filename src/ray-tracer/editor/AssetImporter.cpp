@@ -77,13 +77,13 @@ namespace Chroma
             objl::Mesh curMesh = Loader.LoadedMeshes[0];
             for (int j = 0; j < curMesh.Vertices.size(); j++)
             {
-                mesh->m_vertex_positions.push_back(glm::vec3(glm::eulerAngleYXZ(r.y, r.x, r.z) * glm::vec4(glm::vec3(curMesh.Vertices[j].Position.X,
-                    curMesh.Vertices[j].Position.Y, 
-                    curMesh.Vertices[j].Position.Z )*s + t, 1.0f)));
-                mesh->m_vertex_normals.push_back(glm::vec3(glm::eulerAngleYXZ(r.y, r.x, r.z) * glm::vec4(curMesh.Vertices[j].Normal.X,
+                mesh->m_vertex_positions.push_back(std::make_shared<glm::vec3>(
+					glm::eulerAngleYXZ(r.y, r.x, r.z) * glm::vec4(glm::vec3(curMesh.Vertices[j].Position.X,
+                    curMesh.Vertices[j].Position.Y, curMesh.Vertices[j].Position.Z )*s + t, 1.0f)) );
+                mesh->m_vertex_normals.push_back(std::make_shared < glm::vec3>(glm::eulerAngleYXZ(r.y, r.x, r.z) * glm::vec4(curMesh.Vertices[j].Normal.X,
                     curMesh.Vertices[j].Normal.Y,
                     curMesh.Vertices[j].Normal.Z,1)));
-                mesh->m_vertex_texcoords.push_back(glm::vec2(curMesh.Vertices[j].TextureCoordinate.X, 
+                mesh->m_vertex_texcoords.push_back(std::make_shared<glm::vec2>(curMesh.Vertices[j].TextureCoordinate.X,
                     curMesh.Vertices[j].TextureCoordinate.Y ));
             }
 
@@ -152,9 +152,9 @@ namespace Chroma
 
 	Mesh* ParsePly(std::string ply_path)
 	{
-		std::vector<glm::vec3> mesh_verts;
-		std::vector<glm::vec2> mesh_uvs;
-		std::vector<glm::vec3> mesh_normals;
+		std::vector<std::shared_ptr<glm::vec3>> mesh_verts;
+		std::vector<std::shared_ptr<glm::vec2>> mesh_uvs;
+		std::vector<std::shared_ptr<glm::vec3>> mesh_normals;
 		std::vector<unsigned int> mesh_indices;
 
 		happly::PLYData ply_in(ply_path);
@@ -163,37 +163,37 @@ namespace Chroma
 
 		for (int i = 0; i < v_pos.size(); i++)
 		{
-			mesh_verts.push_back({ v_pos[i][0], v_pos[i][1], v_pos[i][2] });
+			mesh_verts.push_back(std::make_shared<glm::vec3>(v_pos[i][0], v_pos[i][1], v_pos[i][2]));
 			/*mesh_verts.push_back({ v_pos[i+1][0], v_pos[i+1][1], v_pos[i+1][2] });
 			mesh_verts.push_back({ v_pos[i+2][0], v_pos[i+2][1], v_pos[i+2][2] });*/
 		}
 		for (auto faces : f_ind)
 		{
-			glm::vec3 a = (mesh_verts[faces[1]] - mesh_verts[faces[0]]);
-			glm::vec3 b = (mesh_verts[faces[2]] - mesh_verts[faces[0]]);
+			glm::vec3 a = (*mesh_verts[faces[1]] - *mesh_verts[faces[0]]);
+			glm::vec3 b = (*mesh_verts[faces[2]] - *mesh_verts[faces[0]]);
 			glm::vec3 normal = glm::normalize(glm::cross(-a, -b));
 			if(faces.size() ==3)		//triangle faces
 				for (int i = 0; i < faces.size(); i ++)
 				{
-					mesh_normals.push_back(normal);
+					mesh_normals.push_back(std::make_shared<glm::vec3>(normal));
 					mesh_indices.push_back(faces[i]);
 				}
 			else if(faces.size() == 4)	//quad faces
 			{
 				for (int start_ind = 1; start_ind+2 <= faces.size(); start_ind++)
 				{
-					mesh_normals.push_back(normal);
+					mesh_normals.push_back(std::make_shared<glm::vec3>(normal));
 					mesh_indices.push_back(faces[0]);
 					for (int i = start_ind; i < start_ind + 2; i++)
 					{
-						mesh_normals.push_back(normal);
+						mesh_normals.push_back(std::make_shared<glm::vec3>(normal));
 						mesh_indices.push_back(faces[i]);
 					}
 				}
 			}
 
 		}
-		return new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+		return new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<std::shared_ptr<glm::vec3>>(), mesh_indices);
 	}
 
 	Camera* ParseCamera(tinyxml2::XMLNode* node)
@@ -333,7 +333,7 @@ namespace Chroma
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile(file_path.c_str());
 		std::vector<Material*> materials;
-		std::vector<glm::vec3> vertices;
+		std::vector<std::shared_ptr<glm::vec3>> vertices;
 
 		std::vector<glm::mat4> translations;
 		std::vector<glm::mat4> rotations;
@@ -582,7 +582,7 @@ namespace Chroma
 					//sscanf(line.c_str(), "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
 
 					if (iss)
-						vertices.push_back(vertex);
+						vertices.push_back(std::make_shared<glm::vec3>(vertex));
 				}
 			}
 			else if (std::string(node->Value()).compare(OBJ) == 0)
@@ -624,9 +624,9 @@ namespace Chroma
 								else
 								{
 									std::string data = object_prop->FirstChild()->Value();
-									std::vector<glm::vec3> mesh_verts;
-									std::vector<glm::vec2> mesh_uvs;
-									std::vector<glm::vec3> mesh_normals;
+									std::vector<std::shared_ptr<glm::vec3>> mesh_verts;
+									std::vector<std::shared_ptr<glm::vec2>> mesh_uvs;
+									std::vector<std::shared_ptr<glm::vec3>> mesh_normals;
 									std::vector<unsigned int> mesh_indices;
 
 									std::string line;
@@ -643,17 +643,17 @@ namespace Chroma
 
 										if (iss) {
 
-											glm::vec3 a = (vertices[ind[0] - 1] - vertices[ind[1] - 1]);
-											glm::vec3 b = (vertices[ind[0] - 1] - vertices[ind[2] - 1]);
+											glm::vec3 a = (*vertices[ind[0] - 1] - *vertices[ind[1] - 1]);
+											glm::vec3 b = (*vertices[ind[0] - 1] - *vertices[ind[2] - 1]);
 
-											glm::vec3 normal = glm::vec3(0.0f, 0.0f, 1.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
+											glm::vec3 normal = glm::vec3(0.0f, 0.0f, 0.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
 
 											normal = (glm::cross(-a, -b));
 
 											for (int j = 0; j < 3; j++)
 											{
 												mesh_indices.push_back(ind[j] - 1);
-												mesh_normals[ind[j] - 1] = normal;
+												mesh_normals[ind[j] - 1] = std::make_shared<glm::vec3>(glm::normalize(normal));
 											}
 										}
 										/*for (int i = 0; i < mesh_normals.size(); i++)
@@ -662,7 +662,7 @@ namespace Chroma
 										}*/
 									}
 									mesh = std::shared_ptr<Mesh>
-										(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices));
+										(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<std::shared_ptr<glm::vec3>>(), mesh_indices));
 								}
 
 							}
@@ -713,23 +713,24 @@ namespace Chroma
 								int indices[3];
 								std::string data = object_prop->FirstChild()->Value();
 								sscanf(data.c_str(), "%d %d %d", &indices[0], &indices[1], &indices[2]);
-								std::vector<glm::vec3> mesh_verts;
-								std::vector<glm::vec2> mesh_uvs;
-								std::vector<glm::vec3> mesh_normals;
+								std::vector<std::shared_ptr<glm::vec3>> mesh_verts;
+								std::vector<std::shared_ptr<glm::vec2>> mesh_uvs;
+								std::vector<std::shared_ptr<glm::vec3>> mesh_normals;
 								std::vector<unsigned int> mesh_indices;
 								for (int i = 0; i < 3; i++)
 								{
 									indices[i]--;
  									mesh_verts.push_back(vertices[indices[i]]);
-									glm::vec3 normal = glm::normalize(glm::cross((vertices[indices[(i) % 3]] - vertices[indices[(i + 1) % 3]]), (vertices[indices[(i) % 3]] - vertices[indices[(i + 2) % 3]])));
-									mesh_normals.push_back(normal);
+									glm::vec3 normal = glm::normalize(glm::cross((*vertices[indices[(i) % 3]] - *vertices[indices[(i + 1) % 3]]), 
+										(*vertices[indices[(i) % 3]] - *vertices[indices[(i + 2) % 3]])));
+									mesh_normals.push_back(std::make_shared<glm::vec3>(normal));
 									mesh_indices.push_back(i);
 								}
-								mesh_uvs.push_back({ 0.0f, 0.0f });
-								mesh_uvs.push_back({ 1.0f, 0.0f });
-								mesh_uvs.push_back({ 0.0f, 1.0f });
+								mesh_uvs.push_back(std::make_shared<glm::vec2>( 0.0f, 0.0f ));
+								mesh_uvs.push_back(std::make_shared<glm::vec2>(1.0f, 0.0f));
+								mesh_uvs.push_back(std::make_shared<glm::vec2>(0.0f, 1.0f));
 								mesh = std::shared_ptr<Mesh>
-									(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices));
+									(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<std::shared_ptr<glm::vec3>>(), mesh_indices));
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
@@ -779,7 +780,7 @@ namespace Chroma
 								ind = ind - 1;
 								//scene_obj->SetPosition(vertices[ind]);
 								//((Sphere*)(scene_obj->m_mesh->m_shapes[0].get()))->m_center = vertices[ind];
-								s.m_center = vertices[ind];
+								s.m_center = *vertices[ind];
 							}
 							else if (std::string(object_prop->Value()).compare(RAD) == 0)
 							{

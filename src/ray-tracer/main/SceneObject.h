@@ -29,10 +29,11 @@ namespace Chroma
 	{
 	public:
 		Mesh();
-		Mesh(std::vector<glm::vec3> m_vertices, std::vector<glm::vec3> m_normals,
-			std::vector<glm::vec2> m_texcoords, std::vector<glm::vec3> m_colors, unsigned int face_count, bool cntr_piv = false);
-		Mesh(std::vector<glm::vec3> m_vertices, std::vector<glm::vec3> m_normals,
-			std::vector<glm::vec2> m_texcoords, std::vector<glm::vec3> m_colors, std::vector<unsigned int> m_indices, bool cntr_piv = false);
+		Mesh(std::vector<std::shared_ptr<glm::vec3>> vertices, std::vector<std::shared_ptr<glm::vec3>> normals,
+			std::vector<std::shared_ptr<glm::vec2>> texcoords, std::vector<std::shared_ptr<glm::vec3>> colors, unsigned int face_count, bool cntr_piv);
+		Mesh(std::vector<std::shared_ptr<glm::vec3>> vertices, std::vector<std::shared_ptr<glm::vec3>> normals,
+			std::vector<std::shared_ptr<glm::vec2>> texcoords, std::vector<std::shared_ptr<glm::vec3>> colors,
+			std::vector<unsigned int> m_indices, bool cntr_piv = false);
 
 
 		inline unsigned int GetFaceCount() const { return m_face_count; }
@@ -49,10 +50,10 @@ namespace Chroma
 
 		void SmoothNormals();
 
-		std::vector<glm::vec3> m_vertex_positions;
-		std::vector<glm::vec3> m_vertex_normals;
-		std::vector<glm::vec3> m_vertex_colors;
-		std::vector<glm::vec2> m_vertex_texcoords;
+		std::vector<std::shared_ptr<glm::vec3>> m_vertex_positions;
+		std::vector<std::shared_ptr<glm::vec3>> m_vertex_normals;
+		std::vector<std::shared_ptr<glm::vec3>> m_vertex_colors;
+		std::vector<std::shared_ptr<glm::vec2>> m_vertex_texcoords;
 
 		std::vector<unsigned int> m_indices;
 		std::vector<std::shared_ptr<Shape>> m_shapes;
