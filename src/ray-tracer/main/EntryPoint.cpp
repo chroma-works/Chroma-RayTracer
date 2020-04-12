@@ -37,6 +37,7 @@ int main()
 	Chroma::Editor editor(&window, scene.get());
 
 	editor.SetRayTracer(rt);
+	//editor.TogglePreviewRender(false);
 
 	//Model import
 	/*Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/sport_car.obj");
