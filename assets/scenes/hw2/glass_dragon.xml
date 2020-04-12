@@ -52,12 +52,12 @@
             <MirrorReflectance>0.5 0.5 0.5</MirrorReflectance>
         </Material>
           <Material id="3" type="dielectric">
-            <AmbientReflectance>0.200000 0.200000 0.200000</AmbientReflectance>
-            <DiffuseReflectance>0.200000 0.200000 0.250000</DiffuseReflectance>
-            <SpecularReflectance>0.400000 0.400000 0.400000</SpecularReflectance>
+            <AmbientReflectance>0.00000 0.00000 0.00000</AmbientReflectance>
+            <DiffuseReflectance>0.00200000 0.00200000 0.00250000</DiffuseReflectance>
+            <SpecularReflectance>0.04000 0.04000 0.04000</SpecularReflectance>
             <PhongExponent>3</PhongExponent>
-            <AbsorptionCoefficient>0.01 0.01 0.01</AbsorptionCoefficient>
-            <RefractionIndex>1.5</RefractionIndex>
+            <AbsorptionCoefficient>0.01 0.08 0.0</AbsorptionCoefficient>
+            <RefractionIndex>1.3</RefractionIndex>
         </Material>
     </Materials>
 
