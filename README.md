@@ -273,6 +273,12 @@ To top it off:
 | Dynamic Dragon  | 3697206,0             | 800x480,100   |  8            | 16752.1317    | 6              | 225.6457     | 7393959 |  
 
 
+<img src= "resources/dragon_s.png">  
+<img src= "resources/dragons.png">  
+<img src= "resources/glass_dragon_s.png">  
+**Figure 24:** Additional renders.
+
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
