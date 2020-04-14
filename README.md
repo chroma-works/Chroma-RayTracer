@@ -273,9 +273,8 @@ To top it off:
 | Dynamic Dragon  | 3697206,0             | 800x480,100   |  8            | 16752.1317    | 6              | 225.6457     | 7393959 |  
 
 
-<img src= "resources/dragon_s.png">  
-<img src= "resources/dragons.png">  
-<img src= "resources/glass_dragon_s.png">  
+<img src= "resources/dragon_s.png" width = "400"> <img src= "resources/glass_dragon_s.png" width = "400">  
+<img src= "resources/dragons.png" width = "400"> <img src= "resources/dragons2.png" width = "400">  
 **Figure 24:** Additional renders.
 
 
