@@ -275,6 +275,7 @@ To top it off:
 
 <img src= "resources/dragon_s.png" width = "400"> <img src= "resources/glass_dragon_s.png" width = "400">  
 <img src= "resources/dragons.png" width = "400"> <img src= "resources/dragons2.png" width = "400">  
+ <img src= "resources/dragon_tea_r.png" width = "805">  
 **Figure 24:** Additional renders.
 
 
