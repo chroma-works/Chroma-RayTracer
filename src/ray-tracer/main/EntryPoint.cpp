@@ -32,7 +32,7 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw3/spheres_dof.xml")));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/additional/cornellbox.xml")));
 	//init editor
 	Chroma::Editor editor(&window, scene.get());
 
@@ -80,10 +80,21 @@ int main()
 	std::shared_ptr<Chroma::SceneObject> torus = std::make_shared<Chroma::SceneObject>(o_mesh, "torus");
 	torus->SetMaterial(mat4);
 
+	//Model import
+	auto b_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/bridge.obj"));
+	std::shared_ptr<Chroma::Dielectric> mat5 = std::make_shared<Chroma::Dielectric>("u_Material",
+		glm::vec3({ 0.0f, 0.0f, 0.0f }), glm::vec3({ 0.0f, 0.0f, 0.0f }), glm::vec3({ 0, 0, 0 }), 1.0f);
+	mat5->m_refraction_ind = 3.9690;
+	mat5->m_absorption_coeff = { 0.0, 0.021427, 0.021427 };
+	std::shared_ptr<Chroma::SceneObject> bridge = std::make_shared<Chroma::SceneObject>(b_mesh, "bridge");
+	bridge->SetMaterial(mat5);
+	bridge->SmoothNormals();
+
 	scene->AddSceneObject(dragon->GetName(), dragon);
 	scene->AddSceneObject(teapot->GetName(), teapot);
 	scene->AddSceneObject(rabbit->GetName(), rabbit);
 	scene->AddSceneObject(torus->GetName(), torus);
+	scene->AddSceneObject(bridge->GetName(), bridge);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -123,6 +134,12 @@ int main()
 	torus->SetScale({ 1.3, 1.3, 1.3 });
 	torus->SetPosition({ 6.800, -7.9, 2.5 });
 	torus->SetRotation({ 27, -12,0 });
+
+	bridge->SetScale({ 0.01, 0.05, 0.03 });
+	bridge->SetPosition({ 0.3, -9.6,-4.5 });
+	bridge->SetRotation({ 0, 90,0 });
+
+
 	/*glm::vec4 dir({ 0.0f, 0.0f, 0.0f, 1.0f });
 
 	teapot->SetScale({ 10.0f, 10.0f, 10.0f });
