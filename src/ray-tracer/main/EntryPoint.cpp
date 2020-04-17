@@ -24,7 +24,7 @@ int main()
 	CH_INFO("Chroma Ray Tracer v. 1.10.2");
 
 	Chroma::Window window = Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
-	Chroma::RayTracer* rt = new Chroma::RayTracer();
+	//Chroma::RayTracer* rt = new Chroma::RayTracer();
 
 	// build and compile our shader program
 	// ------------------------------------
@@ -36,11 +36,11 @@ int main()
 	//init editor
 	Chroma::Editor editor(&window, scene.get());
 
-	editor.SetRayTracer(rt);
+	//editor.SetRayTracer(rt);
 	//editor.TogglePreviewRender(false);
 
 	//Model import
-	auto d_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/dragon.obj"));
+	/*auto d_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/dragon.obj"));
 	//Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
 	std::shared_ptr<Chroma::Dielectric> mat = std::make_shared<Chroma::Dielectric>("u_Material",
 		glm::vec3(), glm::vec3(), glm::vec3(), 0.0f);
@@ -94,7 +94,7 @@ int main()
 	scene->AddSceneObject(teapot->GetName(), teapot);
 	scene->AddSceneObject(rabbit->GetName(), rabbit);
 	scene->AddSceneObject(torus->GetName(), torus);
-	scene->AddSceneObject(bridge->GetName(), bridge);
+	scene->AddSceneObject(bridge->GetName(), bridge);*/
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -119,7 +119,7 @@ int main()
 		//scene->AddLight("spot 1", sl);
 		//scene->AddLight("directional 1", dl);
 
-	dragon->SetScale({ 11, 11, 11 });
+	/*dragon->SetScale({ 11, 11, 11 });
 	dragon->SetPosition({ -1.7,-7.150, 1.8 });
 	dragon->SetRotation({0, 125, 0});
 
@@ -137,7 +137,7 @@ int main()
 
 	bridge->SetScale({ 0.01, 0.05, 0.03 });
 	bridge->SetPosition({ 0.3, -9.6,-4.5 });
-	bridge->SetRotation({ 0, 90,0 });
+	bridge->SetRotation({ 0, 90,0 });*/
 
 
 	/*glm::vec4 dir({ 0.0f, 0.0f, 0.0f, 1.0f });

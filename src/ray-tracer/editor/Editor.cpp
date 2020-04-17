@@ -39,6 +39,11 @@ namespace Chroma
 			glfwSetScrollCallback(m_window->m_window_handle, scroll_callback);
 			InitSkin();
 
+			ray_tracer = new Chroma::RayTracer();
+
+			if (!ray_tracer)
+				CH_ERROR("Failed to create Chrom Ray Tracer");
+
 		}
 		else
 			CH_ERROR("Failed to create an instance of Editor");
