@@ -192,7 +192,7 @@ namespace Chroma
 			m_scene->m_scene_objects[selected_name]->SetMotionBlur(tmp_mb);
 			ImGui::Separator();
 
-			Material* mat = m_scene->m_scene_objects[selected_name]->GetMaterial();
+			Material* mat = m_scene->m_scene_objects[selected_name]->GetMaterial().get();
 			ImGui::Text("Material");
 			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.002f, 0.0f, 1.0f, "%.3f");
 			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.002f, 0.0f, 1.0f, "%.3f");
@@ -210,27 +210,27 @@ namespace Chroma
 					{
 						selected_mat_type = i;
 
-						Material* mat2;
+						std::shared_ptr<Material> mat2;
 
 						switch (static_cast<MAT_TYPE>(selected_mat_type))
 						{
 						case MAT_TYPE::conductor:
-							mat2 = new Conductor(*mat);
-							static_cast<Conductor*>(mat2)->m_absorption_ind = 1.0f;
-							static_cast<Conductor*>(mat2)->m_mirror_reflec = glm::vec3(1, 1, 1);
-							static_cast<Conductor*>(mat2)->m_refraction_ind = 1.2f;
+							mat2 = std::make_shared<Conductor>(*mat);
+							static_cast<Conductor*>(mat2.get())->m_absorption_ind = 1.0f;
+							static_cast<Conductor*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
+							static_cast<Conductor*>(mat2.get())->m_refraction_ind = 1.2f;
 							break;
 						case MAT_TYPE::dielectric:
-							mat2 = new Dielectric(*mat);
-							static_cast<Dielectric*>(mat2)->m_refraction_ind = 1.2f;
-							static_cast<Dielectric*>(mat2)->m_absorption_coeff = glm::vec3(0, 0, 0);
+							mat2 = std::make_shared<Dielectric>(*mat);
+							static_cast<Dielectric*>(mat2.get())->m_refraction_ind = 1.2f;
+							static_cast<Dielectric*>(mat2.get())->m_absorption_coeff = glm::vec3(0, 0, 0);
 							break;
 						case MAT_TYPE::mirror:
-							mat2 = new Mirror(*mat);
-							static_cast<Mirror*>(mat2)->m_mirror_reflec = glm::vec3(1, 1, 1);
+							mat2 =std::make_shared <Mirror>(*mat);
+							static_cast<Mirror*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
 							break;
 						default:
-							mat2 = new Material(*mat);
+							mat2 = std::make_shared<Material>(*mat);
 							break;
 						}
 
