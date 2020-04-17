@@ -14,7 +14,7 @@ namespace Chroma
 	class Shape
 	{
 	public:
-		Shape(Material* mat = nullptr, bool visible = true)
+		Shape(std::shared_ptr<Material> mat = nullptr, bool visible = true)
 			:m_material(mat), m_visible(visible)
 		{}
 		virtual bool Intersect(const Ray ray, IntersectionData* data) const = 0;
@@ -29,7 +29,7 @@ namespace Chroma
 		virtual Bounds3 GetLocalBounds() const = 0;
 
 		bool m_visible = true;
-		Material* m_material = nullptr;
+		std::shared_ptr<Material> m_material = nullptr;
 		glm::mat4* m_transform = nullptr;
 		SHAPE_T m_type = SHAPE_T::none;
 		glm::vec3 m_motion_blur = { 0,0,0 };
@@ -37,7 +37,7 @@ namespace Chroma
 	class Triangle : public Shape
 	{
 	public:
-		Triangle(Material* mat, bool visible = true)
+		Triangle(std::shared_ptr<Material> mat, bool visible = true)
 			:Shape(mat, visible)
 		{
 			m_type = SHAPE_T::triangle;
@@ -45,7 +45,7 @@ namespace Chroma
 		Triangle(std::vector<std::shared_ptr<glm::vec3>>verts,
 			std::vector<std::shared_ptr<glm::vec3>> norms,
 			std::vector<std::shared_ptr<glm::vec2>> uvs,
-			Material* mat, bool visible = true)
+			std::shared_ptr<Material> mat, bool visible = true)
 			: Shape(mat, visible)
 		{
 			m_type = SHAPE_T::triangle;
@@ -148,7 +148,7 @@ namespace Chroma
 			bool smooth_normals = m_shading_mode == SHADING_M::smooth;
 			data->t = t;
 			data->position = ray.PointAt(t);
-			data->material = m_material;
+			data->material = m_material.get();
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
 				( smooth_normals ? 
 				(u * (*m_normals[1]) + v * (*m_normals[2]) + (1 - u - v) * (*m_normals[0])) :	//Smooth shading
@@ -161,14 +161,14 @@ namespace Chroma
 	class Sphere : public Shape
 	{
 	public:
-		Sphere(Material* mat, bool visible = true)
+		Sphere(std::shared_ptr<Material> mat, bool visible = true)
 			:Shape(mat, visible)
 		{
 			m_radius = 0.0f;
 			m_type = SHAPE_T::sphere;
 		}
 
-		Sphere(float rad, Material* mat, bool visible = true)
+		Sphere(float rad, std::shared_ptr<Material> mat, bool visible = true)
 			:Shape(mat, visible), m_radius(rad)
 		{
 			m_type = SHAPE_T::sphere;
@@ -256,7 +256,7 @@ namespace Chroma
 
 			data->t = t0;
 			data->position = ray.PointAt(t0);
-			data->material = m_material;
+			data->material = m_material.get();
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform))* 
 				glm::vec4((data->position - transformed_center), 0.0f));
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
@@ -321,8 +321,8 @@ namespace Chroma
 				data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
 					glm::inverse(glm::mat3(glm::transpose(glm::inverse(*(m_base_ptr->m_transform))))) * data->normal);
 				data->position = ray.PointAt(data->t);
-				if (m_material)
-					data->material = m_material;
+				if (m_material.get())
+					data->material = m_material.get();
 			}
 			return hit;
 		}

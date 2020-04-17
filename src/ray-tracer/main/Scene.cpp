@@ -75,7 +75,7 @@ namespace Chroma
 			if (scn_obj->IsVisibleInEditor())
 			{
 				m_scene_data->SetModel(scn_obj->GetModelMatrix());
-				m_scene_data->SetMaterial(scn_obj->GetMaterial());
+				m_scene_data->SetMaterial(scn_obj->GetMaterial().get());
 
 				m_scene_data->m_shader->UpdateUniforms();
 				m_scene_data->m_shader->Bind();

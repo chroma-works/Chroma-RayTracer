@@ -21,6 +21,33 @@ namespace Chroma
 			m_diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), m_specular(glm::vec3(1.0f)), m_shininess(60.0f), type(MAT_TYPE::none)
 		{}
 
+		Material(const Material& mat)
+			: shader_var_name(mat.shader_var_name),
+			m_ambient(mat.m_ambient),
+			m_diffuse(mat.m_diffuse),
+			m_specular(mat.m_specular),
+			m_shininess(mat.m_shininess),
+			m_roughness(mat.m_roughness)
+		{
+			type = MAT_TYPE::none;
+		}
+
+		/*Material& operator=(Material const& mat)
+		{
+			Material ret;
+			ret.shader_var_name = mat.shader_var_name;
+			ret.m_ambient = mat.m_ambient;
+			ret.m_diffuse = mat.m_diffuse;
+			ret.m_specular = mat.m_specular;
+			ret.m_shininess = mat.m_shininess;
+			ret.m_roughness = mat.m_roughness;
+
+			return ret;
+		}*/
+
+		~Material()
+		{}
+
 		std::string shader_var_name;
 		glm::vec3 m_ambient;
 		glm::vec3 m_diffuse;

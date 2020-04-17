@@ -167,13 +167,13 @@ namespace Chroma
 
 
 		inline void SetTexture(Chroma::Texture tex) { m_texture = tex; }
-		inline void SetMaterial(Material* mat) { 
+		inline void SetMaterial(std::shared_ptr<Material> mat) {
 			m_material = mat; 
 			for (auto shape : m_mesh->m_shapes)
 				shape->m_material = mat;
 		}
 
-		inline Material* GetMaterial() const { return m_material; }
+		inline std::shared_ptr<Material> GetMaterial() const { return m_material; }
 
 		inline SHAPE_T GetShapeType() { return m_shape_t; }
 
@@ -218,7 +218,7 @@ namespace Chroma
 		glm::mat4* m_model_matrix = new glm::mat4(1.0);
 
 		Chroma::Texture m_texture;
-		Material* m_material;
+		std::shared_ptr<Material> m_material;
 
 		SHAPE_T m_shape_t;
 

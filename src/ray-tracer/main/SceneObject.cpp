@@ -121,7 +121,7 @@ namespace Chroma
 		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
 	{
 		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid black shaded objects
-		m_material = new Material();
+		m_material = std::shared_ptr<Material>();
 
 		if(m_shape_t != SHAPE_T::sphere)
 		{

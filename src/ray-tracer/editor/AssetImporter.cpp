@@ -332,7 +332,7 @@ namespace Chroma
 
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile(file_path.c_str());
-		std::vector<Material*> materials;
+		std::vector<std::shared_ptr<Material>> materials;
 		std::vector<std::shared_ptr<glm::vec3>> vertices;
 
 		std::vector<glm::mat4> translations;
@@ -456,7 +456,7 @@ namespace Chroma
 				tinyxml2::XMLNode* child_node = node->FirstChild();
 				while (child_node)//iterate over Materials
 				{
-					Material* mat;
+					std::shared_ptr<Material> mat;
 					MAT_TYPE type = MAT_TYPE::none;
 					bool flag = true;
 					tinyxml2::XMLNode* material_prop = child_node->FirstChild();
@@ -474,61 +474,61 @@ namespace Chroma
 							case MAT_TYPE::mirror:
 							{
 								if(flag)
-									mat = new Mirror(); flag = false;
+									mat = std::make_shared<Mirror>(); flag = false;
 								if (std::string(material_prop->Value()).compare(MIRROR_REF) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f %f %f", &(static_cast<Mirror*>(mat))->m_mirror_reflec.x,
-										&(static_cast<Mirror*>(mat))->m_mirror_reflec.y,
-										&(static_cast<Mirror*>(mat))->m_mirror_reflec.z);
+									sscanf(data.c_str(), "%f %f %f", &(static_cast<Mirror*>(mat.get()))->m_mirror_reflec.x,
+										&(static_cast<Mirror*>(mat.get()))->m_mirror_reflec.y,
+										&(static_cast<Mirror*>(mat.get()))->m_mirror_reflec.z);
 								}
 							}
 								break;
 							case MAT_TYPE::conductor:
 							{
 								if (flag)
-									mat = new Conductor(); flag = false;
+									mat = std::make_shared<Conductor>(); flag = false;
 								if (std::string(material_prop->Value()).compare(MIRROR_REF) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f %f %f", &(static_cast<Conductor*>(mat))->m_mirror_reflec.x,
-										&(static_cast<Conductor*>(mat))->m_mirror_reflec.y,
-										&(static_cast<Conductor*>(mat))->m_mirror_reflec.z);
+									sscanf(data.c_str(), "%f %f %f", &(static_cast<Conductor*>(mat.get()))->m_mirror_reflec.x,
+										&(static_cast<Conductor*>(mat.get()))->m_mirror_reflec.y,
+										&(static_cast<Conductor*>(mat.get()))->m_mirror_reflec.z);
 								}
 								else if (std::string(material_prop->Value()).compare(REF_IND) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat))->m_refraction_ind);
+									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat.get()))->m_refraction_ind);
 								}
 								else if (std::string(material_prop->Value()).compare(ABS_IND) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat))->m_absorption_ind);
+									sscanf(data.c_str(), "%f", &(static_cast<Conductor*>(mat.get()))->m_absorption_ind);
 								}
 							}
 								break;
 							case MAT_TYPE::dielectric:
 							{
 								if (flag)
-									mat = new Dielectric(); flag = false;
+									mat = std::make_shared<Dielectric>(); flag = false;
 								if (std::string(material_prop->Value()).compare(REF_IND) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f", &(static_cast<Dielectric*>(mat))->m_refraction_ind);
+									sscanf(data.c_str(), "%f", &(static_cast<Dielectric*>(mat.get()))->m_refraction_ind);
 								}
 								else if (std::string(material_prop->Value()).compare(ABS_COEF) == 0)
 								{
 									std::string data = material_prop->FirstChild()->Value();
-									sscanf(data.c_str(), "%f %f %f", &(static_cast<Dielectric*>(mat))->m_absorption_coeff.x,
-										&(static_cast<Dielectric*>(mat))->m_absorption_coeff.y,
-										&(static_cast<Dielectric*>(mat))->m_absorption_coeff.z);
+									sscanf(data.c_str(), "%f %f %f", &(static_cast<Dielectric*>(mat.get()))->m_absorption_coeff.x,
+										&(static_cast<Dielectric*>(mat.get()))->m_absorption_coeff.y,
+										&(static_cast<Dielectric*>(mat.get()))->m_absorption_coeff.z);
 								}
 							}
 								break;
 							default:
 							{
 								if (flag)
-									mat = new Material(); flag = false;
+									mat = std::make_shared<Material>(); flag = false;
 							}
 								break;
 						}
