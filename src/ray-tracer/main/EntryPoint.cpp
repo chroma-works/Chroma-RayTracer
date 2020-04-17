@@ -40,25 +40,27 @@ int main()
 	//editor.TogglePreviewRender(false);
 
 	//Model import
-	/*Chroma::Mesh* r_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/sport_car.obj");
+	auto r_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/rabbit.obj"));
 	Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
 	Chroma::Material* mat = new Chroma::Material("u_Material",
 		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
-	std::shared_ptr<Chroma::SceneObject> teapot = std::make_shared<Chroma::SceneObject>(*r_mesh, "car");*/
-
+	std::shared_ptr<Chroma::SceneObject> rabbit = std::make_shared<Chroma::SceneObject>(r_mesh, "rabbit");
+	rabbit->SetMaterial(mat);
 	/*rabbit->SetTexture(*texture);
-	teapot->SetMaterial(*mat);
-	teapot->SetTexture(*text);
+	teapot->SetTexture(*text);*/
 
-	Chroma::Mesh* b_mesh = Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/box.obj");
-	Chroma::Texture* texture = new Chroma::Texture("../../assets/textures/crate.jpg");
-	std::shared_ptr<Chroma::SceneObject> box = std::make_shared<Chroma::SceneObject>(*b_mesh, "box");
-
-	box->SetTexture(*texture);
-	box->SetMaterial(*mat);
+	//Model import
+	auto t_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/utah_teapot.obj"));
+	//Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
+	Chroma::Material* mat2 = new Chroma::Material("u_Material",
+		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
+	std::shared_ptr<Chroma::SceneObject> teapot = std::make_shared<Chroma::SceneObject>(t_mesh, "teapot");
+	//teapot->SmoothNormals();
+	rabbit->SetMaterial(mat2);
 
 	 //std::make_shared<Chroma::Scene>("The scene", shader);*/
-	/*scene->AddSceneObject("car", teapot);*/
+	//scene->AddSceneObject(rabbit->GetName(), rabbit);
+	scene->AddSceneObject(teapot->GetName(), teapot);
 	//scene->AddSceneObject("box", box);
 
 	glEnable(GL_DEPTH_TEST);
