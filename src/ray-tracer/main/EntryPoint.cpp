@@ -32,7 +32,7 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/dragon.xml")));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw2/spheres.xml")));
 	//init editor
 	Chroma::Editor editor(&window, scene.get());
 
@@ -40,27 +40,27 @@ int main()
 	//editor.TogglePreviewRender(false);
 
 	//Model import
-	auto r_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/rabbit.obj"));
+	/*auto r_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/rabbit.obj"));
 	Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
-	Chroma::Material* mat = new Chroma::Material("u_Material",
+	std::shared_ptr<Chroma::Material> mat = std::make_shared<Chroma::Material>("u_Material",
 		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
 	std::shared_ptr<Chroma::SceneObject> rabbit = std::make_shared<Chroma::SceneObject>(r_mesh, "rabbit");
-	rabbit->SetMaterial(mat);
+	rabbit->SetMaterial(mat);*/
 	/*rabbit->SetTexture(*texture);
 	teapot->SetTexture(*text);*/
 
-	//Model import
-	auto t_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/utah_teapot.obj"));
-	//Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
-	Chroma::Material* mat2 = new Chroma::Material("u_Material",
-		glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
-	std::shared_ptr<Chroma::SceneObject> teapot = std::make_shared<Chroma::SceneObject>(t_mesh, "teapot");
-	//teapot->SmoothNormals();
-	rabbit->SetMaterial(mat2);
+	////Model import
+	//auto t_mesh = std::make_shared<Chroma::Mesh>(*Chroma::AssetImporter::LoadMeshFromOBJ("../../assets/models/utah_teapot.obj"));
+	////Chroma::Texture* text = new Chroma::Texture("../../assets/textures/white.png");
+	//std::shared_ptr<Chroma::Material> mat2 = std::make_shared<Chroma::Material>("u_Material",
+	//	glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 0.8f, 0.8f, 0.8f }), glm::vec3({ 1.0f, 1.0f, 1.0f }), 90.0f);
+	//std::shared_ptr<Chroma::SceneObject> teapot = std::make_shared<Chroma::SceneObject>(t_mesh, "teapot");
+	////teapot->SmoothNormals();
+	//rabbit->SetMaterial(mat2);
 
 	 //std::make_shared<Chroma::Scene>("The scene", shader);*/
 	//scene->AddSceneObject(rabbit->GetName(), rabbit);
-	scene->AddSceneObject(teapot->GetName(), teapot);
+	//scene->AddSceneObject(teapot->GetName(), teapot);
 	//scene->AddSceneObject("box", box);
 
 	glEnable(GL_DEPTH_TEST);

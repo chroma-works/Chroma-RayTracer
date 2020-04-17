@@ -150,7 +150,7 @@ namespace Chroma
 		return trnsfm;
 	}
 
-	Mesh* ParsePly(std::string ply_path)
+	Mesh* AssetImporter::LoadMeshFromPly(std::string ply_path)
 	{
 		std::vector<std::shared_ptr<glm::vec3>> mesh_verts;
 		std::vector<std::shared_ptr<glm::vec2>> mesh_uvs;
@@ -618,7 +618,7 @@ namespace Chroma
 								auto ply_file_path = object_prop->ToElement()->FindAttribute("plyFile");
 								if (ply_file_path)
 								{
-									mesh = std::shared_ptr<Mesh>(ParsePly(file_path.substr(0, found + 1) + std::string(ply_file_path->Value())));
+									mesh = std::shared_ptr<Mesh>(LoadMeshFromPly(file_path.substr(0, found + 1) + std::string(ply_file_path->Value())));
 									//mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
 								}
 								else

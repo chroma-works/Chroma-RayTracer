@@ -19,6 +19,8 @@ namespace Chroma
 
         Texture * LoadTexture(const std::string & file_name);
 
+		static Mesh* LoadMeshFromPly(std::string ply_path);
+
 		static Scene* LoadSceneFromXML(Shader* shader, const std::string& file_name);
 
     private:
