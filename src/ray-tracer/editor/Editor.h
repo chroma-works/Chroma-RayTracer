@@ -38,7 +38,7 @@ namespace Chroma
 
 		Window* m_window;
 		bool m_render;
-		bool m_preview_render;
+		bool m_preview_render = true;
 		Scene* m_scene;
 
 		Settings m_settings;

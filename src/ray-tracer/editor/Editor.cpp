@@ -235,7 +235,7 @@ namespace Chroma
 						}
 
 						m_scene->m_scene_objects[selected_name]->SetMaterial(mat2);
-						delete mat;
+						//delete mat;
 						
 					}
 					if (mat->type == static_cast<MAT_TYPE>(selected_mat_type))
