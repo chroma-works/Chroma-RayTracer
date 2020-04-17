@@ -46,8 +46,6 @@ namespace Chroma
 		inline void SetMaxBound(glm::vec3 max_b) { m_bound_max = max_b; }
 		inline void SetMinBound(glm::vec3 min_b) { m_bound_min = min_b; }
 
-
-
 		void SmoothNormals();
 
 		std::vector<std::shared_ptr<glm::vec3>> m_vertex_positions;
@@ -57,6 +55,7 @@ namespace Chroma
 
 		std::vector<unsigned int> m_indices;
 		std::vector<std::shared_ptr<Shape>> m_shapes;
+		SHADING_MODE m_shading_mode = SHADING_MODE::flat;
 
 	private:
 		void CenterToPivot();
@@ -65,6 +64,7 @@ namespace Chroma
 
 		unsigned int m_face_count = 0;
 		unsigned int m_vertex_count = 0;
+
 
 		glm::vec3 m_bound_max;
 		glm::vec3 m_bound_min;
@@ -115,7 +115,7 @@ namespace Chroma
 		inline void SetRotation(const glm::vec3 rot) { m_rotation = rot; RecalculateModelMatrix(); }
 		inline void SetScale(const glm::vec3 sca) { m_scale = sca; RecalculateModelMatrix(); }
 
-		inline glm::mat4 GetModelMatrix() const { return *m_model_matrix; }
+		inline glm::mat4 GetModelMatrix() const { return *m_tranform_matrix; }
 		inline glm::vec3 GetPosition() const { return m_position; }
 		inline glm::vec3 GetRotation() const { return m_rotation; }
 		inline glm::vec3 GetScale() const { return m_scale; }
@@ -125,20 +125,20 @@ namespace Chroma
 			if (m_shape_t == SHAPE_T::sphere)
 			{
 				float radius = ((Sphere*)(m_mesh->m_shapes[0].get()))->m_radius;
-				return glm::vec3(*m_model_matrix * glm::vec4(radius, radius, radius,1.0f));
+				return glm::vec3(*m_tranform_matrix * glm::vec4(radius, radius, radius,1.0f));
 			}
 			else if(m_shape_t == SHAPE_T::triangle)
-				return glm::vec3(*m_model_matrix * glm::vec4(m_mesh->GetMaxBound(), 1.0f)); 
+				return glm::vec3(*m_tranform_matrix * glm::vec4(m_mesh->GetMaxBound(), 1.0f)); 
 		}
 		inline glm::vec3 GetMinBound() const 
 		{
 			if (m_shape_t == SHAPE_T::sphere)
 			{
 				float radius = ((Sphere*)(m_mesh->m_shapes[0].get()))->m_radius;
-				return glm::vec3(*m_model_matrix * glm::vec4(-radius, -radius, -radius, 1.0f));
+				return glm::vec3(*m_tranform_matrix * glm::vec4(-radius, -radius, -radius, 1.0f));
 			}
 			else if (m_shape_t == SHAPE_T::triangle)
-				return glm::vec3(*m_model_matrix * glm::vec4(m_mesh->GetMinBound(), 1.0f));
+				return glm::vec3(*m_tranform_matrix * glm::vec4(m_mesh->GetMinBound(), 1.0f));
 		}
 
 		inline glm::vec3 GetMotionBlur() { return m_motion_blur; }
@@ -158,12 +158,13 @@ namespace Chroma
 			glm::vec3 dummy;
 			glm::vec4 dummy2;
 			glm::decompose(mat, m_scale, rot, m_position, dummy, dummy2);
-			*m_model_matrix = mat; 
+			*m_tranform_matrix = mat; 
+			*m_inverse_tranform_matrix = glm::inverse(mat);
 			glm::vec3 rad_angles = glm::eulerAngles(rot);
 			m_rotation = { glm::degrees(rad_angles) };
 		}
 		inline void Scale(const glm::vec3 scale) { m_scale *= scale; RecalculateModelMatrix(); }
-		inline void ResetTransforms() { *m_model_matrix = glm::mat4(1.0f); }
+		inline void ResetTransforms() { *m_tranform_matrix = glm::mat4(1.0f); }
 
 
 		inline void SetTexture(Chroma::Texture tex) { m_texture = tex; }
@@ -215,7 +216,8 @@ namespace Chroma
 
 		glm::vec3 m_motion_blur = { 0,0,0 };
 
-		glm::mat4* m_model_matrix = new glm::mat4(1.0);
+		glm::mat4* m_tranform_matrix = new glm::mat4(1.0);
+		glm::mat4* m_inverse_tranform_matrix = new glm::mat4(1.0);
 
 		Chroma::Texture m_texture;
 		std::shared_ptr<Material> m_material;

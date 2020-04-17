@@ -10,7 +10,7 @@
 namespace Chroma
 {
 	enum class SHAPE_T { none, triangle, sphere };
-	enum class SHADING_M { flat, smooth };
+	enum class SHADING_MODE { flat, smooth };
 	class Shape
 	{
 	public:
@@ -22,6 +22,12 @@ namespace Chroma
 			return false;
 		}*/
 
+		inline void SetTransform(glm::mat4* transform, glm::mat4* inv_transform)
+		{
+			m_transform = transform;
+			m_inv_transform = inv_transform;
+		}
+
 		virtual Bounds3 GetWorldBounds() const = 0;
 		/*{
 			return Bounds3(glm::vec3(), glm::vec3());
@@ -30,9 +36,12 @@ namespace Chroma
 
 		bool m_visible = true;
 		std::shared_ptr<Material> m_material = nullptr;
-		glm::mat4* m_transform = nullptr;
 		SHAPE_T m_type = SHAPE_T::none;
 		glm::vec3 m_motion_blur = { 0,0,0 };
+	protected:
+		friend class Instance;
+		glm::mat4* m_transform = nullptr;
+		glm::mat4* m_inv_transform = nullptr;
 	};
 	class Triangle : public Shape
 	{
@@ -70,7 +79,7 @@ namespace Chroma
 		std::shared_ptr<glm::vec3> m_normals[3];
 		std::shared_ptr<glm::vec2> m_uvs[3];
 
-		SHADING_M m_shading_mode = SHADING_M::flat;
+		SHADING_MODE m_shading_mode = SHADING_MODE::flat;
 
 		Bounds3 GetWorldBounds() const
 		{
@@ -106,12 +115,12 @@ namespace Chroma
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
-			glm::mat4 inverse_transform = *m_transform;
+			glm::mat4 inverse_transform = *m_inv_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				inverse_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform;
+				inverse_transform = *m_inv_transform * glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur)); //TODO
 			}
-			inverse_transform = glm::inverse(inverse_transform);
+			//inverse_transform = glm::inverse(inverse_transform);
 
 			inverse_ray.direction = inverse_transform * glm::vec4(ray.direction, 0.0f);
 			inverse_ray.origin = inverse_transform * glm::vec4(ray.origin, 1.0f);
@@ -145,7 +154,7 @@ namespace Chroma
 
 			if (t < inverse_ray.intersect_eps) data->hit = false;
 
-			bool smooth_normals = m_shading_mode == SHADING_M::smooth;
+			bool smooth_normals = m_shading_mode == SHADING_MODE::smooth;
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material.get();
@@ -214,12 +223,12 @@ namespace Chroma
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
-			glm::mat4 f_transform = *m_transform;
+			glm::mat4 inverse_transform = *m_inv_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				f_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform; //TODO
+				inverse_transform = *m_inv_transform * glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur)) ; //TODO
 			}
-			glm::mat4 inverse_transform = glm::inverse(f_transform);
+			//glm::mat4 inverse_transform = glm::inverse(f_transform);
 
 			inverse_ray.direction = inverse_transform * glm::vec4(ray.direction, 0.0f);
 			inverse_ray.origin = inverse_transform * glm::vec4(ray.origin, 1.0f);
@@ -252,7 +261,8 @@ namespace Chroma
 				if (t0 < 0.0) data->hit = false; // both t0 and t1 are negative 
 			}
 
-			glm::vec3 transformed_center = f_transform * glm::vec4(m_center, 1.0f);
+			glm::vec3 transformed_center = (glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * 
+				*m_transform * glm::vec4(m_center, 1.0f));
 
 			data->t = t0;
 			data->position = ray.PointAt(t0);
@@ -304,12 +314,12 @@ namespace Chroma
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			bool hit = false;
-			glm::mat4 inverse_transform = *m_transform;
+			glm::mat4 inverse_transform = *m_inv_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				inverse_transform = glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * *m_transform; //TODO
+				inverse_transform = *m_inv_transform * glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur));
 			}
-			inverse_transform = glm::inverse(inverse_transform);
+			//inverse_transform = glm::inverse(inverse_transform);
 			Ray inv_ray;
 			inv_ray.origin = *(m_base_ptr->m_transform) * inverse_transform * glm::vec4(ray.origin, 1.0f);
 			inv_ray.direction = *(m_base_ptr->m_transform) * inverse_transform * glm::vec4(ray.direction, 0.0f);

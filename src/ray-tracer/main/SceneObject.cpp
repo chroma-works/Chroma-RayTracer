@@ -138,8 +138,10 @@ namespace Chroma
 				tri.m_normals[1] = (mesh->m_vertex_normals[mesh->m_indices[j + 1]]);
 				tri.m_normals[2] = (mesh->m_vertex_normals[mesh->m_indices[j + 2]]);
 
-				tri.m_transform = m_model_matrix;
+				tri.SetTransform(m_tranform_matrix, m_inverse_tranform_matrix);
 				tri.m_visible = IsVisible();
+
+				tri.m_shading_mode = m_mesh->m_shading_mode;
 
 				//if (mesh->uvs.size() > 0)
 				//{
@@ -173,7 +175,7 @@ namespace Chroma
 		SceneObject* obj = new SceneObject(mesh, name, pos, rot, scale, SHAPE_T::sphere);
 		obj->m_material = s.m_material;
 		s.m_visible = obj->IsVisible();
-		s.m_transform = obj->m_model_matrix;
+		s.SetTransform(obj->m_tranform_matrix, obj->m_inverse_tranform_matrix);
 
 		obj->m_mesh->m_shapes.push_back(std::make_shared<Sphere>(s));
 		obj->m_mesh->m_shapes.shrink_to_fit();
@@ -199,15 +201,13 @@ namespace Chroma
 
 		for (int i = 0; i < base->m_mesh->m_shapes.size(); i++)//deep copy mesh
 		{
-			mesh->m_shapes[i]->m_transform = instance->m_model_matrix;
+			mesh->m_shapes[i]->SetTransform(instance->m_tranform_matrix, instance->m_inverse_tranform_matrix);
 			mesh->m_shapes[i]->m_material = instance->m_material;
 		}
 		if (!reset_transforms)
 		{
 			instance->SetTransforms(base->GetModelMatrix());
 		}
-
-		//int i = 0;
 
 		return instance;
 	}
@@ -220,9 +220,11 @@ namespace Chroma
 		{
 			if (shape->m_type == SHAPE_T::triangle)
 			{
-				((Triangle*)shape.get())->m_shading_mode = SHADING_M::smooth;
+				((Triangle*)shape.get())->m_shading_mode = SHADING_MODE::smooth;
 			}
 		}
+
+		CH_TRACE("Smoothed Normals");
 	}
 
 	void SceneObject::Draw(DrawMode mode)
@@ -241,7 +243,8 @@ namespace Chroma
 
 		//scale[3][3] = 1.0f;
 
-		*m_model_matrix = translation * rotation * scale;
+		*m_tranform_matrix = translation * rotation * scale;
+		*m_inverse_tranform_matrix = glm::inverse(*m_tranform_matrix);
 	}
 	void SceneObject::InitOpenGLBuffers()
 	{

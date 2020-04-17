@@ -89,6 +89,7 @@ namespace Chroma
 
             mesh->m_indices = curMesh.Indices;
 			mesh->SetFaceCount(mesh->m_indices.size() / 3);
+			mesh->m_shading_mode = SHADING_MODE::smooth;
 
         }
 
@@ -685,7 +686,6 @@ namespace Chroma
 
 						if (smooth_normals)
 						{
-							CH_TRACE("Smoothing out normals");
 							scene_obj->SmoothNormals();
 						}
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
