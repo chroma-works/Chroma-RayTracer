@@ -185,26 +185,33 @@ namespace Chroma
 
 		Bounds3 GetWorldBounds() const
 		{
-			glm::vec3 t1 = m_center - m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
-			//t1 = glm::vec3(*m_transform * glm::vec4(t1, 1.0f));
+			glm::vec3 r = 1.9f * m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::mat4 tr = *m_transform * glm::scale(glm::mat4(1.0f), r) * glm::translate(glm::mat4(1.0f), m_center);
 
-			glm::vec3 t2 = m_center + m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
-			//t2 = glm::vec3(*m_transform * glm::vec4(t2, 1.0f));
+			glm::vec3 box[8] = {
+				{1,1,1},
+				{1,1,-1},
+				{-1,1,-1},
+				{-1,-1,-1},
+				{-1,-1,1},
+				{1,-1,1},
+				{1,-1,-1} };
 
-			glm::vec3 b_min = glm::min(t1, t2); //glm::vec3(1.732050, 1.732050, 1.732050);
-			glm::vec3 b_max = glm::max(t1, t2);//glm::vec3(1.732050, 1.732050, 1.732050);
+			glm::vec3 b_min = tr * glm::vec4(box[0], 1);
+			glm::vec3 b_max = tr * glm::vec4(box[4], 1);
 
-			b_min = *m_transform * glm::vec4(b_min, 1.0f);
-			b_max = *m_transform * glm::vec4(b_max, 1.0f);
+			for (int i = 0; i < 8; i++)
+			{
+				glm::vec3 tmp = tr * glm::vec4(box[i], 1);
+				b_min = glm::min(b_min, tmp);
+				b_max = glm::max(b_max, tmp);
+			}
 
-			glm::vec3 b_min_f = glm::min(b_min, b_max);
-			glm::vec3 b_max_f = glm::max(b_min, b_max);
-
-			b_min_f = glm::min(b_min_f, b_min_f + m_motion_blur);
-			b_max_f = glm::max(b_max_f, b_max_f + m_motion_blur);
+			b_min = glm::min(b_min, b_min + m_motion_blur);
+			b_max = glm::max(b_max, b_max + m_motion_blur);
 
 
-			return Bounds3(b_min_f, b_max_f);
+			return Bounds3(b_min, b_max);
 		}
 
 		Bounds3 GetLocalBounds() const
