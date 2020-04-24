@@ -13,24 +13,29 @@ namespace Chroma
 {
 	std::atomic<float> progress_pers;
 	bool done = false;
+	bool run_bar = true;//TODO: FIX ASYNC CALLS
 	void PrintProgressBar(std::string tag)
 	{
-		while (progress_pers <= 9.89999999 && !done) {
-			int barWidth = 70;
-			int pos = barWidth * progress_pers;
+		if (run_bar)
+		{
+			while (progress_pers <= 9.89999999 && !done) 
+			{
+				int barWidth = 70;
+				int pos = barWidth * progress_pers;
 
-			Sleep(100);
+				Sleep(100);
 
-			std::cout << tag + std::string(" [");
-			for (int i = 0; i < barWidth; i++) {
-				if (i < pos) std::cout << "=";
-				else if (i == pos) std::cout << ">";
-				else std::cout << " ";
+				std::cout << tag + std::string(" [");
+				for (int i = 0; i < barWidth; i++) {
+					if (i < pos) std::cout << "=";
+					else if (i == pos) std::cout << ">";
+					else std::cout << " ";
+				}
+				std::cout << "]" << int(progress_pers * 100.0) << " %\r";
+				std::cout.flush();
 			}
-			std::cout << "]" << int(progress_pers * 100.0) << " %\r";
-			std::cout.flush();
+			std::cout << std::endl;
 		}
-		std::cout << std::endl;
 	}
 
 	glm::vec2 SampleUnitSquare()
@@ -81,7 +86,7 @@ namespace Chroma
 	}
 
 
-	void RayTracer::Render(Camera* cam, Scene& scene)
+	void RayTracer::Render(Camera* cam, Scene& scene, bool print_progress)
 	{
 		if (!scene.m_accel_structure)
 		{
@@ -91,6 +96,7 @@ namespace Chroma
 		progress_pers = 0.0f;
 		done = false;
 		job_index = { 0 };
+		run_bar = print_progress;
 		auto future_function = async(std::launch::async, PrintProgressBar, "Rendering");
 
 		std::thread** threads = new std::thread * [m_settings.thread_count];
@@ -128,12 +134,15 @@ namespace Chroma
 		//	if (progress_pers == 1.0f)
 		//		break;
 		done = true;
-		Sleep(100);
-		CH_TRACE("Render info:\n\tTriangles :" + std::to_string(triangle_count) +
-			"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y)
-			+")\n\tSample per pixel: " + std::to_string(cam->GetNumberOfSamples()) + 
-			"\n\tRendered in " + std::to_string(fs.count()) + "s" 
-			+ "\n\tThreads: " + std::to_string(m_settings.thread_count));
+		if (print_progress)
+		{
+			Sleep(200);
+			CH_TRACE("Render info:\n\tTriangles :" + std::to_string(triangle_count) +
+				"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y)
+				+")\n\tSample per pixel: " + std::to_string(cam->GetNumberOfSamples()) + 
+				"\n\tRendered in " + std::to_string(fs.count()) + "s" 
+				+ "\n\tThreads: " + std::to_string(m_settings.thread_count));
+		}
 	}
 
 	void RayTracer::RayCastWorker(Camera* cam, Scene& scene, int idx)

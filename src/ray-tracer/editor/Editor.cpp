@@ -442,7 +442,7 @@ namespace Chroma
 		if (m_render)
 		{
 			//m_scene->m_cameras[m_settings.act_rt_cam_name]->SetFocalDistance(m_scene->m_cameras[m_settings.act_rt_cam_name]->GetFocalDistance() + 1.0f);
-			ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name],  *m_scene);
+			ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name],  *m_scene, false);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings.resolution.x, m_settings.resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 		}
@@ -610,7 +610,7 @@ namespace Chroma
 
 		ImGui::Begin("Scene", 0, flags);
 
-		ImGui::SetWindowSize(ImVec2(320, m_window->GetHeight() - 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
+		ImGui::SetWindowSize(ImVec2(320, m_window->GetHeight() - 480));
 		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 320, 480));
 
 
