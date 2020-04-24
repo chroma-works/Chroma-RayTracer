@@ -92,7 +92,7 @@ namespace Chroma
 				}
 				else if (mat->type == MAT_TYPE::dielectric)
 				{
-					glm::vec3 color = glm::normalize(100.0f * (glm::vec3(1,1,1) - ((Dielectric*)mat)->m_absorption_coeff));
+					glm::vec3 color = glm::normalize(10.0f * (glm::vec3(1,1,1) - ((Dielectric*)mat)->m_absorption_coeff));
 					mat = new Material();
 					mat->m_diffuse += color;
 					mat->m_specular += color;
