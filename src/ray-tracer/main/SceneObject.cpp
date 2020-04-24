@@ -166,8 +166,7 @@ namespace Chroma
 	SceneObject* SceneObject::CreateSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
 		glm::vec3 scale)
 	{
-		auto mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj", 
-			s.m_center, glm::vec3(0, 0, 0), glm::vec3(s.m_radius, s.m_radius, s.m_radius)));
+		auto mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj"));
 		if (mesh->GetVertexCount() != 0)
 		{
 			CH_WARN("Using sphere.obj file in preview-render");

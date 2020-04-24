@@ -120,27 +120,6 @@ namespace Chroma
 		inline glm::vec3 GetRotation() const { return m_rotation; }
 		inline glm::vec3 GetScale() const { return m_scale; }
 
-		inline glm::vec3 GetMaxBound() const 
-		{ 
-			if (m_shape_t == SHAPE_T::sphere)
-			{
-				float radius = ((Sphere*)(m_mesh->m_shapes[0].get()))->m_radius;
-				return glm::vec3(*m_tranform_matrix * glm::vec4(radius, radius, radius,1.0f));
-			}
-			else if(m_shape_t == SHAPE_T::triangle)
-				return glm::vec3(*m_tranform_matrix * glm::vec4(m_mesh->GetMaxBound(), 1.0f)); 
-		}
-		inline glm::vec3 GetMinBound() const 
-		{
-			if (m_shape_t == SHAPE_T::sphere)
-			{
-				float radius = ((Sphere*)(m_mesh->m_shapes[0].get()))->m_radius;
-				return glm::vec3(*m_tranform_matrix * glm::vec4(-radius, -radius, -radius, 1.0f));
-			}
-			else if (m_shape_t == SHAPE_T::triangle)
-				return glm::vec3(*m_tranform_matrix * glm::vec4(m_mesh->GetMinBound(), 1.0f));
-		}
-
 		inline glm::vec3 GetMotionBlur() { return m_motion_blur; }
 
 		inline void Translate(const glm::vec3 vec) { m_position += vec; RecalculateModelMatrix(); }
