@@ -7,7 +7,7 @@ namespace Chroma {
 
 	{
 	public:
-		static void Init();
+		static void Init(std::string ver = "1.0");
 
 		inline static std::shared_ptr<spdlog::logger>& GetLogger() { return s_logger; }
 	private:
