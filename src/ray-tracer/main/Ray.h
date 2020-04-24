@@ -18,6 +18,11 @@ namespace Chroma
 			:origin(orig), direction(dir)
 		{}
 
+		Ray(const Ray& ray)
+			:origin(ray.origin), direction(ray.direction), 
+			intersect_eps(ray.intersect_eps), jitter_t(ray.jitter_t)
+		{}
+
 
 		glm::vec3 PointAt(float t) const { return origin + t * glm::normalize(direction); }
 	};

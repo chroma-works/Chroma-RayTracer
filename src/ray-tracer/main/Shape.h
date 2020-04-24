@@ -185,8 +185,9 @@ namespace Chroma
 
 		Bounds3 GetWorldBounds() const
 		{
-			glm::vec3 r = 1.8f * m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
-			glm::mat4 tr = *m_transform * glm::scale(glm::mat4(1.0f), r);
+			glm::vec3 r = 1.732050f * m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::mat4 tr = *m_transform * 
+				 glm::scale(glm::translate(glm::mat4(1.0f), m_center), r);
 
 			glm::vec3 box[8] = {
 				{1,1,1},
@@ -211,7 +212,7 @@ namespace Chroma
 			b_max = glm::max(b_max, b_max + m_motion_blur);
 
 
-			return Bounds3(b_min + m_center, b_max + m_center);
+			return Bounds3(b_min, b_max);
 		}
 
 		Bounds3 GetLocalBounds() const
@@ -230,21 +231,23 @@ namespace Chroma
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
-			glm::mat4 inverse_transform = *m_inv_transform;
+			glm::vec3 r = m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::mat4 inverse_transform = glm::inverse(glm::scale(glm::translate(glm::mat4(1.0f), m_center), r))
+				* *m_inv_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				inverse_transform = *m_inv_transform * glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur)) ; //TODO
+				inverse_transform *= glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur)) ; //TODO
 			}
 			//glm::mat4 inverse_transform = glm::inverse(f_transform);
-
 			inverse_ray.direction = inverse_transform * glm::vec4(ray.direction, 0.0f);
 			inverse_ray.origin = inverse_transform * glm::vec4(ray.origin, 1.0f);
+			inverse_ray.direction = glm::normalize(inverse_ray.direction);
 
 			float t0, t1;
 
 			float a = glm::dot(inverse_ray.direction, inverse_ray.direction);
-			float b = 2.0f * glm::dot(inverse_ray.direction, (inverse_ray.origin - m_center));
-			float c = glm::dot(inverse_ray.origin - m_center, inverse_ray.origin - m_center) - m_radius * m_radius;
+			float b = 2.0f * glm::dot(inverse_ray.direction, (inverse_ray.origin ));
+			float c = glm::dot(inverse_ray.origin, inverse_ray.origin) - 1.0f;
 
 			double discr = b * b - 4.0 * a * c;
 			if (discr < 0.0f)
@@ -265,17 +268,17 @@ namespace Chroma
 			data->hit = discr >= 0.0f;
 			if (t0 < ray.intersect_eps) {
 				t0 = t1; // if t0 is negative, let's use t1 instead 
-				if (t0 < 0.0) data->hit = false; // both t0 and t1 are negative 
+				if (t0 < 0.7) data->hit = false; // both t0 and t1 are negative 
 			}
 
 			glm::vec3 transformed_center = (glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * 
 				*m_transform * glm::vec4(m_center, 1.0f));
-
-			data->t = t0;
-			data->position = ray.PointAt(t0);
+			
+			data->t = glm::distance(glm::vec3( glm::inverse(inverse_transform) * glm::vec4(inverse_ray.PointAt(t0),1.0f)), ray.origin);
+			data->position = ray.PointAt(data->t);
 			data->material = m_material.get();
-			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform))* 
-				glm::vec4((data->position - transformed_center), 0.0f));
+			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform))*
+				glm::vec4((inverse_ray.PointAt(t0)), 0.0f));
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
 				glm::acos(data->position.y / m_radius));
 			return data->hit;
