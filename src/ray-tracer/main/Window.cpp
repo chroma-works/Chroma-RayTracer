@@ -21,9 +21,17 @@ namespace Chroma {
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 		}
+		GLFWmonitor* primary = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(primary);
+		if (width == -1)
+			width = (int)mode->width;
+		if (height == -1)
+			height = (int)mode->height;
+
 		m_data.width = width;
 		m_data.height = height;
 		m_data.title = title;
+
 		m_window_handle = glfwCreateWindow((int)width, (int)height, title.c_str(), nullptr, nullptr);
 		glfwSetWindowUserPointer(m_window_handle, &m_data);
 

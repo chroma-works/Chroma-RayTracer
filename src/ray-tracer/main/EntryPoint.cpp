@@ -20,9 +20,9 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	Chroma::Logger::Init("1.10.5");
+	Chroma::Logger::Init("1.10.6");
 
-	Chroma::Window window = Chroma::Window(SCR_WIDTH, SCR_HEIGHT, "Chroma Ray Tracer");
+	Chroma::Window window = Chroma::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
 
 	// build and compile our shader program
