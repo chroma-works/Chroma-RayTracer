@@ -16,7 +16,7 @@ namespace Chroma
 	class Editor
 	{
 	public:
-		Editor(Window* window, Scene* scene);
+		Editor(Window* window, Scene* scene, Settings s);
 		static Editor* getInstance();
 		~Editor();
 

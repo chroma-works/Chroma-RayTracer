@@ -322,7 +322,7 @@ namespace Chroma
 		return cam;
 	}
 
-	Scene* AssetImporter::LoadSceneFromXML(Shader* shader, const std::string& file_path)
+	Scene* AssetImporter::LoadSceneFromXML(Shader* shader, const std::string& file_path, Settings* settings)
 	{
 		//Scene name from file name
 		size_t found = file_path.find_last_of("/\\");
@@ -346,22 +346,22 @@ namespace Chroma
 			if (std::string(node->Value()).compare(MAX_RECUR) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				sscanf(data.c_str(), "%d", &scene->m_recur_dept);
+				sscanf(data.c_str(), "%d", &settings->recur_depth);
 			}
 			else if (std::string(node->Value()).compare(BCK_COLOR) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				sscanf(data.c_str(), "%f %f %f",&scene->m_sky_color.x, &scene->m_sky_color.y, &scene->m_sky_color.z);
+				sscanf(data.c_str(), "%f %f %f", &scene->m_sky_color.x, &scene->m_sky_color.y, &scene->m_sky_color.z);
 			}
 			else if (std::string(node->Value()).compare(S_RAY_EPS) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				sscanf(data.c_str(), "%f", &scene->m_shadow_eps);
+				sscanf(data.c_str(), "%f", &settings->shadow_eps);
 			}
 			else if (std::string(node->Value()).compare(I_TEST_EPS) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				sscanf(data.c_str(), "%f", &scene->m_intersect_eps);
+				sscanf(data.c_str(), "%f", &settings->intersection_eps);
 			}
 			else if (std::string(node->Value()).compare(CAMS) == 0)
 			{

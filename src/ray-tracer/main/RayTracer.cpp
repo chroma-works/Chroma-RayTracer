@@ -183,7 +183,7 @@ namespace Chroma
 
 						//Shadow calculation	
 						bool shadowed = false;
-						Ray shadow_ray(isect_data.position + isect_data.normal * scene.m_shadow_eps);
+						Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
 						shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 							
 						shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
@@ -301,14 +301,14 @@ namespace Chroma
 
 		if (!isect_data.hit)
 		{
-			//delete isect_data;
 			return scene.m_sky_color;
 		}
 		else if (m_settings.calc_reflections && 
-			isect_data.material->type == MAT_TYPE::mirror && depth < scene.m_recur_dept) 
+			isect_data.material->type == MAT_TYPE::mirror && depth < m_settings.recur_depth) 
 		{
 			// compute reflection
 			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
+
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			glm::vec3 r_prime = CalculateNonColinearTo(r);
@@ -318,14 +318,14 @@ namespace Chroma
 			v = glm::cross(r,u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
 				(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
-			reflection_ray.intersect_eps = scene.m_intersect_eps;
+			reflection_ray.intersect_eps = m_settings.intersection_eps;
 			reflection_ray.jitter_t = RandFloat();
 
 			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
 		else if (m_settings.calc_reflections &&
-			isect_data.material->type == MAT_TYPE::conductor && depth < scene.m_recur_dept)
+			isect_data.material->type == MAT_TYPE::conductor && depth < m_settings.recur_depth)
 		{
 			// compute reflection
 			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
@@ -338,7 +338,7 @@ namespace Chroma
 			v = glm::cross(r, u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 				(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
-			reflection_ray.intersect_eps = scene.m_intersect_eps;
+			reflection_ray.intersect_eps = m_settings.intersection_eps;
 			reflection_ray.jitter_t = RandFloat();
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
@@ -347,7 +347,7 @@ namespace Chroma
 				((Conductor*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
-		else if (isect_data.material->type == MAT_TYPE::dielectric && depth < scene.m_recur_dept)
+		else if (isect_data.material->type == MAT_TYPE::dielectric && depth < m_settings.recur_depth)
 		{
 			float cos_i = glm::dot(ray.direction, isect_data.normal);
 			float ni = 1.0f;
@@ -376,7 +376,7 @@ namespace Chroma
 				v = glm::cross(r, u);
 				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 					(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
-				reflection_ray.intersect_eps = scene.m_intersect_eps;
+				reflection_ray.intersect_eps = m_settings.intersection_eps;
 				reflection_ray.jitter_t = RandFloat();
 
 				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * fr;
@@ -388,7 +388,7 @@ namespace Chroma
 			{
 				Ray refraction_ray(isect_data.position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
-				refraction_ray.intersect_eps = scene.m_intersect_eps;
+				refraction_ray.intersect_eps = m_settings.intersection_eps;
 				refraction_ray.jitter_t = RandFloat();
 
 				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1) * (1.0f - fr);
@@ -415,7 +415,7 @@ namespace Chroma
 
 				//Shadow calculation	
 				bool shadowed = false;
-				Ray shadow_ray(isect_data.position + isect_data.normal * scene.m_shadow_eps);
+				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 				shadow_ray.intersect_eps = 0.009f;
 				shadow_ray.jitter_t = ray.jitter_t;

@@ -19,7 +19,8 @@ namespace Chroma
 	const ImVec4 DARK_PURPLE = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
 
 	Chroma::Editor* s_instance = 0;
-	Editor::Editor(Window* win, Scene* scene)
+	Editor::Editor(Window* win, Scene* scene, Settings s)
+		: m_settings(s)
 	{
 		if (!s_instance)
 		{
@@ -422,6 +423,7 @@ namespace Chroma
 		m_settings.resolution = m_scene->GetCamera(m_settings.act_rt_cam_name)->GetResolution();
 		if (flag)
 		{
+			//m_settings.recur_depth = m_scene->m_recur_dept;
 			ray_tracer->m_settings.resolution = { -1.0f, -1.0f };
 			flag = false;
 			ImGui::SetNextWindowSize(ImVec2(820, 480));
@@ -501,6 +503,7 @@ namespace Chroma
 		}
 
 		ImGui::PushItemWidth(100);
+		ImGui::InputInt("Recursion Depth", &m_settings.recur_depth);
 		int n_sample = m_scene->GetCamera(m_settings.act_rt_cam_name)->GetNumberOfSamples();
 		ImGui::InputInt("# of Samples ", &n_sample, 1 ,100);
 		m_scene->GetCamera(m_settings.act_rt_cam_name)->SetNumberOfSamples(n_sample);

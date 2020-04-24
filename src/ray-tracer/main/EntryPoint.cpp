@@ -31,9 +31,10 @@ int main()
 	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<Chroma::Scene> scene;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw3/ellipsoids.xml")));
+	Chroma::Settings s;
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw3/cornellbox_brushed_metal.xml", &s)));
 	//init editor
-	Chroma::Editor editor(&window, scene.get());
+	Chroma::Editor editor(&window, scene.get(), s);
 
 	//editor.TogglePreviewRender(false);
 

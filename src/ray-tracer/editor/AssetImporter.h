@@ -3,6 +3,7 @@
 #include <ray-tracer/main/Scene.h>
 #include <ray-tracer/main/SceneObject.h>
 #include <ray-tracer/editor/Texture.h>
+#include "Settings.h"
 
 #include <thirdparty/tinyxml2/tinyxml2.h>
 
@@ -21,7 +22,7 @@ namespace Chroma
 
 		static Mesh* LoadMeshFromPly(std::string ply_path);
 
-		static Scene* LoadSceneFromXML(Shader* shader, const std::string& file_name);
+		static Scene* LoadSceneFromXML(Shader* shader, const std::string& file_name, Settings* setting);
 
     private:
     };
