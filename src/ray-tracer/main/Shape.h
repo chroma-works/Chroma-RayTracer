@@ -173,21 +173,13 @@ namespace Chroma
 		Sphere(std::shared_ptr<Material> mat, bool visible = true)
 			:Shape(mat, visible)
 		{
-			m_radius = 0.0f;
-			m_type = SHAPE_T::sphere;
-		}
-
-		Sphere(float rad, std::shared_ptr<Material> mat, bool visible = true)
-			:Shape(mat, visible), m_radius(rad)
-		{
 			m_type = SHAPE_T::sphere;
 		}
 
 		Bounds3 GetWorldBounds() const
 		{
-			glm::vec3 r = 1.732050f * m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
-			glm::mat4 tr = *m_transform * 
-				 glm::scale(glm::translate(glm::mat4(1.0f), m_center), r);
+			glm::vec3 r = 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::mat4 tr = *m_transform;
 
 			glm::vec3 box[8] = {
 				{1,1,1},
@@ -217,9 +209,9 @@ namespace Chroma
 
 		Bounds3 GetLocalBounds() const
 		{
-			glm::vec3 t1 = m_center - m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::vec3 t1 = 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
 
-			glm::vec3 t2 = m_center + m_radius * 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::vec3 t2 = 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
 
 			glm::vec3 b_min = glm::min(t1, t2); //glm::vec3(1.732050, 1.732050, 1.732050);
 			glm::vec3 b_max = glm::max(t1, t2);//glm::vec3(1.732050, 1.732050, 1.732050);
@@ -231,9 +223,7 @@ namespace Chroma
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
-			glm::vec3 r = m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
-			glm::mat4 inverse_transform = glm::inverse(glm::scale(glm::translate(glm::mat4(1.0f), m_center), r))
-				* *m_inv_transform;
+			glm::mat4 inverse_transform = *m_inv_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
 				inverse_transform *= glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur)) ; //TODO
@@ -271,21 +261,15 @@ namespace Chroma
 				if (t0 < 0.7) data->hit = false; // both t0 and t1 are negative 
 			}
 
-			glm::vec3 transformed_center = (glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur) * 
-				*m_transform * glm::vec4(m_center, 1.0f));
-			
 			data->t = glm::distance(glm::vec3( glm::inverse(inverse_transform) * glm::vec4(inverse_ray.PointAt(t0),1.0f)), ray.origin);
 			data->position = ray.PointAt(data->t);
 			data->material = m_material.get();
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform))*
 				glm::vec4((inverse_ray.PointAt(t0)), 0.0f));
 			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
-				glm::acos(data->position.y / m_radius));
+				glm::acos(data->position.y / 1.0f));
 			return data->hit;
 		}
-
-		float m_radius;
-		glm::vec3 m_center = glm::vec3(0, 0, 0);
 	};
 
 	class Instance : public Shape
