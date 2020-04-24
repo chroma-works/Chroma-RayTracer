@@ -66,6 +66,7 @@ namespace Chroma
 			cam = m_cameras.begin()->second;
 		if (!cam)
 			CH_FATAL("Failed to render no valid Camera Provided!");
+
 		m_scene_data->SetView(cam->GetViewMatrix());
 		m_scene_data->SetProj(cam->GetProjectionMatrix());
 		m_scene_data->SetCamPos(cam->GetPosition());
@@ -75,7 +76,44 @@ namespace Chroma
 			if (scn_obj->IsVisibleInEditor())
 			{
 				m_scene_data->SetModel(scn_obj->GetModelMatrix());
-				m_scene_data->SetMaterial(scn_obj->GetMaterial().get());
+
+				Material* mat = scn_obj->GetMaterial().get();
+				if (mat->type == MAT_TYPE::conductor)
+				{
+					glm::vec3 color = ((Conductor*)mat)->m_mirror_reflec;
+					mat = new Material();
+					mat->m_ambient += color;
+					mat->m_diffuse += color;
+					mat->m_specular += glm::vec3({ 1,1,1 });
+
+					mat->m_ambient = glm::normalize(mat->m_ambient);
+					mat->m_diffuse = glm::normalize(mat->m_diffuse);
+					mat->m_specular = glm::normalize(mat->m_specular);
+				}
+				else if (mat->type == MAT_TYPE::dielectric)
+				{
+					glm::vec3 color = glm::normalize(100.0f * (glm::vec3(1,1,1) - ((Dielectric*)mat)->m_absorption_coeff));
+					mat = new Material();
+					mat->m_diffuse += color;
+					mat->m_specular += color;
+
+					mat->m_ambient = glm::normalize(mat->m_ambient);
+					mat->m_diffuse = glm::normalize(mat->m_diffuse);
+					mat->m_specular = glm::normalize(mat->m_specular);
+				}
+				else if (mat->type == MAT_TYPE::mirror)
+				{
+					glm::vec3 color = ((Mirror*)mat)->m_mirror_reflec;
+					mat = new Material();
+					mat->m_diffuse += color;
+					mat->m_specular += color;
+
+					mat->m_ambient = glm::normalize(mat->m_ambient);
+					mat->m_diffuse = glm::normalize(mat->m_diffuse);
+					mat->m_specular = glm::normalize(mat->m_specular);
+				}
+
+				m_scene_data->SetMaterial(mat);
 
 				m_scene_data->m_shader->UpdateUniforms();
 				m_scene_data->m_shader->Bind();
