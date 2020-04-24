@@ -185,8 +185,8 @@ namespace Chroma
 
 		Bounds3 GetWorldBounds() const
 		{
-			glm::vec3 r = 1.9f * m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
-			glm::mat4 tr = *m_transform * glm::scale(glm::mat4(1.0f), r) * glm::translate(glm::mat4(1.0f), m_center);
+			glm::vec3 r = 1.8f * m_radius * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::mat4 tr = *m_transform * glm::scale(glm::mat4(1.0f), r);
 
 			glm::vec3 box[8] = {
 				{1,1,1},
@@ -211,7 +211,7 @@ namespace Chroma
 			b_max = glm::max(b_max, b_max + m_motion_blur);
 
 
-			return Bounds3(b_min, b_max);
+			return Bounds3(b_min + m_center, b_max + m_center);
 		}
 
 		Bounds3 GetLocalBounds() const
