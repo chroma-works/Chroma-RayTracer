@@ -1,0 +1,89 @@
+<Scene>
+    <MaxRecursionDepth>6</MaxRecursionDepth>
+
+    <BackgroundColor>0 0 0</BackgroundColor>
+
+    <Cameras>
+        <Camera id="1">
+            <Position>0 5 225</Position>
+            <Gaze>0 0 -1</Gaze>
+            <Up>0 1 0</Up>
+            <NearPlane>-1 1 -1 1</NearPlane>
+            <NearDistance>10</NearDistance>
+            <ImageResolution>800 800</ImageResolution>
+            <NumSamples>1</NumSamples>
+            <ImageName>sphere_perlin_scale.png</ImageName>
+        </Camera>
+    </Cameras>
+
+    <Lights>
+        <AmbientLight>25 25 25</AmbientLight>
+        <PointLight id="1">
+            <Position>20 20 20</Position>
+            <Intensity>100000 100000 100000</Intensity>
+        </PointLight>
+        <PointLight id="2">
+            <Position>-15 30 5</Position>
+            <Intensity>100000 100000 100000</Intensity>
+        </PointLight>
+        <PointLight id="3">
+            <Position>-15 20 50</Position>
+            <Intensity>100000 100000 100000</Intensity>
+        </PointLight>
+        <PointLight id="3">
+            <Position>-15 -30 5</Position>
+            <Intensity>100000 100000 100000</Intensity>
+        </PointLight>
+        <PointLight id="4">
+            <Position>-15 -20 50</Position>
+            <Intensity>100000 100000 100000</Intensity>
+        </PointLight>
+        <PointLight id="5">
+            <Position>15 -20 50</Position>
+            <Intensity>100000 100000 100000</Intensity>
+        </PointLight>
+    </Lights>
+
+    <Materials>
+        <Material id="1">
+            <AmbientReflectance>0 0 0</AmbientReflectance>
+            <DiffuseReflectance>1 1 1</DiffuseReflectance>
+            <SpecularReflectance>1 1 1</SpecularReflectance>
+            <PhongExponent>300</PhongExponent>
+        </Material>
+    </Materials>
+
+    <Textures>
+        <TextureMap id="1" type="perlin">
+            <DecalMode>replace_kd</DecalMode>
+            <NoiseConversion>absval</NoiseConversion>
+            <NoiseScale>3</NoiseScale>
+        </TextureMap>
+
+        <TextureMap id="2" type="perlin">
+            <DecalMode>replace_kd</DecalMode>
+            <NoiseConversion>linear</NoiseConversion>
+            <NoiseScale>3</NoiseScale>
+        </TextureMap>
+    </Textures>
+
+    <VertexData>
+         -10 10 0
+          10 10 0
+    </VertexData>
+
+    <Objects>
+        <Sphere id="1">
+            <Material>1</Material>
+            <Textures>1</Textures>
+            <Center>1</Center>
+            <Radius>10</Radius>
+        </Sphere>
+        <Sphere id="2">
+            <Material>1</Material>
+            <Textures>2</Textures>
+            <Center>2</Center>
+            <Radius>10</Radius>
+        </Sphere>
+    </Objects>
+</Scene>
