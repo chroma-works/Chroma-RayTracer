@@ -3,7 +3,7 @@
 #include <ray-tracer/main/Material.h>
 #include <ray-tracer/main/Shape.h>
 #include <ray-tracer/main/Ray.h>
-#include <ray-tracer/editor/Texture.h>
+#include <ray-tracer/main/Texture.h>
 #include <ray-tracer/editor/Shader.h>
 #include <ray-tracer/editor/Buffer.h>
 #include <ray-tracer/openGL/OpenGLBuffer.h>

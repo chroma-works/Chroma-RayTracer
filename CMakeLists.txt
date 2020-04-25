@@ -65,6 +65,8 @@ set (main_sources
 	src/ray-tracer/main/RayTracer.cpp
 	src/ray-tracer/main/Scene.h
 	src/ray-tracer/main/Scene.cpp
+	src/ray-tracer/main/Texture.h
+	src/ray-tracer/main/Texture.cpp
 	src/ray-tracer/main/SceneObject.h
 	src/ray-tracer/main/SceneObject.cpp
 	src/ray-tracer/main/Window.h
@@ -96,8 +98,6 @@ set (editor_sources
 	src/ray-tracer/editor/Settings.h
 	src/ray-tracer/editor/Shader.h
 	src/ray-tracer/editor/Shader.cpp
-	src/ray-tracer/editor/Texture.h
-	src/ray-tracer/editor/Texture.cpp
 )
 source_group ("editor\\" FILES
     ${editor_sources}
