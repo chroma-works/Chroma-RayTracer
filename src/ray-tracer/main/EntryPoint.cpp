@@ -20,7 +20,7 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	Chroma::Logger::Init("1.10.9");
+	Chroma::Logger::Init("1.10.10");
 
 	Chroma::Window window = Chroma::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<Chroma::Scene> scene;
 	Chroma::Settings s;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw3/cornellbox_brushed_metal.xml", &s)));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw4/sphere_nearest_bilinear.xml", &s)));
 	//init editor
 	Chroma::Editor editor(&window, scene.get(), s);
 

@@ -255,7 +255,7 @@ namespace Chroma
 			if (t0 > t1)
 				std::swap(t0, t1);
 
-			data->hit = discr >= 0.0f;
+			data->hit = discr >= -0.7f;
 			if (t0 < ray.intersect_eps) {
 				t0 = t1; // if t0 is negative, let's use t1 instead 
 				if (t0 < 0.7) data->hit = false; // both t0 and t1 are negative 
