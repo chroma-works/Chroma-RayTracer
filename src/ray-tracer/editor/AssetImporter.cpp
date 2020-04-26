@@ -11,6 +11,7 @@
 #include <thirdparty/hapPLY/happly.h>
 #include <thirdparty/OBJ_loader/OBJ_Loader.h>
 #include <thirdparty/glm/glm/gtx/quaternion.hpp>
+#include <ray-tracer\main\TextureMap.h>
 
 
 namespace Chroma
@@ -23,13 +24,18 @@ namespace Chroma
 	const std::string BCK_COLOR = "BackgroundColor";
 	const std::string CAMS = "Cameras";
 	const std::string CNTR = "Center";
+	const std::string DEC_M = "DecalMode";
 	const std::string DIF_REF = "DiffuseReflectance";
 	const std::string FACES = "Faces";
 	const std::string FOCUS = "FocusDistance";
 	const std::string GAZE = "Gaze";
 	const std::string I_TEST_EPS = "IntersectionTestEpsilon";
-	const std::string IM_NAME = "ImageName";
+	const std::string IMG = "Image";
+	const std::string IMGS = "Images";
+	const std::string IM_ID = "ImageId";
+	const std::string IMG_NAME = "ImageName";
 	const std::string IND = "Indices";
+	const std::string INTERP = "Interpolation";
 	const std::string INTEN = "Intensity";
 	const std::string LIGS = "Lights";
 	const std::string MAT = "Material";
@@ -40,6 +46,7 @@ namespace Chroma
 	const std::string MIRROR_REF = "MirrorReflectance";
 	const std::string MOTION_B = "MotionBlur";
 	const std::string N_DIST = "NearDistance";
+	const std::string NORMALIZER = "Normalizer";
 	const std::string N_PLANE = "NearPlane";
 	const std::string NUM_SAMP = "NumSamples";
 	const std::string OBJ = "Objects";
@@ -60,6 +67,8 @@ namespace Chroma
 	const std::string TRIANGLE = "Triangle";
 	const std::string TRANSFORMS = "Transformations";
 	const std::string TRA = "Translation";
+	const std::string TEX = "Textures";
+	const std::string TEX_MAP = "TextureMap";
 	const std::string SCA = "Scaling";
 	const std::string VRTX_DATA = "VertexData";
 
@@ -96,11 +105,84 @@ namespace Chroma
         return mesh;
     }
 
+
     Texture* AssetImporter::LoadTexture(const std::string& file_name)
     {
         return new Texture(file_name);
     }
 
+	std::vector<std::shared_ptr<TextureMap>> ParseTextures(tinyxml2::XMLNode* node, std::string file_path)
+	{
+		std::vector<std::shared_ptr<Texture>> textures;
+		std::vector<std::shared_ptr<TextureMap>> texture_maps;
+
+		while (node)
+		{
+			if (std::string(node->Value()).compare(IMGS) == 0)
+			{
+				tinyxml2::XMLNode* child_node = node->FirstChild();
+				while (child_node)
+				{
+					textures.push_back(std::make_shared<Texture>(file_path + std::string(child_node->FirstChild()->Value())));
+					child_node = child_node->NextSibling();
+				}
+			}
+			else if (std::string(node->Value()).compare(TEX_MAP) == 0)
+			{
+				std::string type = node->ToElement()->FindAttribute("type")->Value();
+
+				if (type.compare("image") == 0)
+				{
+					tinyxml2::XMLNode* child_node = node->FirstChild();
+					int tex_ind = -1;
+					bool interp = false;
+					Chroma::DECAL_M d_mode;
+					int normalizer = 0;
+
+
+					while (child_node)
+					{
+						if (std::string(child_node->Value()).compare(IM_ID) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%d", &tex_ind);
+							tex_ind--;
+						}
+						else if (std::string(child_node->Value()).compare(DEC_M) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							if (data.compare("replace_kd") == 0)
+								d_mode = DECAL_M::re_kd;
+							else if (data.compare("bump_normal") == 0)
+								d_mode = DECAL_M::bump;
+							else if (data.compare("blend_kd") == 0)
+								d_mode = DECAL_M::bl_kd;
+							else if (data.compare("replace_background") == 0)
+								d_mode = DECAL_M::re_bg;
+
+						}
+						else if (std::string(child_node->Value()).compare(INTERP) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							interp = data.compare("bilinear") == 0;
+						}
+						else if (std::string(child_node->Value()).compare(NORMALIZER) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%d", &normalizer);
+						}
+						child_node = child_node->NextSibling();
+					}
+					auto tm = std::make_shared<TextureMap>(textures[tex_ind], d_mode, interp);
+					tm->SetNormalizer(normalizer);
+					texture_maps.push_back(tm);
+				}
+			}
+			node = node->NextSibling();
+		}
+
+		return texture_maps;
+	}
 	size_t Split(const std::string& txt, std::vector<std::string>& strs, char ch)
 	{
 		size_t pos = txt.find(ch);
@@ -236,7 +318,7 @@ namespace Chroma
 				sscanf(data.c_str(), "%d %d", &tmp.x, &tmp.y);
 				cam->SetResolution(tmp);
 			}
-			else if (std::string(cam_prop->Value()).compare(IM_NAME) == 0)
+			else if (std::string(cam_prop->Value()).compare(IMG_NAME) == 0)
 			{
 				std::string data = cam_prop->FirstChild()->Value();
 				cam->SetImageName(data);
@@ -334,6 +416,7 @@ namespace Chroma
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile(file_path.c_str());
 		std::vector<std::shared_ptr<Material>> materials;
+		std::vector<std::shared_ptr<TextureMap>> texturemaps;
 		std::vector<std::shared_ptr<glm::vec3>> vertices;
 
 		std::vector<glm::mat4> translations;
@@ -566,6 +649,12 @@ namespace Chroma
 					materials.push_back(mat);
 				}
 			}
+			else if (std::string(node->Value()).compare(TEX) == 0)
+			{
+				tinyxml2::XMLNode* child_node = node->FirstChild();
+
+				texturemaps = ParseTextures(child_node, file_path.substr(0, found + 1));
+			}
 			else if (std::string(node->Value()).compare(VRTX_DATA) == 0)
 			{
 				tinyxml2::XMLNode* child_node = node->FirstChild();
@@ -597,7 +686,7 @@ namespace Chroma
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						std::shared_ptr<Mesh> mesh = nullptr;
-						int mat_ind = 0;
+						int mat_ind = 0, tex_map_ind = 0;
 						auto shading_mode = child_node->ToElement()->FindAttribute(SHADING_M.c_str());
 						bool smooth_normals = (shading_mode ? (std::string(shading_mode->Value()).compare(SMOOTH) == 0 ? 
 							true : false) : false);
@@ -612,7 +701,13 @@ namespace Chroma
 							{
 								std::string data = object_prop->FirstChild()->Value();
 								sscanf(data.c_str(), "%d", &mat_ind);
-								mat_ind = mat_ind - 1;
+								mat_ind --;
+							}
+							else if (std::string(object_prop->Value()).compare(TEX) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d", &tex_map_ind);
+								tex_map_ind--;
 							}
 							else if (std::string(object_prop->Value()).compare(FACES) == 0)
 							{
@@ -683,6 +778,7 @@ namespace Chroma
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
+						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 
 						if (smooth_normals)
 						{
@@ -695,7 +791,7 @@ namespace Chroma
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						std::shared_ptr<Mesh> mesh = nullptr;
-						int mat_ind = 0;
+						int mat_ind = 0, tex_map_ind = 0;
 						glm::mat4 transform = glm::mat4(1.0f);
 
 						glm::vec3 m_b = { 0,0,0 };
@@ -707,6 +803,12 @@ namespace Chroma
 								std::string data = object_prop->FirstChild()->Value();
 								sscanf(data.c_str(), "%d", &mat_ind);
 								mat_ind = mat_ind - 1;
+							}
+							else if (std::string(object_prop->Value()).compare(TEX) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d", &tex_map_ind);
+								tex_map_ind--;
 							}
 							else if (std::string(object_prop->Value()).compare(IND) == 0)
 							{
@@ -749,6 +851,7 @@ namespace Chroma
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
+						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -762,6 +865,8 @@ namespace Chroma
 						glm::vec3 center = { 0,0,0 };
 						glm::vec3 rad_scale = { 1,1,1 };
 
+						int tex_map_ind = 0;
+
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
 						{
@@ -772,6 +877,12 @@ namespace Chroma
 								sscanf(data.c_str(), "%d", &ind);
 								ind = ind - 1;
 								s.m_material = materials[ind];
+							}
+							else if (std::string(object_prop->Value()).compare(TEX) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d", &tex_map_ind);
+								tex_map_ind--;
 							}
 							else if (std::string(object_prop->Value()).compare("Center") == 0)
 							{
@@ -803,6 +914,7 @@ namespace Chroma
 						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3()));
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
+						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -818,6 +930,8 @@ namespace Chroma
 						glm::mat4 transform = glm::mat4(1.0f);
 						glm::vec3 m_b = { 0,0,0 };
 
+						int tex_map_ind = 0;
+
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
 						{
@@ -828,6 +942,12 @@ namespace Chroma
 								sscanf(data.c_str(), "%d", &ind);
 								ind = ind - 1;
 								scene_obj->SetMaterial(materials[ind]);
+							}
+							else if (std::string(object_prop->Value()).compare(TEX) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d", &tex_map_ind);
+								tex_map_ind--;
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
@@ -844,6 +964,7 @@ namespace Chroma
 							transform = transform * it->second->GetModelMatrix();
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
+						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					child_node = child_node->NextSibling();

@@ -18,7 +18,7 @@ namespace Chroma
 			glm::vec3 r = { 0,0,0 },
 			glm::vec3 s = { 1,1,1 });
 
-        Texture * LoadTexture(const std::string & file_name);
+        static Texture * LoadTexture(const std::string & file_name);
 
 		static Mesh* LoadMeshFromPly(std::string ply_path);
 
