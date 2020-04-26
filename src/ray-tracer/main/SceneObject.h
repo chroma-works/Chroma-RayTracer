@@ -4,6 +4,7 @@
 #include <ray-tracer/main/Shape.h>
 #include <ray-tracer/main/Ray.h>
 #include <ray-tracer/main/Texture.h>
+#include <ray-tracer/main/TextureMap.h>
 #include <ray-tracer/editor/Shader.h>
 #include <ray-tracer/editor/Buffer.h>
 #include <ray-tracer/openGL/OpenGLBuffer.h>
@@ -146,7 +147,13 @@ namespace Chroma
 		inline void ResetTransforms() { *m_tranform_matrix = glm::mat4(1.0f); }
 
 
-		inline void SetTexture(Chroma::Texture tex) { m_texture = tex; }
+		inline void SetTexture(Texture tex) { m_texture = tex; }
+
+		inline void SetTextureMap(std::shared_ptr<TextureMap> tex_map)
+		{
+			m_texture = *((tex_map->m_texture).get());//TODO
+		}
+
 		inline void SetMaterial(std::shared_ptr<Material> mat) {
 			m_material = mat; 
 			for (auto shape : m_mesh->m_shapes)
@@ -177,7 +184,7 @@ namespace Chroma
 		void Draw(DrawMode mode);
 
 		//float m_radius;
-		std::shared_ptr<Mesh> m_mesh; //TODO: multiple mesh ?
+		std::shared_ptr<Mesh> m_mesh;
 
 	private:
 		void RecalculateModelMatrix();
