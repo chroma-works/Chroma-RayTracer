@@ -15,12 +15,12 @@ namespace Chroma
 			float dx = abs(s.x - p);
 			float dy = abs(s.y - q);
 
-			return (1 - dx) * (1 - dy) * m_texture->ColorAt({p, q}) + 
+			return ((1 - dx) * (1 - dy) * m_texture->ColorAt({p, q}) + 
 				(1 - dx) * (dy) * m_texture->ColorAt({p, q+1}) + 
 				(dx) * (1 - dy) * m_texture->ColorAt({p+1, q}) + 
-				(dx) * (dy) * m_texture->ColorAt({p+1, q+1});
+				(dx) * (dy) * m_texture->ColorAt({p+1, q+1})) / (float)m_normalizer;
 		}
 		else
-			return m_texture->ColorAt({ round(s.x), round(s.y) });
+			return m_texture->ColorAt({ round(s.x), round(s.y) }) / (float)m_normalizer ;
 	}
 }

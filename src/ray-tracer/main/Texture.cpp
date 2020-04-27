@@ -121,6 +121,6 @@ namespace Chroma
 		unsigned int b = pixelOffset[2];
 		unsigned int a = m_BPP >= 4 ? pixelOffset[3] : 0xff;
 
-		return glm::vec4(r, g, b, a)/255.0f;
+		return glm::vec4(r, g, b, a);
 	}
 }

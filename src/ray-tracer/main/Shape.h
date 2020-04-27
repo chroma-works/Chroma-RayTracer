@@ -36,6 +36,7 @@ namespace Chroma
 
 		bool m_visible = true;
 		std::shared_ptr<Material> m_material = nullptr;
+		std::shared_ptr<TextureMap> m_tex_map = nullptr;
 		SHAPE_T m_type = SHAPE_T::none;
 		glm::vec3 m_motion_blur = { 0,0,0 };
 	protected:
@@ -158,6 +159,7 @@ namespace Chroma
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material.get();
+			data->tex_map = m_tex_map.get();
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
 				( smooth_normals ? 
 				(u * (*m_normals[1]) + v * (*m_normals[2]) + (1 - u - v) * (*m_normals[0])) :	//Smooth shading
@@ -178,7 +180,7 @@ namespace Chroma
 
 		Bounds3 GetWorldBounds() const
 		{
-			glm::vec3 r = 1.732050f * glm::vec3(1.0f, 1.0f, 1.0f);
+			glm::vec3 r = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 			glm::mat4 tr = *m_transform;
 
 			glm::vec3 box[8] = {
@@ -226,7 +228,7 @@ namespace Chroma
 			glm::mat4 inverse_transform = *m_inv_transform;
 			if (m_motion_blur != glm::vec3(0, 0, 0))
 			{
-				inverse_transform *= glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur)) ; //TODO
+				inverse_transform *= glm::inverse(glm::translate(glm::mat4(1.0f), ray.jitter_t * m_motion_blur));
 			}
 			//glm::mat4 inverse_transform = glm::inverse(f_transform);
 			inverse_ray.direction = inverse_transform * glm::vec4(ray.direction, 0.0f);
@@ -240,7 +242,7 @@ namespace Chroma
 			float c = glm::dot(inverse_ray.origin, inverse_ray.origin) - 1.0f;
 
 			double discr = b * b - 4.0 * a * c;
-			if (discr < 0.0f)
+			if (discr < ray.intersect_eps)
 			{
 				data->hit = false;
 				return false;
@@ -255,19 +257,23 @@ namespace Chroma
 			if (t0 > t1)
 				std::swap(t0, t1);
 
-			data->hit = discr >= -0.7f;
+			data->hit = discr >= 0.0f;
 			if (t0 < ray.intersect_eps) {
 				t0 = t1; // if t0 is negative, let's use t1 instead 
-				if (t0 < 0.7) data->hit = false; // both t0 and t1 are negative 
+				if (t0 < 0.7f) data->hit = false; // both t0 and t1 are negative 
 			}
 
-			data->t = glm::distance(glm::vec3( glm::inverse(inverse_transform) * glm::vec4(inverse_ray.PointAt(t0),1.0f)), ray.origin);
+			glm::vec3 local_p = inverse_ray.PointAt(t0);
+
+			data->t = glm::distance(glm::vec3( glm::inverse(inverse_transform) * glm::vec4(local_p,1.0f)), ray.origin);
 			data->position = ray.PointAt(data->t);
 			data->material = m_material.get();
+			data->tex_map = m_tex_map.get();
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform))*
-				glm::vec4((inverse_ray.PointAt(t0)), 0.0f));
-			data->uv = glm::vec2(glm::atan(data->position.z, data->position.x),
-				glm::acos(data->position.y / 1.0f));
+				glm::vec4(local_p, 0.0f));
+
+			data->uv = glm::vec2( (glm::pi<float>() - glm::atan(local_p.z, local_p.x)) / (2*glm::pi<float>()),
+				acos(local_p.y) / glm::pi<float>());
 			return data->hit;
 		}
 	};
@@ -327,6 +333,8 @@ namespace Chroma
 				data->position = ray.PointAt(data->t);
 				if (m_material.get())
 					data->material = m_material.get();
+				if(m_tex_map.get())
+					data->tex_map = m_tex_map.get();
 			}
 			return hit;
 		}
