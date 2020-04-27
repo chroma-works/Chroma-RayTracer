@@ -1,6 +1,7 @@
 #pragma once
 #include <thirdparty/glm/glm/glm.hpp>
-#include <ray-tracer/main/Material.h>
+#include "Material.h"
+#include "TextureMap.h"
 
 namespace Chroma
 {
@@ -35,6 +36,7 @@ namespace Chroma
 		glm::vec2 uv;
 
 		Material* material;
+		TextureMap* tex_map = nullptr;
 
 		bool hit = false;
 	};
