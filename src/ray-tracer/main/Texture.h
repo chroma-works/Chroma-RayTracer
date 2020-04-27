@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "thirdparty/glm/glm/glm.hpp"
 
 namespace Chroma
 {
@@ -18,8 +19,12 @@ namespace Chroma
         void Bind(unsigned int slot = 0) const;
         void Unbind() const;
 
+
         int inline GetWidth() const { return m_width; }
         int inline GetHeigth() const { return m_heigth; }
+
+
+		glm::vec4 ColorAt(glm::ivec2 p);
 
     private:
         unsigned int m_renderer_id;

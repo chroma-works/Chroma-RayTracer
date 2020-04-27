@@ -27,8 +27,8 @@ namespace Chroma
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_heigth, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_localbuffer);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        if (m_localbuffer)
-            stbi_image_free(m_localbuffer);
+        /*if (m_localbuffer)
+            stbi_image_free(m_localbuffer);*/
     }
 
     Texture& Texture::operator=(Texture rhs)
@@ -59,8 +59,8 @@ namespace Chroma
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_heigth, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_localbuffer);
             glBindTexture(GL_TEXTURE_2D, 0);
 
-            if (m_localbuffer)
-                stbi_image_free(m_localbuffer);
+            /*if (m_localbuffer)
+                stbi_image_free(m_localbuffer);*/
 
         }
         return *this;
@@ -91,8 +91,8 @@ namespace Chroma
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_heigth, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_localbuffer);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        if (m_localbuffer)
-            stbi_image_free(m_localbuffer);
+        /*if (m_localbuffer)
+            stbi_image_free(m_localbuffer);*/
     }
 
     Texture::~Texture()
@@ -110,4 +110,17 @@ namespace Chroma
     {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+
+	glm::vec4 Texture::ColorAt(const glm::ivec2 p_prime)
+	{
+		glm::ivec2 p = glm::clamp(p_prime, { 0,0 }, { m_width-1, m_heigth-1 });
+
+		const stbi_uc* pixelOffset = m_localbuffer + (p.x + m_width * p.y) * 4;
+		unsigned int r = pixelOffset[0];
+		unsigned int g = pixelOffset[1];
+		unsigned int b = pixelOffset[2];
+		unsigned int a = m_BPP >= 4 ? pixelOffset[3] : 0xff;
+
+		return glm::vec4(r, g, b, a)/255.0f;
+	}
 }

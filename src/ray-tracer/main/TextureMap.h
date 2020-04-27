@@ -11,6 +11,7 @@ namespace Chroma
 	{
 	public:
 		TextureMap(std::shared_ptr<Texture> tex, DECAL_M d_mode, bool bilinear_interp = true);
+		glm::vec3 ColorAt(glm::vec2 uv);
 		//~TextureMap();
 
 		inline bool IsInterpolated() { return m_interpolated; }
