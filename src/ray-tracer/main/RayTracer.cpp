@@ -76,6 +76,38 @@ namespace Chroma
 		return r_prime;
 	}
 
+	glm::vec3 ShadePoint(IntersectionData& isect_data, std::shared_ptr<PointLight> pl,
+		glm::vec3 l_vec, glm::vec3 e_vec)
+	{
+		glm::vec3 kd = isect_data.material->m_diffuse;
+
+		if (isect_data.tex_map)
+		{
+			switch (isect_data.tex_map->GetDecalMode())
+			{
+			case DECAL_M::re_kd:
+				kd = isect_data.tex_map->ColorAt(isect_data.uv);
+				break;
+
+			case DECAL_M::bl_kd:
+				kd = kd * 0.5f + isect_data.tex_map->ColorAt(isect_data.uv) * 0.5f;
+				break;
+
+			default:
+				break;
+			}
+		}
+		float d = glm::distance(pl->position, isect_data.position);
+		//Kd * I * cos(theta) /d^2 
+		glm::vec3 diffuse = kd * pl->intensity *
+			glm::max(glm::dot(isect_data.normal, l_vec), 0.0f) / (d * d);
+		//Ks* I * max(0, h . n)^s / d^2
+		glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+		glm::vec3 specular = isect_data.material->m_specular * pl->intensity *
+			glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->m_shininess) / (d * d);
+		return specular + diffuse;
+	}
+
 	RayTracer::RayTracer()
 	{
 		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y);
@@ -414,6 +446,10 @@ namespace Chroma
 		// point is illuminated
 		if (isect_data.hit && !inside)
 		{
+			//Ka * Ia
+			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
+			color += ambient;
+
 			IntersectionData shadow_data;
 			//lighting calculation
 			for (auto it = scene.m_point_lights.begin(); it != scene.m_point_lights.end(); it++)
@@ -446,13 +482,9 @@ namespace Chroma
 					glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 					glm::vec3 specular = isect_data.material->m_specular * pl->intensity *
 						glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->m_shininess) / (d * d);
-					color += specular + diffuse;
-					//CH_TRACE(glm::to_string(diffuse));
+					color += specular + diffuse;*/
 				}
 			}
-			//Ka * Ia
-			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
-			color += ambient;
 		}
 		return color;
 	}
