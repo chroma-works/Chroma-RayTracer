@@ -377,7 +377,7 @@ namespace Chroma
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			glm::vec3 r_prime = CalculateNonColinearTo(r);
 			glm::vec3 u, v;
-			//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
+
 			u = glm::normalize(glm::cross(r, r_prime));
 			v = glm::cross(r, u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
@@ -464,20 +464,22 @@ namespace Chroma
 				//Shadow calculation	
 				bool shadowed = false;
 				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
-				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
+				shadow_ray.direction = glm::normalize(pl->position - isect_data.position);
 				shadow_ray.intersect_eps = 0.09f;
 				shadow_ray.jitter_t = ray.jitter_t;
 
 				shadowed = m_settings.calc_shadows && //TODO: Fix
 					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-					(glm::distance(shadow_ray.origin, shadow_data.position) - glm::distance(shadow_ray.origin, pl->position) < -47))
+					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < -44.f))
+					//&&(glm::distance(shadow_ray.origin,shadow_data.position) >15)
 					//&& (isect_data.material != shadow_data.material && shadow_data.t + 1 < glm::distance(isect_data.position, pl->position))//WTF ADHOC solution 
 					;
 				/*CH_TRACE(std::to_string(shadow_data->t) + ", " +
 					std::to_string(glm::distance(isect_data.position, pl->position)));*/
 				if (!shadowed)
 				{
-					float d = glm::distance(pl->position, isect_data.position);
+					color += ShadePoint(isect_data, pl, l_vec, e_vec);
+					/*float d = glm::distance(pl->position, isect_data.position);
 					//Kd * I * cos(theta) /d^2 
 					glm::vec3 diffuse = isect_data.material->m_diffuse * pl->intensity *
 						glm::max(glm::dot(isect_data.normal, l_vec), 0.0f) / (glm::length(isect_data.normal) * glm::length(l_vec)) / (d * d);
