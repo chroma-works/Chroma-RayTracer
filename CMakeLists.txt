@@ -67,6 +67,8 @@ set (main_sources
 	src/ray-tracer/main/Scene.cpp
 	src/ray-tracer/main/Texture.h
 	src/ray-tracer/main/Texture.cpp
+	src/ray-tracer/main/TextureMap.h
+	src/ray-tracer/main/TextureMap.cpp
 	src/ray-tracer/main/SceneObject.h
 	src/ray-tracer/main/SceneObject.cpp
 	src/ray-tracer/main/Window.h

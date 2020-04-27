@@ -11,7 +11,7 @@
 #include <thirdparty/hapPLY/happly.h>
 #include <thirdparty/OBJ_loader/OBJ_Loader.h>
 #include <thirdparty/glm/glm/gtx/quaternion.hpp>
-#include <ray-tracer\main\TextureMap.h>
+#include <ray-tracer/main/TextureMap.h>
 
 
 namespace Chroma
