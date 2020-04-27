@@ -68,9 +68,12 @@ namespace Chroma
 	const std::string TRANSFORMS = "Transformations";
 	const std::string TRA = "Translation";
 	const std::string TEX = "Textures";
+	const std::string TEX_DATA = "TexCoordData";
 	const std::string TEX_MAP = "TextureMap";
 	const std::string SCA = "Scaling";
 	const std::string VRTX_DATA = "VertexData";
+
+	//========================================================================================================================//
 
     Mesh* AssetImporter::LoadMeshFromOBJ(const std::string& file_name, 
 		glm::vec3 t, glm::vec3 r, glm::vec3 s)
@@ -105,11 +108,14 @@ namespace Chroma
         return mesh;
     }
 
+	//========================================================================================================================//
 
     Texture* AssetImporter::LoadTexture(const std::string& file_name)
     {
         return new Texture(file_name);
     }
+
+	//========================================================================================================================//
 
 	std::vector<std::shared_ptr<TextureMap>> ParseTextures(tinyxml2::XMLNode* node, std::string file_path)
 	{
@@ -183,6 +189,9 @@ namespace Chroma
 
 		return texture_maps;
 	}
+
+	//========================================================================================================================//
+
 	size_t Split(const std::string& txt, std::vector<std::string>& strs, char ch)
 	{
 		size_t pos = txt.find(ch);
@@ -202,6 +211,8 @@ namespace Chroma
 
 		return strs.size();
 	}
+
+	//========================================================================================================================//
 
 	glm::mat4 CalculateTransforms(
 		std::vector<glm::mat4> translations,
@@ -232,6 +243,8 @@ namespace Chroma
 		}
 		return trnsfm;
 	}
+
+	//========================================================================================================================//
 
 	Mesh* AssetImporter::LoadMeshFromPly(std::string ply_path)
 	{
@@ -278,6 +291,8 @@ namespace Chroma
 		}
 		return new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<std::shared_ptr<glm::vec3>>(), mesh_indices);
 	}
+
+	//========================================================================================================================//
 
 	Camera* ParseCamera(tinyxml2::XMLNode* node)
 	{
@@ -414,6 +429,50 @@ namespace Chroma
 		return cam;
 	}
 
+	//========================================================================================================================//
+
+	std::vector<std::shared_ptr<glm::vec3>> ParseVertexData(tinyxml2::XMLNode* node)
+	{
+		std::vector<std::shared_ptr<glm::vec3>> vertices;
+		std::string data = node->Value();
+		std::string line;
+		std::istringstream stream(data);
+
+		while (std::getline(stream, line)) {//read vertices line by line
+			glm::vec3 vertex;
+			std::istringstream iss(line);
+			iss >> vertex.x >> vertex.y >> vertex.z;
+
+			if (iss)
+				vertices.push_back(std::make_shared<glm::vec3>(vertex));
+		}
+
+		return vertices;
+	}
+
+	//========================================================================================================================//
+
+	std::vector<std::shared_ptr<glm::vec2>> ParseTextureCoords(tinyxml2::XMLNode* node)
+	{
+		std::vector<std::shared_ptr<glm::vec2>> tex_coords;
+		std::string data = node->Value();
+		std::string line;
+		std::istringstream stream(data);
+
+		while (std::getline(stream, line)) {//read vertices line by line
+			glm::vec2 tex_coord;
+			std::istringstream iss(line);
+			iss >> tex_coord.x >> tex_coord.y;
+
+			if (iss)
+				tex_coords.push_back(std::make_shared<glm::vec2>(tex_coord));
+		}
+
+		return tex_coords;
+	}
+
+	//========================================================================================================================//
+
 	Scene* AssetImporter::LoadSceneFromXML(Shader* shader, const std::string& file_path, Settings* settings)
 	{
 		//Scene name from file name
@@ -428,6 +487,7 @@ namespace Chroma
 		std::vector<std::shared_ptr<Material>> materials;
 		std::vector<std::shared_ptr<TextureMap>> texturemaps;
 		std::vector<std::shared_ptr<glm::vec3>> vertices;
+		std::vector<std::shared_ptr<glm::vec2>>texture_coords;
 
 		std::vector<glm::mat4> translations;
 		std::vector<glm::mat4> rotations;
@@ -668,22 +728,13 @@ namespace Chroma
 			else if (std::string(node->Value()).compare(VRTX_DATA) == 0)
 			{
 				tinyxml2::XMLNode* child_node = node->FirstChild();
-
-				std::string data = child_node->Value();
-				std::string line;
-				std::istringstream stream(data);
-
-				CH_TRACE("Parsing vertices");
-
-				while (std::getline(stream, line)) {//read vertices line by line
-					glm::vec3 vertex;
-					std::istringstream iss(line);
-					iss >> vertex.x >> vertex.y >> vertex.z;
-					//sscanf(line.c_str(), "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
-
-					if (iss)
-						vertices.push_back(std::make_shared<glm::vec3>(vertex));
-				}
+				//CH_TRACE("Parsing vertices");
+				vertices = ParseVertexData(child_node);
+			}
+			else if (std::string(node->Value()).compare(TEX_DATA) == 0)
+			{
+				tinyxml2::XMLNode* child_node = node->FirstChild();
+				texture_coords = ParseTextureCoords(child_node);
 			}
 			else if (std::string(node->Value()).compare(OBJ) == 0)
 			{
@@ -738,6 +789,7 @@ namespace Chroma
 									std::string line;
 									std::istringstream stream(data);
 									mesh_verts = vertices;
+									mesh_uvs = texture_coords;
 									mesh_normals.reserve(vertices.size());
 									mesh_normals.resize(vertices.size());
 
