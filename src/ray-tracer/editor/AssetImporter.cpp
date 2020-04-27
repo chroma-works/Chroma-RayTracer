@@ -285,6 +285,8 @@ namespace Chroma
 			1.0f * 720, 0.1f, 300.0f, 60.0f); //Standart Camera(raster pipeline parameters)
 		tinyxml2::XMLNode* cam_prop = node->FirstChild();
 
+		glm::vec2 vec[2];
+
 		auto cam_type = node->ToElement()->FindAttribute("type");
 
 		while (cam_prop)//iterate over each cameras properties
@@ -384,12 +386,10 @@ namespace Chroma
 				std::string data = cam_prop->FirstChild()->Value();
 				float fovy;
 				sscanf(data.c_str(), "%f", &fovy);
-				float aspect_ratio;
-				glm::vec2 vec[2];
-				vec[0].x = -0.5f;
+				vec[0].y = std::tan(glm::radians(fovy) * 0.5f);
+				vec[1].y = -vec[0].y;
+				vec[0].x = vec[1].y;
 				vec[1].x = -vec[0].x;
-				vec[0].y = std::tan(fovy * 0.5f);
-				vec[1].y = -std::tan(fovy * 0.5f);
 				cam->SetNearPlane(vec);
 			}
 			cam_prop = cam_prop->NextSibling();
@@ -401,6 +401,16 @@ namespace Chroma
 			glm::vec3 v_prime = glm::cross(-cam->GetGaze(), u);
 			cam->SetUp(v_prime);
 		}
+		//fix axpect ratio
+		if (cam_type && std::string(cam_type->Value()).compare("lookAt") == 0)
+		{
+			glm::ivec2 res = cam->GetResolution();
+			float aspect_ratio = res.x/((float)res.y);
+			vec[0].x = vec[1].y * aspect_ratio;
+			vec[1].x = -vec[0].x;
+			cam->SetNearPlane(vec);
+		}
+		
 		return cam;
 	}
 
@@ -686,7 +696,7 @@ namespace Chroma
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						std::shared_ptr<Mesh> mesh = nullptr;
-						int mat_ind = 0, tex_map_ind = 0;
+						int mat_ind = 0, tex_map_ind = -1;
 						auto shading_mode = child_node->ToElement()->FindAttribute(SHADING_M.c_str());
 						bool smooth_normals = (shading_mode ? (std::string(shading_mode->Value()).compare(SMOOTH) == 0 ? 
 							true : false) : false);
@@ -778,7 +788,8 @@ namespace Chroma
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
-						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						if(tex_map_ind != -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 
 						if (smooth_normals)
 						{
@@ -791,7 +802,7 @@ namespace Chroma
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						std::shared_ptr<Mesh> mesh = nullptr;
-						int mat_ind = 0, tex_map_ind = 0;
+						int mat_ind = 0, tex_map_ind = -1;
 						glm::mat4 transform = glm::mat4(1.0f);
 
 						glm::vec3 m_b = { 0,0,0 };
@@ -850,8 +861,9 @@ namespace Chroma
 								glm::vec3(), glm::vec3(1.0,1.0,1.0), SHAPE_T::triangle));
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
-						scene_obj->SetMotionBlur(m_b);
-						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						scene_obj->SetMotionBlur(m_b); 
+						if (tex_map_ind != -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -865,7 +877,7 @@ namespace Chroma
 						glm::vec3 center = { 0,0,0 };
 						glm::vec3 rad_scale = { 1,1,1 };
 
-						int tex_map_ind = 0;
+						int tex_map_ind = -1;
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
@@ -914,7 +926,8 @@ namespace Chroma
 						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3()));
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
-						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						if (tex_map_ind != -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -930,7 +943,7 @@ namespace Chroma
 						glm::mat4 transform = glm::mat4(1.0f);
 						glm::vec3 m_b = { 0,0,0 };
 
-						int tex_map_ind = 0;
+						int tex_map_ind = -1;
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
@@ -964,7 +977,8 @@ namespace Chroma
 							transform = transform * it->second->GetModelMatrix();
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
-						scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						if (tex_map_ind != -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					child_node = child_node->NextSibling();

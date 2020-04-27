@@ -151,7 +151,10 @@ namespace Chroma
 
 		inline void SetTextureMap(std::shared_ptr<TextureMap> tex_map)
 		{
-			m_texture = *((tex_map->m_texture).get());//TODO
+			m_texture = *((tex_map->m_texture).get());
+
+			for (auto shape : m_mesh->m_shapes)
+				shape->m_tex_map = tex_map;
 		}
 
 		inline void SetMaterial(std::shared_ptr<Material> mat) {
