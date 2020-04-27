@@ -317,6 +317,9 @@ namespace Chroma
 						primary_ray.direction = glm::normalize(focal_point - primary_ray.origin);
 						primary_ray.jitter_t = RandFloat();
 
+						if(cam->GetNumberOfSamples() ==1)
+							primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
+
 						glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
 						color += sample_color / (float)cam->GetNumberOfSamples();//Box Filter
 					}
