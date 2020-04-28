@@ -20,7 +20,7 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	Chroma::Logger::Init("1.11.2");
+	Chroma::Logger::Init("1.11.3");
 
 	Chroma::Window window = Chroma::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
