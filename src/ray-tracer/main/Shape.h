@@ -160,6 +160,7 @@ namespace Chroma
 			data->position = ray.PointAt(t);
 			data->material = m_material.get();
 			data->tex_map = m_tex_map.get();
+			data->uv = u * (*m_uvs[1]) + v * (*m_uvs[2]) + (1 - u - v) * (*m_uvs[0]);
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
 				( smooth_normals ? 
 				(u * (*m_normals[1]) + v * (*m_normals[2]) + (1 - u - v) * (*m_normals[0])) :	//Smooth shading

@@ -143,7 +143,7 @@ namespace Chroma
 					int tex_ind = -1;
 					bool interp = false;
 					Chroma::DECAL_M d_mode;
-					int normalizer = 0;
+					int normalizer = -1;
 
 
 					while (child_node)
@@ -180,7 +180,8 @@ namespace Chroma
 						child_node = child_node->NextSibling();
 					}
 					auto tm = std::make_shared<TextureMap>(textures[tex_ind], d_mode, interp);
-					tm->SetNormalizer(normalizer);
+					if(normalizer !=-1)
+						tm->SetNormalizer(normalizer);
 					texture_maps.push_back(tm);
 				}
 			}
