@@ -159,6 +159,8 @@ namespace Chroma
 							std::string data = child_node->FirstChild()->Value();
 							if (data.compare("replace_kd") == 0)
 								d_mode = DECAL_M::re_kd;
+							else if (data.compare("replace_normal") == 0)
+								d_mode = DECAL_M::re_no;
 							else if (data.compare("bump_normal") == 0)
 								d_mode = DECAL_M::bump;
 							else if (data.compare("blend_kd") == 0)
@@ -748,7 +750,7 @@ namespace Chroma
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						std::shared_ptr<Mesh> mesh = nullptr;
-						int mat_ind = 0, tex_map_ind = -1;
+						int mat_ind = 0, tex_map_ind_1 = -1, tex_map_ind_2 = -1;
 						auto shading_mode = child_node->ToElement()->FindAttribute(SHADING_M.c_str());
 						bool smooth_normals = (shading_mode ? (std::string(shading_mode->Value()).compare(SMOOTH) == 0 ? 
 							true : false) : false);
@@ -768,8 +770,8 @@ namespace Chroma
 							else if (std::string(object_prop->Value()).compare(TEX) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%d", &tex_map_ind);
-								tex_map_ind--;
+								sscanf(data.c_str(), "%d %d", &tex_map_ind_1,  &tex_map_ind_2);
+								tex_map_ind_1--; tex_map_ind_2--;;
 							}
 							else if (std::string(object_prop->Value()).compare(FACES) == 0)
 							{
@@ -841,8 +843,10 @@ namespace Chroma
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
-						if(tex_map_ind != -1)
-							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						if (tex_map_ind_1 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_1]);
+						if (tex_map_ind_2 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
 
 						if (smooth_normals)
 						{
@@ -855,7 +859,7 @@ namespace Chroma
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						std::string name = "triangle_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						std::shared_ptr<Mesh> mesh = nullptr;
-						int mat_ind = 0, tex_map_ind = -1;
+						int mat_ind = 0, tex_map_ind_1 = -1, tex_map_ind_2 = -1;
 						glm::mat4 transform = glm::mat4(1.0f);
 
 						glm::vec3 m_b = { 0,0,0 };
@@ -871,8 +875,9 @@ namespace Chroma
 							else if (std::string(object_prop->Value()).compare(TEX) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%d", &tex_map_ind);
-								tex_map_ind--;
+								sscanf(data.c_str(), "%d %d", &tex_map_ind_1,  &tex_map_ind_2);
+								tex_map_ind_1--; 
+								tex_map_ind_2--;
 							}
 							else if (std::string(object_prop->Value()).compare(IND) == 0)
 							{
@@ -915,8 +920,10 @@ namespace Chroma
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b); 
-						if (tex_map_ind != -1)
-							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						if (tex_map_ind_1 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_1]);
+						if (tex_map_ind_2 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -930,7 +937,7 @@ namespace Chroma
 						glm::vec3 center = { 0,0,0 };
 						glm::vec3 rad_scale = { 1,1,1 };
 
-						int tex_map_ind = -1;
+						int tex_map_ind_1 = -1, tex_map_ind_2 = -1;
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
@@ -946,8 +953,9 @@ namespace Chroma
 							else if (std::string(object_prop->Value()).compare(TEX) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%d", &tex_map_ind);
-								tex_map_ind--;
+								sscanf(data.c_str(), "%d %d", &tex_map_ind_1,  &tex_map_ind_2);
+								tex_map_ind_1--; 
+								tex_map_ind_2--;
 							}
 							else if (std::string(object_prop->Value()).compare("Center") == 0)
 							{
@@ -978,9 +986,11 @@ namespace Chroma
 						transform *= glm::scale(glm::translate(glm::mat4(1.0f), center), rad_scale);
 						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3()));
 						scene_obj->SetTransforms(transform);
-						scene_obj->SetMotionBlur(m_b);
-						if (tex_map_ind != -1)
-							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						scene_obj->SetMotionBlur(m_b); 
+						if (tex_map_ind_1 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_1]);
+						if (tex_map_ind_2 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
 						//CH_TRACE(glm::to_string(scene_obj->GetMaterial()->diffuse));
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
@@ -996,7 +1006,7 @@ namespace Chroma
 						glm::mat4 transform = glm::mat4(1.0f);
 						glm::vec3 m_b = { 0,0,0 };
 
-						int tex_map_ind = -1;
+						int tex_map_ind_1 = -1, tex_map_ind_2 = -1;
 
 						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
 						while (object_prop)
@@ -1012,8 +1022,8 @@ namespace Chroma
 							else if (std::string(object_prop->Value()).compare(TEX) == 0)
 							{
 								std::string data = object_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%d", &tex_map_ind);
-								tex_map_ind--;
+								sscanf(data.c_str(), "%d %d", &tex_map_ind_1,  &tex_map_ind_2);
+								tex_map_ind_1--; tex_map_ind_2--;;
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
@@ -1030,8 +1040,10 @@ namespace Chroma
 							transform = transform * it->second->GetModelMatrix();
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
-						if (tex_map_ind != -1)
-							scene_obj->SetTextureMap(texturemaps[tex_map_ind]);
+						if (tex_map_ind_1 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_1]);
+						if (tex_map_ind_2 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 					}
 					child_node = child_node->NextSibling();
