@@ -11,6 +11,7 @@ namespace Chroma
 {
 	enum class SHAPE_T { none, triangle, sphere };
 	enum class SHADING_MODE { flat, smooth };
+
 	class Shape
 	{
 	public:
@@ -34,9 +35,11 @@ namespace Chroma
 		}*/
 		virtual Bounds3 GetLocalBounds() const = 0;
 
+		virtual glm::vec3 ObjectSpaceNormalAt(glm::vec2 uv) const = 0;
+
 		bool m_visible = true;
 		std::shared_ptr<Material> m_material = nullptr;
-		std::shared_ptr<TextureMap> m_tex_map = nullptr;
+		std::shared_ptr<TextureMap> m_tex_maps[2] = {nullptr, nullptr};		//0 = shading, 1 = normal perturbation
 		SHAPE_T m_type = SHAPE_T::none;
 		glm::vec3 m_motion_blur = { 0,0,0 };
 	protected:
@@ -113,6 +116,23 @@ namespace Chroma
 			return Bounds3(b_min, b_max);
 		}
 
+		glm::vec3 ObjectSpaceNormalAt(glm::vec2 uv) const
+		{
+			glm::vec3 tangent_normal = 
+				glm::normalize(m_tex_maps[1]->SampleAt(uv.x * (*m_uvs[1]) + uv.y * (*m_uvs[2]) + (1 - uv.x -uv.y) * (*m_uvs[0])));
+			glm::mat2 A_inv = glm::inverse(glm::mat2(
+				*m_uvs[1] - *m_uvs[0],
+				*m_uvs[2] - *m_uvs[0]));
+
+			glm::mat2x3 E = { {*m_vertices[1] - *m_vertices[0] }, {*m_vertices[2] - *m_vertices[0]} };
+
+			glm::mat2x3 TB = E * A_inv;
+			glm::vec3 N = glm::cross(*m_vertices[1] - *m_vertices[0], *m_vertices[2] - *m_vertices[0]);
+			glm::mat3 TBN = {TB[0], TB[1], N};
+
+			return glm::normalize(TBN * tangent_normal);
+		}
+
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
@@ -156,15 +176,21 @@ namespace Chroma
 			if (t < inverse_ray.intersect_eps) data->hit = false;
 
 			bool smooth_normals = m_shading_mode == SHADING_MODE::smooth;
+			bool replace_normals = false;
+			if (m_tex_maps[1])
+			{
+				replace_normals = m_tex_maps[1]->GetDecalMode() == DECAL_M::re_no;
+			}
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material.get();
-			data->tex_map = m_tex_map.get();
+			data->tex_map = m_tex_maps[0].get();
 			data->uv = u * (*m_uvs[1]) + v * (*m_uvs[2]) + (1 - u - v) * (*m_uvs[0]);
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
+				(replace_normals ? ObjectSpaceNormalAt({ u,v }):								// Normal map
 				( smooth_normals ? 
-				(u * (*m_normals[1]) + v * (*m_normals[2]) + (1 - u - v) * (*m_normals[0])) :	//Smooth shading
-				(glm::cross(v0v1, v0v2))) );													// Flat shading
+				(u * (*m_normals[1]) + v * (*m_normals[2]) + (1 - u - v) * (*m_normals[0])) :	// Smooth shading
+				(glm::cross(v0v1, v0v2)))) );													// Flat shading
 
 			return data->hit;
 		}
@@ -223,6 +249,11 @@ namespace Chroma
 			return Bounds3(b_min, b_max);
 		}
 
+		glm::vec3 ObjectSpaceNormalAt(glm::vec2 uv) const
+		{
+			return glm::vec3();
+		}
+
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			Ray inverse_ray;
@@ -269,7 +300,7 @@ namespace Chroma
 			data->t = glm::distance(glm::vec3( glm::inverse(inverse_transform) * glm::vec4(local_p,1.0f)), ray.origin);
 			data->position = ray.PointAt(data->t);
 			data->material = m_material.get();
-			data->tex_map = m_tex_map.get();
+			data->tex_map = m_tex_maps[0].get();
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform))*
 				glm::vec4(local_p, 0.0f));
 
@@ -312,6 +343,11 @@ namespace Chroma
 			return base_bounds;
 		}
 
+		glm::vec3 ObjectSpaceNormalAt(glm::vec2 uv) const
+		{
+			return glm::vec3();
+		}
+
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			bool hit = false;
@@ -334,8 +370,8 @@ namespace Chroma
 				data->position = ray.PointAt(data->t);
 				if (m_material.get())
 					data->material = m_material.get();
-				if(m_tex_map.get())
-					data->tex_map = m_tex_map.get();
+				if(m_tex_maps[0].get())
+					data->tex_map = m_tex_maps[0].get();
 			}
 			return hit;
 		}

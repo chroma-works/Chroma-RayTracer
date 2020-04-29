@@ -6,12 +6,12 @@
 
 namespace Chroma
 {
-	enum class DECAL_M { re_kd, bl_kd, bump, re_bg };
+	enum class DECAL_M { re_kd, bl_kd, re_all, re_no, bump, re_bg };
 	class TextureMap
 	{
 	public:
 		TextureMap(std::shared_ptr<Texture> tex, DECAL_M d_mode, bool bilinear_interp = true);
-		glm::vec3 ColorAt(glm::vec2 uv);
+		glm::vec3 SampleAt(glm::vec2 uv);
 		//~TextureMap();
 
 		inline bool IsInterpolated() { return m_interpolated; }

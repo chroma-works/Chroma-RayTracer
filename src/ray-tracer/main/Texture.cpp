@@ -111,7 +111,7 @@ namespace Chroma
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-	glm::vec4 Texture::ColorAt(const glm::ivec2 p_prime)
+	glm::vec4 Texture::SampleAt(const glm::ivec2 p_prime)
 	{
 		glm::ivec2 p = glm::clamp(p_prime, { 0,0 }, { m_width-1, m_heigth-1 });
 

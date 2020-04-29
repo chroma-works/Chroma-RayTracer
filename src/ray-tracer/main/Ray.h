@@ -51,11 +51,11 @@ namespace Chroma
 				switch (tex_map->GetDecalMode())
 				{
 				case DECAL_M::re_kd:
-					kd = tex_map->ColorAt(uv);
+					kd = tex_map->SampleAt(uv);
 					break;
 
 				case DECAL_M::bl_kd:
-					kd = kd * 0.5f + tex_map->ColorAt(uv) * 0.5f;
+					kd = kd * 0.5f + tex_map->SampleAt(uv) * 0.5f;
 					break;
 
 				default:
