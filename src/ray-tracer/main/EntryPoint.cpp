@@ -12,7 +12,7 @@
 #include <ray-tracer/editor/Logger.h>
 #include <ray-tracer/editor/Shader.h>
 
-#include <ray-tracer\main\Scene.h>
+#include <ray-tracer/main/Scene.h>
 
 // settings
 const unsigned int SCR_WIDTH = 1920;
@@ -20,7 +20,7 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	Chroma::Logger::Init("1.11.4");
+	Chroma::Logger::Init("1.11.5");
 
 	Chroma::Window window = Chroma::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<Chroma::Scene> scene;
 	Chroma::Settings s;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw4/cube_wall_normal.xml", &s)));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw4/ellipsoids_texture.xml", &s)));
 	//init editor
 	Chroma::Editor editor(&window, scene.get(), s);
 

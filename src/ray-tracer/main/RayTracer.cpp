@@ -438,7 +438,7 @@ namespace Chroma
 
 				shadowed = m_settings.calc_shadows && //TODO: Fix
 					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < -44.f))
+					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < -47.f))
 					//&&(glm::distance(shadow_ray.origin,shadow_data.position) >15)
 					//&& (isect_data.material != shadow_data.material && shadow_data.t + 1 < glm::distance(isect_data.position, pl->position))//WTF ADHOC solution 
 					;
