@@ -11,7 +11,8 @@
 #include <thirdparty/hapPLY/happly.h>
 #include <thirdparty/OBJ_loader/OBJ_Loader.h>
 #include <thirdparty/glm/glm/gtx/quaternion.hpp>
-#include <ray-tracer/main/TextureMap.h>
+#include <ray-tracer/main/ImageTextureMap.h>
+#include <ray-tracer/main/NoiseTextureMap.h>
 
 
 namespace Chroma
@@ -46,6 +47,8 @@ namespace Chroma
 	const std::string MIRROR_REF = "MirrorReflectance";
 	const std::string MOTION_B = "MotionBlur";
 	const std::string N_DIST = "NearDistance";
+	const std::string NOISE_CONV = "NoiseConversion";
+	const std::string NOISE_S = "NoiseScale";
 	const std::string NORMALIZER = "Normalizer";
 	const std::string N_PLANE = "NearPlane";
 	const std::string NUM_SAMP = "NumSamples";
@@ -181,9 +184,51 @@ namespace Chroma
 						}
 						child_node = child_node->NextSibling();
 					}
-					auto tm = std::make_shared<TextureMap>(textures[tex_ind], d_mode, interp);
+					auto tm = std::make_shared<ImageTextureMap>(textures[tex_ind], d_mode, interp);
 					if(normalizer !=-1)
 						tm->SetNormalizer(normalizer);
+					texture_maps.push_back(tm);
+				}
+				else if (type.compare("perlin") == 0)
+				{
+					tinyxml2::XMLNode* child_node = node->FirstChild();
+					bool linear_conv = false;
+					Chroma::DECAL_M d_mode;
+					int noise_scale = -1;
+
+
+					while (child_node)
+					{
+						if (std::string(child_node->Value()).compare(DEC_M) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							if (data.compare("replace_kd") == 0)
+								d_mode = DECAL_M::re_kd;
+							else if (data.compare("replace_normal") == 0)
+								d_mode = DECAL_M::re_no;
+							else if (data.compare("bump_normal") == 0)
+								d_mode = DECAL_M::bump;
+							else if (data.compare("blend_kd") == 0)
+								d_mode = DECAL_M::bl_kd;
+							else if (data.compare("replace_background") == 0)
+								d_mode = DECAL_M::re_bg;
+
+						}
+						else if (std::string(child_node->Value()).compare(NOISE_CONV) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							linear_conv = data.compare("linear") == 0;
+						}
+						else if (std::string(child_node->Value()).compare(NOISE_S) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%d", &noise_scale);
+						}
+						child_node = child_node->NextSibling();
+					}
+					auto tm = std::make_shared<NoiseTextureMap>(d_mode, linear_conv);
+					if (noise_scale != -1)
+						tm->SetScale(noise_scale);
 					texture_maps.push_back(tm);
 				}
 			}
