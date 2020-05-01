@@ -138,9 +138,13 @@ namespace Chroma
 				tri.m_normals[1] = (mesh->m_vertex_normals[mesh->m_indices[j + 1]]);
 				tri.m_normals[2] = (mesh->m_vertex_normals[mesh->m_indices[j + 2]]);
 
-				tri.m_uvs[0] = (mesh->m_vertex_texcoords[mesh->m_indices[j]]);
-				tri.m_uvs[1] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 1]]);
-				tri.m_uvs[2] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 2]]);
+				if (mesh->m_vertex_texcoords.size() != 0)
+				{
+					tri.m_uvs[0] = (mesh->m_vertex_texcoords[mesh->m_indices[j]]);
+					tri.m_uvs[1] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 1]]);
+					tri.m_uvs[2] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 2]]);
+				}
+
 
 				tri.SetTransform(m_tranform_matrix, m_inverse_tranform_matrix);
 				tri.m_visible = IsVisible();

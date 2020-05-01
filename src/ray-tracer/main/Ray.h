@@ -48,14 +48,17 @@ namespace Chroma
 
 			if (tex_map)
 			{
+				glm::vec3 sample_point = tex_map->GetType() == SOURCE_T::image ?
+					glm::vec3(uv, NAN) : position;
+
 				switch (tex_map->GetDecalMode())
 				{
 				case DECAL_M::re_kd:
-					kd = tex_map->SampleAt(uv);
+					kd = tex_map->SampleAt(sample_point);
 					break;
 
 				case DECAL_M::bl_kd:
-					kd = kd * 0.5f + tex_map->SampleAt(uv) * 0.5f;
+					kd = kd * 0.5f + tex_map->SampleAt(sample_point) * 0.5f;
 					break;
 
 				default:

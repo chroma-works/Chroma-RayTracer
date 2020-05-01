@@ -24,7 +24,7 @@ namespace Chroma
         int inline GetHeigth() const { return m_heigth; }
 
 
-		glm::vec4 ColorAt(glm::ivec2 p);
+		glm::vec4 SampleAt(glm::ivec2 p);
 
     private:
         unsigned int m_renderer_id;

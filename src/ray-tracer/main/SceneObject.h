@@ -17,6 +17,7 @@
 #include <thirdparty/glm/glm/gtx/matrix_decompose.hpp>
 #include <thirdparty/glm/glm/gtc/quaternion.hpp>
 #include <thirdparty/glm/glm/gtx/euler_angles.hpp>
+#include <ray-tracer\main\ImageTextureMap.h>
 
 
 namespace Chroma
@@ -154,8 +155,9 @@ namespace Chroma
 			int ind = 0;
 			ind = tex_map->GetDecalMode() > DECAL_M::re_all ? 1 : ind;
 
-			if(ind == 0)
-				m_texture = *((tex_map->m_texture).get());
+			if(tex_map.get()->GetType() == SOURCE_T::image  
+				&&ind == 0)
+				m_texture = *((dynamic_cast<ImageTextureMap*>(tex_map.get())->m_texture).get());
 
 			for (auto shape : m_mesh->m_shapes)
 				shape->m_tex_maps[ind] = tex_map;

@@ -1,32 +1,23 @@
 #pragma once
-#include "Texture.h"
 #include <stdio.h>
 #include <iostream>
-
+#include <thirdparty/glm/glm/glm.hpp>
 
 namespace Chroma
 {
 	enum class DECAL_M { re_kd, bl_kd, re_all, re_no, bump, re_bg };
+	enum class SOURCE_T { image, noise };
 	class TextureMap
 	{
 	public:
-		TextureMap(std::shared_ptr<Texture> tex, DECAL_M d_mode, bool bilinear_interp = true);
-		glm::vec3 SampleAt(glm::vec2 uv);
-		//~TextureMap();
+		virtual glm::vec3 SampleAt(glm::vec3 p) const = 0;
 
-		inline bool IsInterpolated() { return m_interpolated; }
 		inline DECAL_M GetDecalMode() { return m_decal_mode; }
-		inline unsigned int GetNormalizer() { return m_normalizer; }
-
-		inline void SetInterpolation(bool interp) { m_interpolated = interp; }
-		inline void SetDecalMode(DECAL_M mode) { m_decal_mode = mode; }
-		inline void SetNormalizer(unsigned int n) { m_normalizer = n; }
-
-		std::shared_ptr<Texture> m_texture;
-	private:
+		inline SOURCE_T GetType() { return m_type; }
+		//inline void SetDecalMode(DECAL_M mode) { m_decal_mode = mode; }
+		
+	protected:
 		DECAL_M m_decal_mode;
-		bool m_interpolated;
-		unsigned int m_normalizer = 255;
-
+		SOURCE_T m_type;
 	};
 }

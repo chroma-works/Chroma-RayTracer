@@ -119,7 +119,9 @@ namespace Chroma
 		glm::vec3 ObjectSpaceNormalAt(glm::vec2 uv) const
 		{
 			glm::vec3 tangent_normal = 
-				glm::normalize(m_tex_maps[1]->SampleAt(uv.x * (*m_uvs[1]) + uv.y * (*m_uvs[2]) + (1 - uv.x -uv.y) * (*m_uvs[0])));
+				glm::normalize(
+					m_tex_maps[1]->SampleAt(glm::vec3(uv.x * (*m_uvs[1]) + uv.y * (*m_uvs[2]) + (1 - uv.x -uv.y) * (*m_uvs[0]), NAN))
+				);
 			glm::mat2 A_inv = glm::inverse(glm::mat2(
 				*m_uvs[1] - *m_uvs[0],
 				*m_uvs[2] - *m_uvs[0]));
@@ -181,6 +183,7 @@ namespace Chroma
 			{
 				replace_normals = m_tex_maps[1]->GetDecalMode() == DECAL_M::re_no;
 			}
+
 			data->t = t;
 			data->position = ray.PointAt(t);
 			data->material = m_material.get();
