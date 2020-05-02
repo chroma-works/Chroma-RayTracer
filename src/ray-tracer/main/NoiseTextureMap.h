@@ -13,8 +13,6 @@ namespace Chroma
 		{1,1,0}, {-1,1,0}, {0,-1,1}, {0,-1,-1}
 	};//Noise gradients
 
-	const int N = 16;
-
 	class NoiseTextureMap : public TextureMap
 	{
 	public:
@@ -22,8 +20,9 @@ namespace Chroma
 
 
 		glm::vec3 SampleAt(glm::vec3 uv) const;
+		glm::vec3 BumpAt(glm::vec3 p) const;
 
-		inline bool IsConventionLinear() { return m_lin_convertion; }
+		inline bool IsConvertionLinear() { return m_lin_convertion; }
 		inline unsigned int GetScale() { return m_scale; }
 
 		inline void SetConvertion(bool l) { m_lin_convertion = l; }
@@ -31,8 +30,11 @@ namespace Chroma
 
 		//std::shared_ptr<Texture> m_texture;
 	private:
+		const int N = 16;
+		const float EPSILON = 0.001;
+
 		bool m_lin_convertion = true;//else absval
-		float m_scale = 10;
+		float m_scale = 1;
 		unsigned int P[16];
 
 		glm::vec3 GetGradient(glm::ivec3 ind) const;

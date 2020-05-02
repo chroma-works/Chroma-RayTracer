@@ -1,5 +1,7 @@
 #include "ImageTextureMap.h"
 
+#include <thirdparty/glm/glm/gtx/component_wise.hpp>
+
 
 namespace Chroma
 {
@@ -35,5 +37,17 @@ namespace Chroma
 			sample = glm::normalize(sample);
 		}
 		return sample;
+	}
+
+	glm::vec3 ImageTextureMap::BumpAt(glm::vec3 p) const
+	{
+		glm::vec2 s = { p.x * m_texture->GetWidth(), p.y * m_texture->GetHeigth() };
+		glm::vec3 sample = glm::vec3(m_texture->SampleAt({ round(s.x), round(s.y) })) / ((float)m_normalizer);
+		glm::vec3 right_sample = glm::vec3(m_texture->SampleAt({ round(s.x) + 1, round(s.y) })) / ((float)m_normalizer);
+		glm::vec3 upper_sample = glm::vec3(m_texture->SampleAt({ round(s.x), round(s.y)+1 })) / ((float)m_normalizer);
+		float du = glm::compAdd(right_sample) / 3.0f - glm::compAdd(sample) / 3.0f;
+		float dv = glm::compAdd(upper_sample) / 3.0f - glm::compAdd(sample) / 3.0f;
+
+		return glm::vec3(du, dv, NAN) * m_bump_factor;
 	}
 }

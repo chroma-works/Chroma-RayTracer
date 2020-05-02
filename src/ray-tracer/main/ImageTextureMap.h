@@ -11,6 +11,8 @@ namespace Chroma
 		ImageTextureMap(std::shared_ptr<Texture> tex, DECAL_M d_mode, bool bilinear_interp = true);
 
 		glm::vec3 SampleAt(glm::vec3 uv) const;
+		glm::vec3 BumpAt(glm::vec3 p) const;
+
 
 		inline bool IsInterpolated() { return m_interpolated; }
 		inline unsigned int GetNormalizer() { return m_normalizer; }
