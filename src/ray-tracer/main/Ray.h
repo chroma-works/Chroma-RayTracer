@@ -45,6 +45,7 @@ namespace Chroma
 			glm::vec3 l_vec, glm::vec3 e_vec)
 		{
 			glm::vec3 kd = material->m_diffuse;
+			bool no_shading = false;
 
 			if (tex_map)
 			{
@@ -61,19 +62,27 @@ namespace Chroma
 					kd = kd * 0.5f + tex_map->SampleAt(sample_point) * 0.5f;
 					break;
 
+				case DECAL_M::re_all:
+					no_shading = true;
+					break;
 				default:
 					break;
 				}
 			}
-			float d = glm::distance(pl->position, position);
-			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = kd * pl->intensity *
-				glm::max(glm::dot(normal, l_vec), 0.0f) / (d * d);
-			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * pl->intensity *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess) / (d * d);
-			return specular + diffuse;
+			if (!no_shading)
+			{
+				float d = glm::distance(pl->position, position);
+				//Kd * I * cos(theta) /d^2 
+				glm::vec3 diffuse = kd * pl->intensity *
+					glm::max(glm::dot(normal, l_vec), 0.0f) / (d * d);
+				//Ks* I * max(0, h . n)^s / d^2
+				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+				glm::vec3 specular = material->m_specular * pl->intensity *
+					glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess) / (d * d);
+				return specular + diffuse;
+			}
+			else
+				return tex_map->SampleAt(glm::vec3(uv, NAN));
 		}
 	};
 }

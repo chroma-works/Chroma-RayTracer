@@ -206,7 +206,8 @@ namespace Chroma
 			data->position = ray.PointAt(t);
 			data->material = m_material.get();
 			data->tex_map = m_tex_maps[0].get();
-			data->uv = u * (*m_uvs[1]) + v * (*m_uvs[2]) + (1 - u - v) * (*m_uvs[0]);
+			if(m_uvs[1])
+				data->uv = u * (*m_uvs[1]) + v * (*m_uvs[2]) + (1 - u - v) * (*m_uvs[0]);
 			data->normal = glm::normalize(glm::mat3(glm::transpose(inverse_transform)) *
 				(replace_normals ?
 					(ObjectSpaceNormalAt(inverse_ray.PointAt(t), normal, { u,v }))	//BumpMap & NormalMap

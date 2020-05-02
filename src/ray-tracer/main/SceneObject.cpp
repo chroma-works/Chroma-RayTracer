@@ -117,7 +117,7 @@ namespace Chroma
 
 
 	SceneObject::SceneObject(std::shared_ptr<Mesh> mesh, std::string name, glm::vec3 pos, glm::vec3 rot, 
-		glm::vec3 scale, SHAPE_T t)
+		glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds)
 		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
 	{
 		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid black shaded objects
@@ -138,11 +138,20 @@ namespace Chroma
 				tri.m_normals[1] = (mesh->m_vertex_normals[mesh->m_indices[j + 1]]);
 				tri.m_normals[2] = (mesh->m_vertex_normals[mesh->m_indices[j + 2]]);
 
-				if (mesh->m_vertex_texcoords.size() != 0)
+				if (mesh->m_vertex_texcoords.size() > 0)
 				{
-					tri.m_uvs[0] = (mesh->m_vertex_texcoords[mesh->m_indices[j]]);
-					tri.m_uvs[1] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 1]]);
-					tri.m_uvs[2] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 2]]);
+					if (tex_inds.size() == 0)
+					{
+						tri.m_uvs[0] = (mesh->m_vertex_texcoords[mesh->m_indices[j]]);
+						tri.m_uvs[1] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 1]]);
+						tri.m_uvs[2] = (mesh->m_vertex_texcoords[mesh->m_indices[j + 2]]);
+					}
+					else
+					{
+						tri.m_uvs[0] = (mesh->m_vertex_texcoords[tex_inds[j]]);
+						tri.m_uvs[1] = (mesh->m_vertex_texcoords[tex_inds[j + 1]]);
+						tri.m_uvs[2] = (mesh->m_vertex_texcoords[tex_inds[j + 2]]);
+					}
 				}
 
 
@@ -166,7 +175,7 @@ namespace Chroma
 		}
 	}
 
-	SceneObject::SceneObject(Mesh* mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t)
+	SceneObject::SceneObject(Mesh* mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds)
 	{
 		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t);
 	}

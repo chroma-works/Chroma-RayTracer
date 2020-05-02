@@ -172,6 +172,8 @@ namespace Chroma
 								d_mode = DECAL_M::bl_kd;
 							else if (data.compare("replace_background") == 0)
 								d_mode = DECAL_M::re_bg;
+							else if (data.compare("replace_all") == 0)
+								d_mode = DECAL_M::re_all;
 
 						}
 						else if (std::string(child_node->Value()).compare(INTERP) == 0)
@@ -220,6 +222,8 @@ namespace Chroma
 								d_mode = DECAL_M::bl_kd;
 							else if (data.compare("replace_background") == 0)
 								d_mode = DECAL_M::re_bg;
+							else if (data.compare("replace_all") == 0)
+								d_mode = DECAL_M::re_all;
 
 						}
 						else if (std::string(child_node->Value()).compare(NOISE_CONV) == 0)
@@ -818,6 +822,9 @@ namespace Chroma
 
 						glm::vec3 m_b = {0,0,0};
 
+						bool has_tex = false;
+						std::vector<unsigned int> tex_inds(0);
+
 						while (object_prop)
 						{
 							if (std::string(object_prop->Value()).compare(MAT) == 0)
@@ -828,6 +835,7 @@ namespace Chroma
 							}
 							else if (std::string(object_prop->Value()).compare(TEX) == 0)
 							{
+								has_tex = true;
 								std::string data = object_prop->FirstChild()->Value();
 								sscanf(data.c_str(), "%d %d", &tex_map_ind_1,  &tex_map_ind_2);
 								tex_map_ind_1--; tex_map_ind_2--;;
@@ -848,12 +856,24 @@ namespace Chroma
 									std::vector<std::shared_ptr<glm::vec3>> mesh_normals;
 									std::vector<unsigned int> mesh_indices;
 
+									int t_off = 0, v_off = 0;
+
+									auto vertex_offset = object_prop->ToElement()->FindAttribute("vertexOffset");
+									auto texture_offset = object_prop->ToElement()->FindAttribute("textureOffset");
+
+									if (vertex_offset != NULL)
+										v_off = vertex_offset->IntValue();
+
+									if (texture_offset != NULL)
+										t_off = texture_offset->IntValue();
+
 									std::string line;
 									std::istringstream stream(data);
 									mesh_verts = vertices;
 									mesh_uvs = texture_coords;
 									mesh_normals.reserve(vertices.size());
 									mesh_normals.resize(vertices.size());
+									
 
 									while (std::getline(stream, line)) //read faces line by line
 									{
@@ -863,8 +883,8 @@ namespace Chroma
 
 										if (iss) {
 
-											glm::vec3 a = (*vertices[ind[0] - 1] - *vertices[ind[1] - 1]);
-											glm::vec3 b = (*vertices[ind[0] - 1] - *vertices[ind[2] - 1]);
+											glm::vec3 a = (*vertices[ind[0] - 1 + v_off] - *vertices[ind[1] - 1 + v_off]);
+											glm::vec3 b = (*vertices[ind[0] - 1 + v_off] - *vertices[ind[2] - 1 + v_off]);
 
 											glm::vec3 normal = glm::vec3(0.0f, 0.0f, 0.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
 
@@ -872,15 +892,20 @@ namespace Chroma
 
 											for (int j = 0; j < 3; j++)
 											{
-												mesh_indices.push_back(ind[j] - 1);
-												mesh_normals[ind[j] - 1] = std::make_shared<glm::vec3>(glm::normalize(normal));
+												mesh_indices.push_back(ind[j] - 1 + v_off);
+												mesh_normals[ind[j] - 1 + v_off] = std::make_shared<glm::vec3>(glm::normalize(normal));
+												if (has_tex)
+												{
+													//mesh_uvs.push_back(texture_coords[ind[j] -1 + t_off]);
+													if (v_off != 0)
+													{
+														tex_inds.push_back(ind[j] - 1 + t_off);
+													}
+												}
 											}
 										}
-										/*for (int i = 0; i < mesh_normals.size(); i++)
-										{
-											mesh_normals[i] = glm::normalize(mesh_normals[i]); /// (float)num_shared_faces[i];//average vert. normals for shared faces
-										}*/
 									}
+									
 									mesh = std::shared_ptr<Mesh>
 										(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<std::shared_ptr<glm::vec3>>(), mesh_indices));
 								}
@@ -898,7 +923,7 @@ namespace Chroma
 							object_prop = object_prop->NextSibling();
 						}
 						auto scene_obj = std::shared_ptr<SceneObject>
-							(new SceneObject(mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle));
+							(new SceneObject(mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle, tex_inds));
 						scene_obj->SetMaterial(materials[mat_ind]);
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
