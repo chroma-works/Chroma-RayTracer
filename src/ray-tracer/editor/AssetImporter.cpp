@@ -23,6 +23,7 @@ namespace Chroma
 	const std::string AM_REF = "AmbientReflectance";
 	const std::string APERTURE = "ApertureSize";
 	const std::string BCK_COLOR = "BackgroundColor";
+	const std::string BUMP_F = "BumpFactor";
 	const std::string CAMS = "Cameras";
 	const std::string CNTR = "Center";
 	const std::string DEC_M = "DecalMode";
@@ -147,6 +148,7 @@ namespace Chroma
 					bool interp = false;
 					Chroma::DECAL_M d_mode;
 					int normalizer = -1;
+					float bump_f = 1.0f;
 
 
 					while (child_node)
@@ -182,11 +184,17 @@ namespace Chroma
 							std::string data = child_node->FirstChild()->Value();
 							sscanf(data.c_str(), "%d", &normalizer);
 						}
+						else if (std::string(child_node->Value()).compare(BUMP_F) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &bump_f);
+						}
 						child_node = child_node->NextSibling();
 					}
 					auto tm = std::make_shared<ImageTextureMap>(textures[tex_ind], d_mode, interp);
 					if(normalizer !=-1)
 						tm->SetNormalizer(normalizer);
+					tm->SetBumpFactor(bump_f);
 					texture_maps.push_back(tm);
 				}
 				else if (type.compare("perlin") == 0)
@@ -195,7 +203,7 @@ namespace Chroma
 					bool linear_conv = false;
 					Chroma::DECAL_M d_mode;
 					int noise_scale = -1;
-
+					float bump_f = 1.0f;
 
 					while (child_node)
 					{
@@ -224,11 +232,17 @@ namespace Chroma
 							std::string data = child_node->FirstChild()->Value();
 							sscanf(data.c_str(), "%d", &noise_scale);
 						}
+						else if (std::string(child_node->Value()).compare(BUMP_F) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &bump_f);
+						}
 						child_node = child_node->NextSibling();
 					}
 					auto tm = std::make_shared<NoiseTextureMap>(d_mode, linear_conv);
 					if (noise_scale != -1)
 						tm->SetScale(noise_scale);
+					tm->SetBumpFactor(bump_f);
 					texture_maps.push_back(tm);
 				}
 			}
