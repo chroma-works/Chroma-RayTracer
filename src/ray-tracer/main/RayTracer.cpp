@@ -303,7 +303,7 @@ namespace Chroma
 		}
 	}
 
-	glm::vec3 RayTracer::RecursiveTrace(const Ray& ray, Scene& scene, int depth)//Recursive!
+	glm::vec3 RayTracer::RecursiveTrace(const Ray& ray, Scene& scene, int depth)
 	{
 		IntersectionData isect_data;
 		scene.m_accel_structure->Intersect(ray, &isect_data);
@@ -421,10 +421,10 @@ namespace Chroma
 			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
 			color += ambient;
 
-			IntersectionData shadow_data;
 			//lighting calculation
 			for (auto it = scene.m_point_lights.begin(); it != scene.m_point_lights.end(); it++)
 			{
+				IntersectionData shadow_data;
 				std::shared_ptr<PointLight> pl = it->second;
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
 				glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
@@ -438,12 +438,8 @@ namespace Chroma
 
 				shadowed = m_settings.calc_shadows && //TODO: Fix
 					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < -47.f))
-					//&&(glm::distance(shadow_ray.origin,shadow_data.position) >15)
-					//&& (isect_data.material != shadow_data.material && shadow_data.t + 1 < glm::distance(isect_data.position, pl->position))//WTF ADHOC solution 
-					;
-				/*CH_TRACE(std::to_string(shadow_data->t) + ", " +
-					std::to_string(glm::distance(isect_data.position, pl->position)));*/
+					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < -0.0f));
+
 				if (!shadowed)
 					color += isect_data.Shade(pl, l_vec, e_vec);
 			}
