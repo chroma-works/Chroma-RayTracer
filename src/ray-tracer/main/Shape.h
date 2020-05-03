@@ -3,6 +3,7 @@
 #include <thirdparty/glm/glm/glm.hpp>
 #include <thirdparty/glm/glm/gtx/intersect.hpp>
 #include <thirdparty/glm/glm/gtc/constants.hpp>
+#include <thirdparty/glm/glm/gtx/vector_angle.hpp>
 #include <ray-tracer/main/Geometry.h>
 #include <ray-tracer/main/Material.h>
 #include <ray-tracer/main/Ray.h>
@@ -141,8 +142,13 @@ namespace Chroma
 				}
 				else //Image
 				{
-					glm::vec2 dudv = m_tex_maps[1]->BumpAt(glm::vec3(uv.x, uv.y, NAN));
-					return normal - dudv.x * TB[0] + dudv.y * TB[1];
+					glm::vec2 dudv = m_tex_maps[1]->BumpAt(glm::vec3(uv.x * (*m_uvs[1]) + uv.y * (*m_uvs[2]) + (1 - uv.x - uv.y) * (*m_uvs[0]), NAN));
+					//return glm::normalize(glm::normalize(normal) - dudv.x * glm::normalize(TB[1]) - dudv.y * glm::normalize(TB[0]));
+					glm::vec3 dpPrimedu = glm::normalize(TBN[1]) + dudv.x * glm::normalize(normal);
+					glm::vec3 dpPrimedv = glm::normalize(TBN[0]) + dudv.y * glm::normalize(normal);
+					glm::vec3 normal_prime = glm::normalize(glm::cross(dpPrimedv, dpPrimedu));
+					float angle = glm::angle(normal, normal_prime);
+					return abs(angle) > glm::pi<float>()/2 ? -normal_prime : normal_prime;
 				}
 			}
 
@@ -182,15 +188,15 @@ namespace Chroma
 
 			glm::vec3 tvec = inverse_ray.origin - v0;
 			float u = glm::dot(tvec, (pvec)) * invDet;
-			if (u < 0 || u > 1) data->hit = false;
+			if (u < 0 || u > 1) return data->hit = false;
 
 			glm::vec3 qvec = glm::cross(tvec, v0v1);
 			float v = glm::dot(inverse_ray.direction, (qvec)) * invDet;
-			if (v < 0 || u + v > 1) data->hit = false;
+			if (v < 0 || u + v > 1) return data->hit = false;
 
 			float t = glm::dot(v0v2, qvec) * invDet;
 
-			if (t < inverse_ray.intersect_eps) data->hit = false;
+			if (t < inverse_ray.intersect_eps) return data->hit = false;
 
 			bool smooth_normals = m_shading_mode == SHADING_MODE::smooth;
 			bool replace_normals = false;
