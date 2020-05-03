@@ -870,7 +870,10 @@ namespace Chroma
 									std::string line;
 									std::istringstream stream(data);
 									mesh_verts = vertices;
-									mesh_uvs = texture_coords;
+									if (has_tex)
+									{
+										mesh_uvs = texture_coords;
+									}
 									mesh_normals.reserve(vertices.size());
 									mesh_normals.resize(vertices.size());
 									
@@ -896,10 +899,9 @@ namespace Chroma
 												mesh_normals[ind[j] - 1 + v_off] = std::make_shared<glm::vec3>(glm::normalize(normal));
 												if (has_tex)
 												{
-													//mesh_uvs.push_back(texture_coords[ind[j] -1 + t_off]);
 													if (v_off != 0)
 													{
-														tex_inds.push_back(ind[j] - 1 + t_off);
+														tex_inds.push_back(ind[j]-1 + t_off);
 													}
 												}
 											}
