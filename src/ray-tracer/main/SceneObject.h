@@ -153,11 +153,13 @@ namespace Chroma
 		inline void SetTextureMap(std::shared_ptr<TextureMap> tex_map)
 		{
 			int ind = 0;
-			ind = tex_map->GetDecalMode() > DECAL_M::re_all ? 1 : ind;
+			ind = tex_map->GetDecalMode() == DECAL_M::re_no || 
+				tex_map->GetDecalMode() == DECAL_M::bump ? 1 : ind;
 
-			if(tex_map.get()->GetType() == SOURCE_T::image  
-				&&ind == 0)
-				m_texture = *((dynamic_cast<ImageTextureMap*>(tex_map.get())->m_texture).get());
+			if(tex_map.get()->GetType() == SOURCE_T::image && ind == 0)
+				m_texture = *((static_cast<ImageTextureMap*>(tex_map.get())->m_texture).get());
+			/*else if(tex_map.get()->GetType() == SOURCE_T::image)
+				m_texture = Chroma::Texture("../../assets/textures/white.png");*/
 
 			for (auto shape : m_mesh->m_shapes)
 				shape->m_tex_maps[ind] = tex_map;
@@ -181,14 +183,6 @@ namespace Chroma
 			for (auto shape : m_mesh->m_shapes)
 				shape->m_motion_blur = mb;
 		}
-
-		/*inline void SetRadius(float radius)
-		{
-			m_radius = radius;
-
-			m_mesh->SetMinBound(m_position - glm::vec3(radius, radius, radius));
-			m_mesh->SetMaxBound(m_position + glm::vec3(radius, radius, radius));
-		}*/
 
 		void Draw(DrawMode mode);
 

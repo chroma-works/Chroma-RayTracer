@@ -4,6 +4,7 @@
 #include <thirdparty/glm/glm/gtx/intersect.hpp>
 #include <thirdparty/glm/glm/gtc/constants.hpp>
 #include <thirdparty/glm/glm/gtx/vector_angle.hpp>
+#include <thirdparty/glm/glm/gtc/matrix_access.hpp>
 #include <ray-tracer/main/Geometry.h>
 #include <ray-tracer/main/Material.h>
 #include <ray-tracer/main/Ray.h>
@@ -124,14 +125,14 @@ namespace Chroma
 					m_tex_maps[1]->SampleAt(glm::vec3(uv.x * (*m_uvs[1]) + uv.y * (*m_uvs[2]) + (1 - uv.x -uv.y) * (*m_uvs[0]), NAN))
 				);
 			glm::mat2 A_inv = glm::inverse(glm::mat2(
-				*m_uvs[1] - *m_uvs[0],
-				*m_uvs[2] - *m_uvs[0]));
+				*m_uvs[2] - *m_uvs[1],
+				*m_uvs[0] - *m_uvs[1]));
 
-			glm::mat2x3 E = { {*m_vertices[1] - *m_vertices[0] }, {*m_vertices[2] - *m_vertices[0]} };
+			glm::mat2x3 E = { {*m_vertices[2] - *m_vertices[1] }, {*m_vertices[0] - *m_vertices[1]} };
 
 			glm::mat2x3 TB = E * A_inv;
 			glm::vec3 N = glm::cross(*m_vertices[1] - *m_vertices[0], *m_vertices[2] - *m_vertices[0]);
-			glm::mat3 TBN = {TB[0], TB[1], N};
+			glm::mat3 TBN = {glm::column(TB,0), glm::column(TB,1), N};
 
 			if (m_tex_maps[1]->GetDecalMode() == DECAL_M::bump)
 			{
@@ -143,12 +144,18 @@ namespace Chroma
 				else //Image
 				{
 					glm::vec2 dudv = m_tex_maps[1]->BumpAt(glm::vec3(uv.x * (*m_uvs[1]) + uv.y * (*m_uvs[2]) + (1 - uv.x - uv.y) * (*m_uvs[0]), NAN));
-					//return glm::normalize(glm::normalize(normal) - dudv.x * glm::normalize(TB[1]) - dudv.y * glm::normalize(TB[0]));
-					glm::vec3 dpPrimedu = glm::normalize(TBN[1]) + dudv.x * glm::normalize(normal);
-					glm::vec3 dpPrimedv = glm::normalize(TBN[0]) + dudv.y * glm::normalize(normal);
-					glm::vec3 normal_prime = glm::normalize(glm::cross(dpPrimedv, dpPrimedu));
-					float angle = glm::angle(normal, normal_prime);
-					return abs(angle) > glm::pi<float>()/2 ? -normal_prime : normal_prime;
+					auto normal_prime = glm::normalize(glm::normalize(normal) - dudv.x * glm::normalize(TB[1]) - dudv.y * glm::normalize(TB[0]));
+					if (glm::all(glm::isnan(TBN[0])) || glm::all(glm::isnan(TBN[1])))
+					{
+						return glm::normalize(normal);
+					}
+					return abs(glm::dot(normal, normal_prime)) < 10e-6 ? -normal_prime : normal_prime;
+					//glm::vec3 dpPrimedu = glm::normalize(TBN[1]) + dudv.x * glm::normalize(normal);
+					//glm::vec3 dpPrimedv = glm::normalize(TBN[0]) + dudv.y * glm::normalize(normal);
+					//glm::vec3 normal_prime = glm::normalize(glm::cross(dpPrimedv, dpPrimedu));
+					//
+					//float angle = glm::angle(normal, normal_prime);
+					//return /*abs(angle) > glm::pi<float>()/2 ? -normal_prime :*/ normal_prime;
 				}
 			}
 
@@ -300,7 +307,8 @@ namespace Chroma
 				else //Image
 				{
 					glm::vec2 dudv = m_tex_maps[1]->BumpAt(glm::vec3(uv.x, uv.y, NAN));
-					return normal - dudv.x * T - dudv.y * B;
+					auto normal_prime = glm::normalize(normal - dudv.x * T - dudv.y * B);
+					return abs(glm::dot(normal, normal_prime)) < 10e-6 ? -normal_prime : normal_prime;
 				}
 			}
 			else
