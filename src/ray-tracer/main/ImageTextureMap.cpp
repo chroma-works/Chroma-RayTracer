@@ -52,6 +52,6 @@ namespace Chroma
 		float du = glm::compAdd(right_sample - sample)/3.0f;
 		float dv = glm::compAdd(upper_sample - sample)/3.0f;
 
-		return glm::vec3(du, dv, NAN) * m_bump_factor;
+		return glm::vec3(du/m_normalizer, dv/m_normalizer, NAN) * m_bump_factor;
 	}
 }
