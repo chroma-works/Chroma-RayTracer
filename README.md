@@ -278,6 +278,49 @@ To top it off:
  <img src= "resources/dragon_tea_r.png" width = "805">  
 **Figure 24:** Additional renders.
 
+## Week 11 & 12  
+
+These weeks were focused on development of texture mapping along side with normal and bump maps. Perlin noise was also implemented. Of course during this process there were some significant mistakes made.
+
+For the triangles texture coordinates are calculated using the barycentric coordinates of the hit point. To calculate the texture value we require **U,V** values for the position ray hits. However this value is an weighted average of triangle corner **UVs** where weights are barycentric coordinates. The problem I faced was dues to my own laziness. Since I did not wanted to calculate which corner gets which barycentric coordinate I forced my way through trial&error. As it turns out correct combination for my implementation was 1,2,0 as follows:  
+```
+u * corner_uv[1] + v * corner_uv[2] + (1-u-v) * corner_uv[0]
+```  
+
+Yet along the way such fun render fails are achieved(see **Figure 25**).
+<img src= "resources/wrong_tex_coord.png" width = "400"> <img src= "resources/cube_wall.png" width = "400">  
+**Figure 25:** Left render failure due to wrong calculation of barycentric coordiantes, right correct rendering.  
+ 
+During the implementation of Perlin noise on sphere I had similar difficulties. As it turns out calculation of tangent space vectors was off and due to that I get pretty cool render fails. One can see those in **Figure 26**.
+<img src= "resources/facehugger.png" width = "400"> <img src= "resources/cutspheres.png" width = "400">  
+**Figure 26:** Render fails due to wrong calculation of tangent space for perlin bump mapping on sphere.  
+
+Lastly I figured out that Perlin weighting function should only take positive values between 0-1. Yet this was not the case in the instructors notes. However this minor error was quickly corrected after looking up Ken Perlin's paper [[8]](#8). During this process I got and interesting artifact I like to call "Pervin Noise" (See **Figure 27**).  
+
+<img src= "resources/cube_perlin_wrong_scale.png" width = "400"> <img src= "resources/cube_perlin.png" width = "400">  
+**Figure 27:** Left, Perlin Noise with negative values fed into weight function. Right, correct render of that scene.  
+
+After fixing these issues most of the process was straight forward. During one of my renders I got an interesting render using Perlin Noise. On one cube's side a "dude" poped up with sun glasses and a cowboy hat. This can be seen in **Figure 28**.  
+I [tweeted](https://twitter.com/stlkr_v1/status/1256218576551399426) this image to check if I am going insane or not due to quarantine. Peter Shirley and many computer graphics enthusiasts took an interest to this image and saw the same dude thus proving that I was still sane.
+
+<img src= "resources/dude.png" width = "600"> 
+**Figure 28:** Perlin noise dude!  
+
+To conclude here are this weeks renders:  
+<img src= "resources/bump_mapping_transformed.png" width = "400"> <img src= "resources/cube_cushion.png" width = "400">  
+<img src= "resources/cube_perlin.png" width = "400"> <img src= "resources/cube_perlin_bump.png" width = "400">  
+<img src= "resources/cube_wall.png" width = "400"> <img src= "resources/cube_wall_normal.png" width = "400">  
+<img src= "resources/cube_waves.png" width = "400"> <img src= "resources/ellipsoids_texture.png" width = "400">  
+<img src= "resources/galactica_static.png" width = "400"> <img src= "resources/galactica_dynamic.png" width = "400">  
+<img src= "resources/sphere_nearest_bilinear.png" width = "400"> <img src= "resources/sphere_nobump_bump.png" width = "400">  
+<img src= "resources/sphere_nobump_justbump.png" width = "400"> <img src= "resources/sphere_normal.png" width = "400">  
+<img src= "resources/sphere_perlin.png" width = "400"> <img src= "resources/sphere_perlin_bump.png" width = "400">  
+<img src= "resources/sphere_perlin_scale.png" width = "400"> <img src= "resources/killeroo_bump_walls.png" width = "400">  
+**Figure 29:** HW4 renders.
+
+Also I prepared a animation that demostrates the spatial location based noise property of Perlin noise. One can observe the patterns staying still while spheres move down in y axis(**Figure 30**).   
+<img src= "resources/perlin_bump.gif" width = "600">  
+
 
 ## References
 <a id="1">[1]</a>
@@ -297,4 +340,7 @@ M. Pharr, W. Jakob , and G. Humphreys , “Physically Based Rendering,” Physic
 R. L. Cook, T. Porter, and L. Carpenter, “Distributed ray tracing,” Proceedings of the 11th annual conference on Computer graphics and interactive techniques - SIGGRAPH 84, 1984.  
 
 <a id="7">[7]</a>
-K. Suffern, Ray Tracing from the Ground Up. Natick: Chapman and Hall/CRC, 2016.
+K. Suffern, Ray Tracing from the Ground Up. Natick: Chapman and Hall/CRC, 2016.  
+
+<a id="8">[8]</a>
+K. Perlin, “Improving noise,” Proceedings of the 29th annual conference on Computer graphics and interactive techniques - SIGGRAPH 02, 2002.
