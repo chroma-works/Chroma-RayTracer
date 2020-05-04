@@ -439,12 +439,12 @@ namespace Chroma
 				bool shadowed = false;
 				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
 				shadow_ray.direction = glm::normalize(pl->position - isect_data.position);
-				shadow_ray.intersect_eps = 0.09f;
+				//shadow_ray.intersect_eps = 0.09f;
 				shadow_ray.jitter_t = ray.jitter_t;
 
 				shadowed = m_settings.calc_shadows && //TODO: Fix
 					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < -0.0f));
+					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < 0.0f));
 
 				if (!shadowed)
 					color += isect_data.Shade(pl, l_vec, e_vec);
