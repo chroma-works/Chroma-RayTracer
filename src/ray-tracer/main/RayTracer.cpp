@@ -288,7 +288,7 @@ namespace Chroma
 						if(cam->GetNumberOfSamples() ==1)
 							primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
 
-						glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0);
+						glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0, {i,j});
 						color += sample_color / (float)cam->GetNumberOfSamples();//Box Filter
 					}
 					m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
@@ -303,7 +303,7 @@ namespace Chroma
 		}
 	}
 
-	glm::vec3 RayTracer::RecursiveTrace(const Ray& ray, Scene& scene, int depth)
+	glm::vec3 RayTracer::RecursiveTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood)
 	{
 		IntersectionData isect_data;
 		scene.m_accel_structure->Intersect(ray, &isect_data);
@@ -313,7 +313,13 @@ namespace Chroma
 
 		if (!isect_data.hit)
 		{
-			return scene.m_sky_color;
+			if (scene.m_sky_texture)
+			{
+				return scene.m_sky_texture->SampleAt({ pixel_cood.x / (float)m_settings.resolution.x,
+					pixel_cood.y / (float)m_settings.resolution.y, 0 }) * 255.0f;
+			}
+			else
+				return scene.m_sky_color;
 		}
 		else if (m_settings.calc_reflections && 
 			isect_data.material->type == MAT_TYPE::mirror && depth < m_settings.recur_depth) 
@@ -333,7 +339,7 @@ namespace Chroma
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
 			reflection_ray.jitter_t = RandFloat();
 
-			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
+			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
 		else if (m_settings.calc_reflections &&
@@ -355,7 +361,7 @@ namespace Chroma
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
 
-			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * ((Conductor*)isect_data.material)->GetFr(cos_theta) *
+			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * ((Conductor*)isect_data.material)->GetFr(cos_theta) *
 				((Conductor*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
@@ -391,7 +397,7 @@ namespace Chroma
 				reflection_ray.intersect_eps = m_settings.intersection_eps;
 				reflection_ray.jitter_t = RandFloat();
 
-				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1) * fr;
+				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
 			}
 
 
@@ -403,7 +409,7 @@ namespace Chroma
 				refraction_ray.intersect_eps = m_settings.intersection_eps;
 				refraction_ray.jitter_t = RandFloat();
 
-				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1) * (1.0f - fr);
+				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
 			}
 
 			color += (reflection_color + refraction_color);

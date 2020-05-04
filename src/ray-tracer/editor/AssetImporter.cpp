@@ -790,6 +790,14 @@ namespace Chroma
 				tinyxml2::XMLNode* child_node = node->FirstChild();
 
 				texturemaps = ParseTextures(child_node, file_path.substr(0, found + 1));
+				for (auto t : texturemaps)
+				{
+					if (t->GetDecalMode() == DECAL_M::re_bg)
+					{
+						scene->m_sky_texture = t;
+						break;
+					}
+				}
 			}
 			else if (std::string(node->Value()).compare(VRTX_DATA) == 0)
 			{

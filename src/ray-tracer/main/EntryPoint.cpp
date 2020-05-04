@@ -20,7 +20,7 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	Chroma::Logger::Init("1.11.6");
+	Chroma::Logger::Init("1.11.7");
 
 	Chroma::Window window = Chroma::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<Chroma::Scene> scene;
 	Chroma::Settings s;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw4/galactica_dynamic.xml", &s)));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw4/galactica_static.xml", &s)));
 	//init editor
 	Chroma::Editor editor(&window, scene.get(), s);
 

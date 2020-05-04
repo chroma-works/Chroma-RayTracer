@@ -300,7 +300,7 @@ namespace Chroma
 				else //Image
 				{
 					glm::vec2 dudv = m_tex_maps[1]->BumpAt(glm::vec3(uv.x, uv.y, NAN));
-					return normal - dudv.x * T + dudv.y * B;
+					return normal - dudv.x * T - dudv.y * B;
 				}
 			}
 			else

@@ -39,6 +39,7 @@ namespace Chroma
 		void Render(Camera* cam, DrawMode = DrawMode::TRI);
 
 		glm::vec4 m_sky_color = {0.15f * 0.3, 0.15f * 0.3, 0.2f * 0.3, 1.0f };
+		std::shared_ptr<TextureMap> m_sky_texture;
 		glm::vec3 m_ambient_l = { 0.0, 0.0, 0.0f };
 
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;

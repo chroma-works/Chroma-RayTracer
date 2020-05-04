@@ -30,6 +30,6 @@ namespace Chroma
 
 		void RayCastWorker(Camera* cam, Scene& scene, int idx);
 		void RecursiveTraceWorker(Camera* cam, Scene& scene, int idx);
-		glm::vec3 RecursiveTrace(const Ray& ray, Scene& scene, int depth);
+		glm::vec3 RecursiveTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood);
 	};
 }
