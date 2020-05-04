@@ -320,7 +320,7 @@ To conclude here are this weeks renders:
 
 Also I prepared a animation that demostrates the spatial location based noise property of Perlin noise. One can observe the patterns staying still while spheres move down in y axis(**Figure 30**).   
 <img src= "resources/perlin_bump.gif" width = "600">  
-
+**Figure 30:** Perlin noise animation.
 
 ## References
 <a id="1">[1]</a>
