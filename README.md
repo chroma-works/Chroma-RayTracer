@@ -301,9 +301,9 @@ Lastly I figured out that Perlin weighting function should only take positive va
 **Figure 27:** Left, Perlin Noise with negative values fed into weight function. Right, correct render of that scene.  
 
 After fixing these issues most of the process was straight forward. During one of my renders I got an interesting render using Perlin Noise. On one cube's side a "dude" poped up with sun glasses and a cowboy hat. This can be seen in **Figure 28**.  
-I [tweeted](https://twitter.com/stlkr_v1/status/1256218576551399426) this image to check if I am going insane or not due to quarantine. Peter Shirley and many computer graphics enthusiasts took an interest to this image and saw the same dude thus proving that I was still sane.
+I [tweeted](https://twitter.com/stlkr_v1/status/1256218576551399426) this image to check if I am going insane or not due to quarantine. Peter Shirley and many computer graphics enthusiasts took an interest to this image and saw the same dude thus proving that I was still sane.  
 
-<img src= "resources/dude.png" width = "600"> 
+<img src= "resources/dude.png" width = "600">  
 **Figure 28:** Perlin noise dude!  
 
 To conclude here are this weeks renders:  
@@ -316,11 +316,11 @@ To conclude here are this weeks renders:
 <img src= "resources/sphere_nobump_justbump.png" width = "400"> <img src= "resources/sphere_normal.png" width = "400">  
 <img src= "resources/sphere_perlin.png" width = "400"> <img src= "resources/sphere_perlin_bump.png" width = "400">  
 <img src= "resources/sphere_perlin_scale.png" width = "400"> <img src= "resources/killeroo_bump_walls.png" width = "400">  
-**Figure 29:** HW4 renders.
+**Figure 29:** HW4 renders.  
 
 Also I prepared a animation that demostrates the spatial location based noise property of Perlin noise. One can observe the patterns staying still while spheres move down in y axis(**Figure 30**).   
 <img src= "resources/perlin_bump.gif" width = "600">  
-**Figure 30:** Perlin noise animation.
+**Figure 30:** Perlin noise animation.  
 
 ## References
 <a id="1">[1]</a>
