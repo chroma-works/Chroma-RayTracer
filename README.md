@@ -291,7 +291,7 @@ Yet along the way such fun render fails are achieved(see **Figure 25**).
 <img src= "resources/wrong_tex_coord.png" width = "400"> <img src= "resources/cube_wall.png" width = "400">  
 **Figure 25:** Left render failure due to wrong calculation of barycentric coordiantes, right correct rendering.  
  
-During the implementation of Perlin noise on sphere I had similar difficulties. As it turns out calculation of tangent space vectors was off and due to that I get pretty cool render fails. One can see those in **Figure 26**.
+During the implementation of Perlin noise on sphere I had similar difficulties. As it turns out calculation of tangent space vectors was off and due to that I get pretty cool render fails. One can see those in **Figure 26**.  
 <img src= "resources/facehugger.png" width = "400"> <img src= "resources/cutspheres.png" width = "400">    
 **Figure 26:** Render fails due to wrong calculation of tangent space for perlin bump mapping on sphere.  
 
