@@ -131,7 +131,7 @@ namespace Chroma
 			glm::mat2x3 E = { {*m_vertices[2] - *m_vertices[1] }, {*m_vertices[0] - *m_vertices[1]} };
 
 			glm::mat2x3 TB = E * A_inv;
-			glm::vec3 N = glm::cross(*m_vertices[1] - *m_vertices[0], *m_vertices[2] - *m_vertices[0]);
+			glm::vec3 N = glm::cross(*m_vertices[2] - *m_vertices[1], *m_vertices[0] - *m_vertices[1]);
 			glm::mat3 TBN = {glm::column(TB,0), glm::column(TB,1), N};
 
 			if (m_tex_maps[1]->GetDecalMode() == DECAL_M::bump)
