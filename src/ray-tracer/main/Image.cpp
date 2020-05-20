@@ -82,7 +82,7 @@ namespace Chroma
 		if (m_hdr)
 			delete[] m_hdr_pixels;
 	}
-	void Image::SetHDR(bool is_hdr)
+	/*void Image::SetHDR(bool is_hdr)
 	{
 		m_hdr = is_hdr;
 		if (m_hdr)
@@ -95,7 +95,7 @@ namespace Chroma
 			if (m_hdr_pixels)
 				delete[] m_hdr_pixels;
 		}
-	}
+	}*/
 	glm::u8vec3* Image::GetPixels() const
 	{
 		return m_pixels;
