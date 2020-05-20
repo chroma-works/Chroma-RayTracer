@@ -23,6 +23,8 @@ add_subdirectory(src/thirdparty/glfw-3.3)
 add_subdirectory(src/thirdparty/spdlog-1.3.1)
 
 set (thirdparty_sources
+	src/thirdparty/tinyexr/tinyexr.h
+	src/thirdparty/tinyexr/tinyexr.cc
 	src/thirdparty/tinyxml2/tinyxml2.h
 	src/thirdparty/tinyxml2/tinyxml2.cpp
     src/thirdparty/glad/include/glad/glad.h
