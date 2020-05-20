@@ -1,0 +1,74 @@
+<Scene>
+    <BackgroundColor>0 0 0</BackgroundColor>
+
+    <MaxRecursionDepth>6</MaxRecursionDepth>
+
+    <Cameras>
+        <Camera id="1" type="lookAt" handedness="left">
+            <Position>0.322839 0.0534825 0.504299</Position>
+            <GazePoint>-0.140808 -0.162727 -0.35493</GazePoint>
+            <Up>0.0355799 0.964444 -0.261882</Up>
+            <FovY>30</FovY>
+            <NearDistance>1</NearDistance>
+            <ImageResolution>800 450</ImageResolution>
+            <ImageName>head_env_light.exr</ImageName>
+            <NumSamples>900</NumSamples>
+            <Tonemap>
+                <TMO>Photographic</TMO>
+                <TMOOptions>0.18 1</TMOOptions>
+                <Saturation>1.0</Saturation>
+                <Gamma>2.2</Gamma>
+            </Tonemap>
+        </Camera>
+    </Cameras>
+
+    <Transformations>
+        <Scaling id="1">-1 1 1</Scaling>
+        <Rotation id="1">90 -1 0 0</Rotation>
+        <Rotation id="2">90 0 0 1</Rotation>
+    </Transformations>
+
+    <VertexData>
+        -1000 -1000 0
+        1000 -1000 0
+        1000 1000 0
+        -1000 1000 0
+    </VertexData>
+
+    <Materials>
+        <Material id="1">
+            <AmbientReflectance>1 1 1</AmbientReflectance>
+            <DiffuseReflectance>1 1 1</DiffuseReflectance>
+            <SpecularReflectance>0 0 0</SpecularReflectance>
+        </Material>
+    </Materials>
+
+    <Textures>
+        <Images>
+            <Image id="1">textures/head_albedomap_flip.png</Image>
+            <Image id="2">textures/pisa_latlong.exr</Image>
+        </Images>
+
+        <TextureMap id="1" type="image">
+            <ImageId>1</ImageId>
+            <Interpolation>bilinear</Interpolation>
+            <DecalMode>replace_kd</DecalMode>
+            <Normalizer>255</Normalizer>
+        </TextureMap>
+    </Textures>
+
+    <Lights>
+        <SphericalDirectionalLight id="1">
+            <ImageId>2</ImageId>
+        </SphericalDirectionalLight>
+    </Lights>
+
+
+    <Objects>
+        <Mesh id="1" shadingMode="smooth">
+            <Material>1</Material>
+            <Textures>1</Textures>
+            <Faces plyFile="ply/head.ply" />
+        </Mesh>
+    </Objects>
+</Scene>

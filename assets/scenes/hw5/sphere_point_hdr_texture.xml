@@ -1,0 +1,80 @@
+<Scene>
+    <BackgroundColor>0 0 0</BackgroundColor>
+
+    <Cameras>
+        <Camera id="1" type="lookAt">
+            <Position>5 5 5</Position>
+            <GazePoint>0 0 0</GazePoint>
+            <Up>0 1 0</Up>
+            <FovY>45</FovY>
+            <NearDistance>1</NearDistance>
+            <ImageResolution>800 800</ImageResolution>
+            <ImageName>sphere_point_hdr_texture.exr</ImageName>
+            <Tonemap>
+                <TMO>Photographic</TMO>
+                <TMOOptions>0.01 2</TMOOptions> <!-- key_value burn_percent -->
+                <Saturation>1.0</Saturation>
+                <Gamma>2.2</Gamma>
+            </Tonemap>
+        </Camera>
+    </Cameras>
+
+    <Lights>
+        <AmbientLight>25 25 25</AmbientLight>
+        <PointLight id="1">
+            <Position>-5 4 5</Position>
+            <Intensity>10000 10000 10000</Intensity>
+        </PointLight>
+    </Lights>
+
+    <Materials>
+        <Material id="1">
+            <AmbientReflectance>1 1 1</AmbientReflectance>
+            <DiffuseReflectance>1 1 1</DiffuseReflectance>
+            <SpecularReflectance>0 0 0</SpecularReflectance>
+            <PhongExponent>1</PhongExponent>
+        </Material>
+        <Material id="2" degamma="true">
+            <AmbientReflectance>0.651 0.389 0.389</AmbientReflectance>
+            <DiffuseReflectance>0.651 0.389 0.389</DiffuseReflectance>
+            <SpecularReflectance>0.651 0.389 0.389</SpecularReflectance>
+            <PhongExponent>1</PhongExponent>
+        </Material>
+    </Materials>
+
+    <Textures>
+        <Images>
+            <Image id="1">textures/grace-new.exr</Image>
+        </Images>
+
+        <TextureMap id="1" type="image">
+            <ImageId>1</ImageId>
+            <Interpolation>bilinear</Interpolation>
+            <DecalMode>replace_all</DecalMode>
+            <Normalizer>1</Normalizer>
+        </TextureMap>
+    </Textures>
+
+    <Transformations>
+        <Translation id="1">-0.5 0 -0.5</Translation>
+        <Translation id="2">-0.5 -0.5 -0.5</Translation>
+        <Translation id="3">0.5 0.5 0.5</Translation>
+        <Scaling id="1">1000 1000 1000</Scaling>
+        <Scaling id="2">2 2 2</Scaling>
+        <Rotation id="1">0 0 1 0</Rotation>
+    </Transformations>
+
+    <VertexData>
+        0 0 0
+    </VertexData>
+
+    <Objects>
+        <Sphere id="1">
+            <Material>2</Material>
+            <Textures>1</Textures>
+            <Transformations>r1</Transformations>
+            <Center>1</Center>
+            <Radius>3</Radius>
+        </Sphere>
+    </Objects>
+</Scene>
