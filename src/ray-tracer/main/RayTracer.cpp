@@ -78,7 +78,7 @@ namespace Chroma
 
 	RayTracer::RayTracer()
 	{
-		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y);
+		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.save_exr);
 		for (int i = 0; i < m_settings.resolution.x; i++)
 			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -216,7 +216,7 @@ namespace Chroma
 					glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
 					color += ambient;
 				}
-				m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
+				m_rendered_image->SetPixel(i, j, color);
 			}
 
 			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
@@ -462,7 +462,7 @@ namespace Chroma
 
 		delete m_rendered_image;
 
-		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y);
+		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.save_exr);
 		for (int i = 0; i < m_settings.resolution.x; i++)
 			for (int j = 0; j < m_settings.resolution.y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));

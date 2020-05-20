@@ -6,12 +6,14 @@ namespace Chroma
 	class Image
 	{
 	public:
-		Image(int width, int height);
+		Image(int width, int height, bool is_hdr = false);
 		~Image();
+
 
 		glm::u8vec3* GetPixels() const;
 
-		void SetPixel(int x, int y, const glm::u8vec3& pixel);
+		//void SetHDR(bool is_hdr);
+		void SetPixel(int x, int y, const glm::vec3& pixel);
 		void SaveToDisk(const char* file_name) const;
 
 
@@ -19,7 +21,10 @@ namespace Chroma
 	private:
 		const int m_width;
 		const int m_height;
+		bool m_hdr = false;
 		glm::u8vec3* m_pixels = nullptr;
+		glm::vec3* m_hdr_pixels = nullptr;
+
 	};
 
 }

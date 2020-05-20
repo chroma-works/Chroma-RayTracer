@@ -18,5 +18,6 @@ namespace Chroma
 		bool calc_reflections = true;
 		bool calc_refractions = true;
 		int recur_depth = 6;
+		bool save_exr = true;
 	};
 }

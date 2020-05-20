@@ -63,7 +63,7 @@ namespace Chroma
 
 	Editor::~Editor()
 	{
-		delete m_window;
+		//delete m_window;
 	}
 
 	void Editor::OnUpdate()
@@ -549,6 +549,11 @@ namespace Chroma
 		{
 			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
 			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+		}
+		if (ImGui::Checkbox("Save HDR Image(.exr)", &m_settings.save_exr))
+		{
+			delete ray_tracer->m_rendered_image;
+			ray_tracer->m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.save_exr);
 		}
 
 		ImGui::Separator();
