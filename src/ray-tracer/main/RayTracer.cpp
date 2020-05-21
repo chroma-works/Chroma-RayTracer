@@ -130,6 +130,11 @@ namespace Chroma
 			glm::vec3 min = it->second->m_mesh->GetMinBound();
 			glm::vec3 max = it->second->m_mesh->GetMaxBound();
 		}
+		if (m_rendered_image->IsHDR())
+		{
+			m_rendered_image->ToneMap(cam->m_key_val, cam->m_burn, 
+				cam->m_saturation, cam->m_gamma);
+		}
 		//while (progress_pers != 1.0f)
 		//	if (progress_pers == 1.0f)
 		//		break;
@@ -291,7 +296,7 @@ namespace Chroma
 						glm::vec3 sample_color = RecursiveTrace(primary_ray, scene, 0, {i,j});
 						color += sample_color / (float)cam->GetNumberOfSamples();//Box Filter
 					}
-					m_rendered_image->SetPixel(i, j, glm::clamp(color, 0.0f, 255.0f));
+					m_rendered_image->SetPixel(i, j, color);
 					progress_pers = progress_pers + (1.0f) / ((float)(glm::compMul(m_settings.resolution)));
 				}
 

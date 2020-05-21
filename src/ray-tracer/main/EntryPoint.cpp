@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<Chroma::Scene> scene;
 	Chroma::Settings s;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw4/sphere_nobump_justbump.xml", &s)));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/cube_point_hdr.xml", &s)));
 	//init editor
 	Chroma::Editor editor(&window, scene.get(), s);
 

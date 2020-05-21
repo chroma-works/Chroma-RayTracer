@@ -1,6 +1,9 @@
 #include "Image.h"
 #include <ray-tracer/editor/Logger.h>
 #include <thirdparty/glm/glm/glm.hpp>
+#include <thirdparty/glm/glm/common.hpp>
+#include <thirdparty/glm/glm/gtx/color_space.hpp>
+#include <thirdparty/glm/glm/gtx/component_wise.hpp>
 
 //#define TINYEXR_IMPLEMENTATION
 #include "thirdparty/tinyexr/tinyexr.h"
@@ -99,6 +102,28 @@ namespace Chroma
 	glm::u8vec3* Image::GetPixels() const
 	{
 		return m_pixels;
+	}
+	void Image::ToneMap(float key_v, float burn, float satur, float gamma)
+	{
+		float tmp = 0.0f;
+		for (int i = 0; i < m_width * m_height; i++)
+		{
+			m_hdr_pixels[i] = glm::saturation(satur, m_hdr_pixels[i]);
+		}
+		for (int i = 0; i < m_width * m_height; i++)
+		{
+			tmp += std::logf(glm::luminosity(m_hdr_pixels[i]));
+		}
+		float l_w = std::expf(tmp) / (m_width * m_height);
+		for (int i = 0; i < m_width * m_height; i++)
+		{
+			glm::vec3 cur_pixel = m_hdr_pixels[i];
+			float lum = key_v / (l_w) * glm::luminosity(m_hdr_pixels[i]);
+			m_hdr_pixels[i] *= (lum * (1 + lum / (burn * burn))) / (1 + lum);
+
+			//gamma correction
+			//m_hdr_pixels[i] = glm::pow(m_hdr_pixels[i], gamma);
+		}
 	}
 	void Image::SetPixel(int x, int y, const glm::vec3& pixel)
 	{
