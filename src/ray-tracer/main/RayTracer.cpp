@@ -76,7 +76,7 @@ namespace Chroma
 		return r_prime;
 	}
 
-	bool RayTracer::IsShadowed(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> li)
+	bool RayTracer::TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> li)
 	{
 		Ray shadow_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 		//shadow_ray.jitter_t = ray.jitter_t; // Uncomment if problems occur
@@ -88,7 +88,7 @@ namespace Chroma
 			distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->position);
 			break;
 		case LIGHT_T::directional:
-			shadow_ray.direction = glm::normalize(dynamic_cast<DirectionalLight*>(li.get())->direction);
+			shadow_ray.direction = -glm::normalize(dynamic_cast<DirectionalLight*>(li.get())->direction);
 			distance = INFINITY;
 			break;
 		default:
@@ -467,7 +467,7 @@ namespace Chroma
 				//glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
 
 				//Shadow calculation	
-				bool shadowed = IsShadowed(scene, &isect_data, li);
+				bool shadowed = TestShadow(scene, &isect_data, li);
 
 				if (!shadowed)
 					color += isect_data.Shade(li, e_vec);

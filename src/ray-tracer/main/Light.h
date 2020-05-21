@@ -17,9 +17,9 @@ namespace Chroma
 	{
 	public:
 
-		SET_INTENSITY(ambient, diffuse, specular, intensity)
+		SET_INTENSITY(ambient, diffuse, specular, ls)
 
-		virtual glm::vec3 CalculateRadiance(const glm::vec3 pos, const glm::vec3 normal,
+		virtual glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
 			const glm::vec3 e_vec, const Material* material) const = 0;
 
 		virtual void DrawUI() = 0;
@@ -29,7 +29,7 @@ namespace Chroma
 		glm::vec3 diffuse;
 		glm::vec3 specular;
 
-		glm::vec3 intensity;
+		glm::vec3 ls;
 
 		LIGHT_T type;
 	};
@@ -39,13 +39,13 @@ namespace Chroma
 
 		DirectionalLight(glm::vec3 dir, glm::vec3 amb,
 			glm::vec3 diff, glm::vec3 spec, std::string name = "u_DirLights")
-			: direction(dir)
+			: direction(glm::normalize(dir))
 		{
 			ambient = amb;
 			diffuse = diff;
 			specular = spec;
 			shader_var_name = name;
-			intensity = { 0,0,0 };
+			ls = { 0,0,0 };
 			type = LIGHT_T::directional;
 		}
 
@@ -56,19 +56,19 @@ namespace Chroma
 			diffuse = other.diffuse;
 			specular = other.specular;
 			shader_var_name = other.shader_var_name;
-			intensity = other.intensity;
+			ls = other.ls;
 			type = LIGHT_T::directional;
 		}
 
-		glm::vec3 CalculateRadiance(const glm::vec3 pos, const glm::vec3 normal,
+		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
 			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * intensity *
-				glm::max(glm::dot(normal, direction), 0.0f);
+			glm::vec3 diffuse = material->m_diffuse * ls *
+				glm::max(glm::dot(normal, -direction), 0.0f);
 			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec + direction) / glm::length(e_vec + direction));
-			glm::vec3 specular = material->m_specular * intensity *
+			glm::vec3 h = glm::normalize((e_vec - direction) / glm::length(e_vec - direction));
+			glm::vec3 specular = material->m_specular * ls *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess);
 			return specular + diffuse;
 		}
@@ -88,8 +88,8 @@ namespace Chroma
 			ImGui::ColorEdit3("Specular Color", &specular.x);
 
 			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = intensity;
-			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			glm::vec3 tmp = ls;
+			if (ImGui::DragFloat3("Radiance", &tmp.x, 1.0f, 0.0f, 1000.0f))
 			{
 				SetIntensity(tmp);
 				/*glm::vec3 tmp = m_scene->m_dir_lights[selected_name]->intensity / 1000.0f;
@@ -119,7 +119,7 @@ namespace Chroma
 			diffuse = diff;
 			specular = spec;
 			shader_var_name = name;
-			intensity = { 0,0,0 };
+			ls = { 0,0,0 };
 			type = LIGHT_T::point;
 		}
 
@@ -131,21 +131,21 @@ namespace Chroma
 			diffuse = other.diffuse;
 			specular = other.specular;
 			shader_var_name = other.shader_var_name;
-			intensity = other.intensity;
+			ls = other.ls;
 			type = LIGHT_T::point;
 		}
 
-		glm::vec3 CalculateRadiance(const glm::vec3 pos, const glm::vec3 normal,
+		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
 			glm::vec3 l_vec = glm::normalize(position - pos);
 			float d = glm::distance(position, pos);
 			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * intensity *
+			glm::vec3 diffuse = material->m_diffuse * ls *
 				glm::max(glm::dot(normal, l_vec), 0.0f) / (d * d);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * intensity *
+			glm::vec3 specular = material->m_specular * ls *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess) / (d * d);
 			return specular + diffuse;
 		}
@@ -168,7 +168,7 @@ namespace Chroma
 
 
 			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = intensity;
+			glm::vec3 tmp = ls;
 			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
 			{
 				SetIntensity(tmp);
