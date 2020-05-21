@@ -153,9 +153,9 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     float distance = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
     // spotlight intensity
-    float theta = dot(lightDir, normalize(-light.direction)); 
-    float epsilon = light.cutOff - light.outerCutOff;
-    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+    float theta = acos(dot(lightDir, normalize(-light.direction))); 
+    float epsilon = light.cutOff/2 - light.outerCutOff/2;
+    float intensity = pow(clamp((theta - light.outerCutOff/2) / epsilon, 0.0, 1.0), 4);
     // combine results
     vec3 ambient = light.ambient * vec3(u_Material.diffuse);
     vec3 diffuse = light.diffuse * diff * vec3(u_Material.diffuse);
