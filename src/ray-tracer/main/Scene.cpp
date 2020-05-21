@@ -47,7 +47,7 @@ namespace Chroma
 
 	void Scene::AddLight(std::string name, std::shared_ptr<SpotLight> li)
 	{
-		m_spot_lights[name] = li;
+		m_lights[name] = li;
 		m_scene_data->m_shader->AddLight(li);
 	}
 

@@ -32,7 +32,6 @@ namespace Chroma
 		void InitBVH(int maxPrimsInNode = 1, SplitMethod splitMethod = (SplitMethod)0);
 
 		inline std::shared_ptr<Light> GetLight(std::string name) { return m_lights[name]; } //TODO: add null check
-		inline std::shared_ptr<SpotLight> GetSpotlLight(std::string name) { return m_spot_lights[name]; }
 
 
 		void Render(Camera* cam, DrawMode = DrawMode::TRI);
@@ -43,7 +42,6 @@ namespace Chroma
 
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
 		std::map<std::string, std::shared_ptr<Light>> m_lights;
-		std::map<std::string, std::shared_ptr<SpotLight>> m_spot_lights;
 
 		AccelerationStructure* m_accel_structure = nullptr;
 	private:

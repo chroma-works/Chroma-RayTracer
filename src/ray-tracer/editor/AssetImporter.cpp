@@ -28,6 +28,8 @@ namespace Chroma
 	const std::string CNTR = "Center";
 	const std::string DEC_M = "DecalMode";
 	const std::string DIF_REF = "DiffuseReflectance";
+	const std::string D_LIG = "DirectionalLight";
+	const std::string DIR = "Direction";
 	const std::string FACES = "Faces";
 	const std::string FOCUS = "FocusDistance";
 	const std::string GAZE = "Gaze";
@@ -66,6 +68,7 @@ namespace Chroma
 	const std::string SHADING_M = "shadingMode";
 	const std::string SMOOTH = "smooth";
 	const std::string S_RAY_EPS = "ShadowRayEpsilon";
+	const std::string S_LIG = "SpotLight";
 	const std::string SPEC_REF = "SpecularReflectance";
 	const std::string SPHR = "Sphere";
 	const std::string TRIANGLE = "Triangle";
@@ -633,6 +636,77 @@ namespace Chroma
 						}
 						scene->AddLight(lig_name, std::make_shared<PointLight>(p_l));
 
+					}
+					else if (std::string(child_node->Value()).compare(D_LIG) == 0)
+					{
+						DirectionalLight d_l = DirectionalLight({ 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 });
+						std::string lig_name;
+						lig_name = "directional_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
+
+						while (lig_prop)//iterate over each light properties
+						{
+							if (std::string(lig_prop->Value()).compare(DIR) == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &d_l.direction.x, &d_l.direction.y, &d_l.direction.z);
+							}
+							else if (std::string(lig_prop->Value()).compare("Radiance") == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								glm::vec3 tmp({ 10,10,10 });
+								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
+
+								d_l.SetIntensity(tmp);
+								d_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+							}
+							lig_prop = lig_prop->NextSibling();
+						}
+						scene->AddLight(lig_name, std::make_shared<DirectionalLight>(d_l));
+					}
+					else if (std::string(child_node->Value()).compare(S_LIG) == 0)
+					{
+						SpotLight s_l = SpotLight({ 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,0,0 });
+						std::string lig_name;
+						lig_name = "spot_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
+
+						while (lig_prop)//iterate over each light properties
+						{
+							if (std::string(lig_prop->Value()).compare(POS) == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &s_l.position.x, &s_l.position.y, &s_l.position.z);
+							}
+							else if (std::string(lig_prop->Value()).compare(DIR) == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &s_l.direction.x, &s_l.direction.y, &s_l.direction.z);
+							}
+							else if (std::string(lig_prop->Value()).compare(INTEN) == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								glm::vec3 tmp({ 10,10,10 });
+								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
+
+								s_l.SetIntensity(tmp);
+								s_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+							}
+							else if (std::string(lig_prop->Value()).compare("CoverageAngle") == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f", &s_l.cut_off);
+								s_l.cut_off = glm::radians(s_l.cut_off);
+							}
+							else if (std::string(lig_prop->Value()).compare("FalloffAngle") == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f", &s_l.fall_off);
+								s_l.fall_off = glm::radians(s_l.fall_off);
+							}
+							lig_prop = lig_prop->NextSibling();
+						}
+						scene->AddLight(lig_name, std::make_shared<SpotLight>(s_l));
 					}
 					child_node = child_node->NextSibling();
 				}

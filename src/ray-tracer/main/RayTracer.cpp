@@ -91,6 +91,9 @@ namespace Chroma
 			shadow_ray.direction = -glm::normalize(dynamic_cast<DirectionalLight*>(li.get())->direction);
 			distance = INFINITY;
 			break;
+		case LIGHT_T::spot:
+			shadow_ray.direction = glm::normalize(dynamic_cast<SpotLight*>(li.get())->position - isect_data->position);
+			distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->position);
 		default:
 			break;
 		}

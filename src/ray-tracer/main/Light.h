@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <string>
+#include <thirdparty\glm\glm\common.hpp>
 #include <thirdparty/glm/glm/glm.hpp>
 #include <thirdparty/imgui/imgui.h>
 #include "thirdparty/imgui/imgui_impl_glfw.h"
@@ -63,11 +65,12 @@ namespace Chroma
 		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
+			glm::vec3 l_vec = glm::normalize(-direction);
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse * ls *
-				glm::max(glm::dot(normal, -direction), 0.0f);
+				glm::max(glm::dot(normal, l_vec), 0.0f);
 			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec - direction) / glm::length(e_vec - direction));
+			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 			glm::vec3 specular = material->m_specular * ls *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess);
 			return specular + diffuse;
@@ -75,9 +78,10 @@ namespace Chroma
 		void DrawUI()
 		{
 			ImGui::Text("Transform");
-			if (ImGui::Button("D##1"))direction = glm::vec3();
+			if (ImGui::Button("D##1"))direction = glm::vec3(1.0f, 0.0f, 0.0f);
 			ImGui::SameLine();
 			ImGui::DragFloat3("##4", &(direction.x), 0.05f, 0, 0, "%.3f");
+			direction = glm::normalize(direction);
 
 			ImGui::Separator();
 
@@ -180,32 +184,114 @@ namespace Chroma
 		}
 	};
 
-	struct SpotLight {
-		std::string shader_var_name = "u_SpotLights";
+	class SpotLight : public Light {
+	public:
+		//std::string shader_var_name = "u_SpotLights";
 
 		glm::vec3 position;
 		glm::vec3 direction;
-		float cutOff;
-		float outerCutOff;
+		float fall_off;
+		float cut_off;
 
 		float constant;
 		float linear;
 		float quadratic;
 
-		glm::vec3 ambient;
+		/*glm::vec3 ambient;
 		glm::vec3 diffuse;
 		glm::vec3 specular;
 
 		glm::vec3 intensity = { 0,0,0 };
 
-		SET_INTENSITY(ambient, diffuse, specular, intensity)
+		SET_INTENSITY(ambient, diffuse, specular, intensity)*/
 
 		SpotLight(glm::vec3 pos, glm::vec3 dir, glm::vec3 amb,
 			glm::vec3 diff, glm::vec3 spec, float cons = 1.0f, float lin = 0.01f, float quad = 0.0001f,
 			float cut = 0.976296f, float outerCut = 0.963630f, std::string name = "u_SpotLights")
-			: position(pos), direction(dir), ambient(amb), diffuse(diff), specular(spec), constant(cons), linear(lin), quadratic(quad),
-			cutOff(cut), outerCutOff(outerCut), shader_var_name(name), intensity({ 0.0f, 0.0f, 0.0f })
-		{}
+			: position(pos), direction(dir), constant(cons), linear(lin), quadratic(quad),
+			fall_off(cut), cut_off(outerCut)
+		{
+			ambient = amb;
+			diffuse = diff;
+			specular = spec;
+			shader_var_name = name;
+			ls = { 0,0,0 };
+			type = LIGHT_T::spot;
+		}
+
+		SpotLight(const SpotLight& other)
+			: position(other.position), direction(other.direction),
+			constant(other.constant), linear(other.linear),
+			quadratic(other.quadratic), fall_off(other.fall_off),
+			cut_off(other.cut_off)
+		{
+			ambient = other.ambient;
+			diffuse = other.diffuse;
+			specular = other.specular;
+			shader_var_name = other.shader_var_name;
+			ls = other.ls;
+			type = LIGHT_T::spot;
+		}
+
+		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
+			const glm::vec3 e_vec, const Material* material) const
+		{
+			glm::vec3 intensity = ls;
+			glm::vec3 l_vec = glm::normalize(position - pos);
+			float theta = acos(glm::dot(l_vec, normalize(-direction)));
+			// spotlight intensity
+			float epsilon = fall_off/2 - cut_off/2;
+			intensity *= pow(glm::clamp((theta - cut_off/2) / epsilon, 0.0f, 1.0f), 4);
+			float d = glm::distance(position, pos);
+			//Kd * I * cos(theta) /d^2 
+			glm::vec3 diffuse = material->m_diffuse * intensity *
+				glm::max(glm::dot(normal, l_vec), 0.0f) / (d * d);
+			//Ks* I * max(0, h . n)^s / d^2
+			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+			glm::vec3 specular = material->m_specular * intensity *
+				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess) / (d * d);
+			return specular + diffuse;
+		}
+
+		void DrawUI()
+		{
+			ImGui::Text("Transform");
+			if (ImGui::Button("P##1"))position = glm::vec3();
+			ImGui::SameLine();
+			ImGui::DragFloat3("##5", &(position.x), 0.05f, 0, 0, "%.3f");
+			if (ImGui::Button("D##2"))direction = glm::vec3(1.0f,0.0f,0.0f);
+			ImGui::SameLine();
+			ImGui::DragFloat3("##6", &(direction.x), 0.05f, 0, 0, "%.3f");
+			direction = glm::normalize(direction);
+
+			ImGui::Separator();
+
+			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
+
+			ImGui::Text("Light");
+			ImGui::ColorEdit3("Ambient Color", &ambient.x);
+			ImGui::ColorEdit3("Diffuse Color", &diffuse.x);
+			ImGui::ColorEdit3("Specular Color", &specular.x);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Fall-off##3"))fall_off = 0.1;
+			ImGui::SameLine();
+			ImGui::DragFloat("##7", &(fall_off), 0.05f, 0.00001, 3600, "%.3f");
+			if (ImGui::Button("Cut-off##4"))cut_off = 0.5;
+			ImGui::SameLine();
+			ImGui::DragFloat("##8", &(cut_off), 0.05f, fall_off, 360, "%.3f");
+
+			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
+			glm::vec3 tmp = ls;
+			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			{
+				SetIntensity(tmp);
+				/*m_scene->m_spot_lights[selected_name]->ambient =
+					m_scene->m_spot_lights[selected_name]->diffuse =
+					m_scene->m_spot_lights[selected_name]->specular = tmp;*/
+			}
+		}
 	};
 
 }
