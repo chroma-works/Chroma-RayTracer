@@ -76,6 +76,32 @@ namespace Chroma
 		return r_prime;
 	}
 
+	bool RayTracer::IsShadowed(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> li)
+	{
+		Ray shadow_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
+		//shadow_ray.jitter_t = ray.jitter_t; // Uncomment if problems occur
+		float distance;
+		switch (li->type)
+		{
+		case LIGHT_T::point:
+			shadow_ray.direction = glm::normalize(dynamic_cast<PointLight*>(li.get())->position - isect_data->position);
+			distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->position);
+			break;
+		case LIGHT_T::directional:
+			shadow_ray.direction = glm::normalize(dynamic_cast<DirectionalLight*>(li.get())->direction);
+			distance = INFINITY;
+			break;
+		default:
+			break;
+		}
+
+		IntersectionData shadow_data;
+		bool shadowed = m_settings.calc_shadows &&
+			(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
+			(glm::distance(isect_data->position, shadow_data.position) - distance < 0.0f));
+		return shadowed;
+	}
+
 	RayTracer::RayTracer()
 	{
 		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.save_exr);
@@ -152,82 +178,82 @@ namespace Chroma
 
 	void RayTracer::RayCastWorker(Camera* cam, Scene& scene, int idx)
 	{
-		glm::vec3 cam_pos = cam->GetPosition();
-		glm::vec2 top_left = cam->GetNearPlane()[0];
-		glm::vec2 bottom_right = cam->GetNearPlane()[1];
-		float dist = cam->GetNearDist();
+		//glm::vec3 cam_pos = cam->GetPosition();
+		//glm::vec2 top_left = cam->GetNearPlane()[0];
+		//glm::vec2 bottom_right = cam->GetNearPlane()[1];
+		//float dist = cam->GetNearDist();
 
-		glm::vec3 up = glm::normalize(cam->GetUp());
-		glm::vec3 forward = glm::normalize(cam->GetGaze());
-		glm::vec3 down = -up;
-		glm::vec3 right = glm::normalize(glm::cross(forward, up));
-		glm::vec3 left = -right;
+		//glm::vec3 up = glm::normalize(cam->GetUp());
+		//glm::vec3 forward = glm::normalize(cam->GetGaze());
+		//glm::vec3 down = -up;
+		//glm::vec3 right = glm::normalize(glm::cross(forward, up));
+		//glm::vec3 left = -right;
 
-		const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
-		Ray primary_ray(cam_pos);
+		//const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
+		//Ray primary_ray(cam_pos);
 
-		const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
-		const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
+		//const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
+		//const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
 
-		IntersectionData isect_data;
-		IntersectionData shadow_data;
+		//IntersectionData isect_data;
+		//IntersectionData shadow_data;
 
-		int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
-		int col_end = idx == m_settings.thread_count -1 ? m_settings.resolution.x :
-			(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
+		//int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
+		//int col_end = idx == m_settings.thread_count -1 ? m_settings.resolution.x :
+		//	(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
 
-		for (int i = col_start; i < col_end; i++)
-		{
-			for (int j = 0; j < m_settings.resolution.y; j++)
-			{
-				glm::vec3 color = scene.m_sky_color;
+		//for (int i = col_start; i < col_end; i++)
+		//{
+		//	for (int j = 0; j < m_settings.resolution.y; j++)
+		//	{
+		//		glm::vec3 color = scene.m_sky_color;
 
-				primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
-				//Go over scene objects and lights
-				if (scene.m_accel_structure->Intersect(primary_ray, &isect_data))//Hit
-				{
-					color = { 0,0,0 };
-					//lighting calculation
-					std::map<std::string, std::shared_ptr<PointLight>>::iterator it2;
-					for (it2 = scene.m_point_lights.begin(); it2 != scene.m_point_lights.end(); it2++)
-					{
-						std::shared_ptr<PointLight> pl = it2->second;
-						glm::vec3 e_vec = glm::normalize(primary_ray.origin - isect_data.position);
-						glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
+		//		primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
+		//		//Go over scene objects and lights
+		//		if (scene.m_accel_structure->Intersect(primary_ray, &isect_data))//Hit
+		//		{
+		//			color = { 0,0,0 };
+		//			//lighting calculation
+		//			std::map<std::string, std::shared_ptr<PointLight>>::iterator it2;
+		//			for (it2 = scene.m_point_lights.begin(); it2 != scene.m_point_lights.end(); it2++)
+		//			{
+		//				std::shared_ptr<PointLight> pl = it2->second;
+		//				glm::vec3 e_vec = glm::normalize(primary_ray.origin - isect_data.position);
+		//				glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
 
-						//Shadow calculation	
-						bool shadowed = false;
-						Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
-						shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
-							
-						shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-							shadow_data.t < glm::distance(isect_data.position, pl->position));
+		//				//Shadow calculation	
+		//				bool shadowed = false;
+		//				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
+		//				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
+		//					
+		//				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
+		//					shadow_data.t < glm::distance(isect_data.position, pl->position));
 
-						if (!shadowed)
-						{
-							float d = glm::distance(pl->position, isect_data.position);
+		//				if (!shadowed)
+		//				{
+		//					float d = glm::distance(pl->position, isect_data.position);
 
-							//Kd * I * cos(theta) /d^2 
-							glm::vec3 diffuse = isect_data.material->m_diffuse * pl->intensity *
-								glm::max(glm::dot(isect_data.normal, l_vec), 0.0f) / (glm::length(isect_data.normal) * glm::length(l_vec)) / (d * d);
-							//Ks* I * max(0, h . n)^s / d^2
-							glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-							glm::vec3 specular = isect_data.material->m_specular * pl->intensity *
-								glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->m_shininess) / (d * d);
-							color += specular + diffuse;
-						}
-					}
-					//Ka * Ia
-					glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
-					color += ambient;
-				}
-				m_rendered_image->SetPixel(i, j, color);
-			}
+		//					//Kd * I * cos(theta) /d^2 
+		//					glm::vec3 diffuse = isect_data.material->m_diffuse * pl->intensity *
+		//						glm::max(glm::dot(isect_data.normal, l_vec), 0.0f) / (glm::length(isect_data.normal) * glm::length(l_vec)) / (d * d);
+		//					//Ks* I * max(0, h . n)^s / d^2
+		//					glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+		//					glm::vec3 specular = isect_data.material->m_specular * pl->intensity *
+		//						glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_data.normal))), isect_data.material->m_shininess) / (d * d);
+		//					color += specular + diffuse;
+		//				}
+		//			}
+		//			//Ka * Ia
+		//			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
+		//			color += ambient;
+		//		}
+		//		m_rendered_image->SetPixel(i, j, color);
+		//	}
 
-			progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
-			/*if(idx == m_settings.thread_count - 1)
-				CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
-		}
+		//	progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
+		//	/*if(idx == m_settings.thread_count - 1)
+		//		CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
+		//}
 	}
 
 	int tile_size = 8;
@@ -433,26 +459,18 @@ namespace Chroma
 			color += ambient;
 
 			//lighting calculation
-			for (auto it = scene.m_point_lights.begin(); it != scene.m_point_lights.end(); it++)
+			for (auto it = scene.m_lights.begin(); it != scene.m_lights.end(); it++)
 			{
 				IntersectionData shadow_data;
-				std::shared_ptr<PointLight> pl = it->second;
+				std::shared_ptr<Light> li = it->second;
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
-				glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
+				//glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
 
 				//Shadow calculation	
-				bool shadowed = false;
-				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
-				shadow_ray.direction = glm::normalize(pl->position - isect_data.position);
-				//shadow_ray.intersect_eps = 0.09f;
-				shadow_ray.jitter_t = ray.jitter_t;
-
-				shadowed = m_settings.calc_shadows && //TODO: Fix
-					(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-					(glm::distance(isect_data.position, shadow_data.position) - glm::distance(isect_data.position, pl->position) < 0.0f));
+				bool shadowed = IsShadowed(scene, &isect_data, li);
 
 				if (!shadowed)
-					color += isect_data.Shade(pl, l_vec, e_vec);
+					color += isect_data.Shade(li, e_vec);
 			}
 		}
 		return color;

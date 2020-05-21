@@ -35,13 +35,13 @@ namespace Chroma
 
 	void Scene::AddLight(std::string name, std::shared_ptr<DirectionalLight> li)
 	{
-		m_dir_lights[name] = li;
+		m_lights[name] = li;
 		m_scene_data->m_shader->AddLight(li);
 	}
 
 	void Scene::AddLight(std::string name, std::shared_ptr<PointLight> li)
 	{
-		m_point_lights[name] = li;
+		m_lights[name] = li;
 		m_scene_data->m_shader->AddLight(li);
 	}
 

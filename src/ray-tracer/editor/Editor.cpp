@@ -313,59 +313,11 @@ namespace Chroma
 		}
 		else if (selected_item_type == SELECTION_TYPE::p_light)
 		{
-			ImGui::Text("Transform");
-			if (ImGui::Button("P##1"))m_scene->m_point_lights[selected_name]->position = glm::vec3();
-			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(m_scene->m_point_lights[selected_name]->position.x), 0.05f, 0, 0, "%.3f");
-
-			ImGui::Separator();
-
-			ImGui::Text("Light");
-			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-
-			ImGui::ColorEdit3("Ambient Color", &m_scene->m_point_lights[selected_name]->ambient.x, ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_point_lights[selected_name]->diffuse.x, ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit3("Specular Color", &m_scene->m_point_lights[selected_name]->specular.x, ImGuiColorEditFlags_Float);
-			
-
-			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = m_scene->m_point_lights[selected_name]->intensity;
-			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
-			{
-				m_scene->m_point_lights[selected_name]->SetIntensity(tmp);
-				/*glm::vec3 tmp = m_scene->m_point_lights[selected_name]->intensity / 1000.0f;
-				m_scene->m_point_lights[selected_name]->ambient =
-					m_scene->m_point_lights[selected_name]->diffuse =
-					m_scene->m_point_lights[selected_name]->specular = tmp;*/
-			}
+			m_scene->m_lights[selected_name]->DrawUI();
 		}
 		else if (selected_item_type == SELECTION_TYPE::d_light)
 		{
-			ImGui::Text("Transform");
-			if (ImGui::Button("D##1"))m_scene->m_dir_lights[selected_name]->direction = glm::vec3();
-			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(m_scene->m_dir_lights[selected_name]->direction.x), 0.05f, 0, 0, "%.3f");
-
-			ImGui::Separator();
-
-			ImGui::Text("Light");
-			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-			ImGui::ColorEdit3("Ambient Color", &m_scene->m_dir_lights[selected_name]->ambient.x);
-			ImGui::ColorEdit3("Diffuse Color", &m_scene->m_dir_lights[selected_name]->diffuse.x);
-			ImGui::ColorEdit3("Specular Color", &m_scene->m_dir_lights[selected_name]->specular.x);
-
-			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = m_scene->m_dir_lights[selected_name]->intensity;
-			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
-			{
-				m_scene->m_dir_lights[selected_name]->SetIntensity(tmp);
-				/*glm::vec3 tmp = m_scene->m_dir_lights[selected_name]->intensity / 1000.0f;
-				m_scene->m_dir_lights[selected_name]->ambient =
-					m_scene->m_dir_lights[selected_name]->diffuse =
-					m_scene->m_dir_lights[selected_name]->specular = tmp;*/
-			}
-
-
+			m_scene->m_lights[selected_name]->DrawUI();
 		}
 		else if (selected_item_type == SELECTION_TYPE::s_light)
 		{
@@ -645,24 +597,34 @@ namespace Chroma
 		}
 		if (flag)
 			ImGui::SetNextTreeNodeOpen(true);
-		if (ImGui::CollapsingHeader("Point Lights"))
+		if (ImGui::CollapsingHeader("Lights"))
 		{
 			i = 0;
-			for (auto element : m_scene->m_point_lights)
+			for (auto element : m_scene->m_lights)
 			{
 				std::string name = element.first;
 				ImGui::PushID(i);
 
 				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
 				{
-					selected_item_type = SELECTION_TYPE::p_light;
+					switch (m_scene->m_lights[name]->type)
+					{
+					case LIGHT_T::point:
+						selected_item_type = SELECTION_TYPE::p_light;
+						break;
+					case LIGHT_T::directional:
+						selected_item_type = SELECTION_TYPE::d_light;
+						break;
+					default:
+						break;
+					}
 					selected_name = name;
 				}
 				i++;
 				ImGui::PopID();
 			}
 		}
-		if (flag)
+		/*if (flag)
 			ImGui::SetNextTreeNodeOpen(true);
 		if (ImGui::CollapsingHeader("Directional Lights"))
 		{
@@ -680,7 +642,7 @@ namespace Chroma
 				i++;
 				ImGui::PopID();
 			}
-		}
+		}*/
 		if (flag)
 			ImGui::SetNextTreeNodeOpen(true);
 		if (ImGui::CollapsingHeader("Spot Lights"))

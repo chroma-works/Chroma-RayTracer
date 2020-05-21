@@ -41,8 +41,8 @@ namespace Chroma
 
 		bool hit = false;
 
-		glm::vec3 Shade(std::shared_ptr<PointLight> pl,
-			glm::vec3 l_vec, glm::vec3 e_vec)
+		glm::vec3 Shade(std::shared_ptr<Light> pl,
+			 glm::vec3 e_vec)
 		{
 			glm::vec3 kd = material->m_diffuse;
 			bool no_shading = false;
@@ -71,7 +71,12 @@ namespace Chroma
 			}
 			if (!no_shading)
 			{
-				float d = glm::distance(pl->position, position);
+				Material* mat = new Material(*material);
+				mat->m_diffuse = kd;
+				glm::vec3 res = pl->CalculateRadiance(position, normal, e_vec, mat);
+				delete mat;
+				return res;
+				/*float d = glm::distance(pl->position, position);
 				//Kd * I * cos(theta) /d^2 
 				glm::vec3 diffuse = kd * pl->intensity *
 					glm::max(glm::dot(normal, l_vec), 0.0f) / (d * d);
@@ -79,7 +84,7 @@ namespace Chroma
 				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 				glm::vec3 specular = material->m_specular * pl->intensity *
 					glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess) / (d * d);
-				return specular + diffuse;
+				return specular + diffuse;*/
 			}
 			else
 				return tex_map->SampleAt(glm::vec3(uv, NAN));

@@ -31,8 +31,7 @@ namespace Chroma
 
 		void InitBVH(int maxPrimsInNode = 1, SplitMethod splitMethod = (SplitMethod)0);
 
-		inline std::shared_ptr<DirectionalLight> GetDirectionalLight(std::string name) { return m_dir_lights[name]; } //TODO: add null check
-		inline std::shared_ptr<PointLight> GetPointLight(std::string name) { return m_point_lights[name]; }
+		inline std::shared_ptr<Light> GetLight(std::string name) { return m_lights[name]; } //TODO: add null check
 		inline std::shared_ptr<SpotLight> GetSpotlLight(std::string name) { return m_spot_lights[name]; }
 
 
@@ -43,8 +42,7 @@ namespace Chroma
 		glm::vec3 m_ambient_l = { 0.0, 0.0, 0.0f };
 
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
-		std::map<std::string, std::shared_ptr<DirectionalLight>> m_dir_lights;
-		std::map<std::string, std::shared_ptr<PointLight>> m_point_lights;
+		std::map<std::string, std::shared_ptr<Light>> m_lights;
 		std::map<std::string, std::shared_ptr<SpotLight>> m_spot_lights;
 
 		AccelerationStructure* m_accel_structure = nullptr;
