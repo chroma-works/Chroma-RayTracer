@@ -196,11 +196,11 @@ namespace Chroma
 			AddUniform(direction);
 
 			Uniform cutOff(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].cutOff", ShaderDataType::Float);
-			cutOff.data = (void*)&lig->cutOff;
+			cutOff.data = (void*)&lig->fall_off;
 			AddUniform(cutOff);
 
 			Uniform outerCutOff(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].outerCutOff", ShaderDataType::Float);
-			outerCutOff.data = (void*)&lig->outerCutOff;
+			outerCutOff.data = (void*)&lig->cut_off;
 			AddUniform(outerCutOff);
 
 			Uniform constant(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].constant", ShaderDataType::Float);

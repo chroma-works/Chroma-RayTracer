@@ -30,7 +30,7 @@ namespace Chroma
 
 		void RayCastWorker(Camera* cam, Scene& scene, int idx);
 		void RecursiveTraceWorker(Camera* cam, Scene& scene, int idx);
-		bool IsShadowed(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> l);
+		bool TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> l);
 		glm::vec3 RecursiveTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood);
 	};
 }

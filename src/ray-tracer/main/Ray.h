@@ -73,7 +73,7 @@ namespace Chroma
 			{
 				Material mat(*material);
 				mat.m_diffuse = kd;
-				glm::vec3 res = pl->CalculateRadiance(position, normal, e_vec, &mat);
+				glm::vec3 res = pl->CalculateIllumination(position, normal, e_vec, &mat);
 				return res;
 				/*float d = glm::distance(pl->position, position);
 				//Kd * I * cos(theta) /d^2 
