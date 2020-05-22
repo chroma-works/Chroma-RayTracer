@@ -33,22 +33,22 @@ namespace Chroma
 		m_cameras[name] = cam;
 	}
 
-	void Scene::AddLight(std::string name, std::shared_ptr<DirectionalLight> li)
+	void Scene::AddLight(std::string name, std::shared_ptr<Light> li)
 	{
 		m_lights[name] = li;
-		m_scene_data->m_shader->AddLight(li);
-	}
-
-	void Scene::AddLight(std::string name, std::shared_ptr<PointLight> li)
-	{
-		m_lights[name] = li;
-		m_scene_data->m_shader->AddLight(li);
-	}
-
-	void Scene::AddLight(std::string name, std::shared_ptr<SpotLight> li)
-	{
-		m_lights[name] = li;
-		m_scene_data->m_shader->AddLight(li);
+		switch (li->type)
+		{
+		case LIGHT_T::point:
+			m_scene_data->m_shader->AddLight(std::static_pointer_cast<PointLight>(li));
+			break;
+		case LIGHT_T::directional:
+			m_scene_data->m_shader->AddLight(std::static_pointer_cast<DirectionalLight>(li));
+			break;
+		case LIGHT_T::spot:
+			m_scene_data->m_shader->AddLight(std::static_pointer_cast<SpotLight>(li));
+		default:
+			break;
+		}
 	}
 
 	void Scene::InitBVH(int maxPrimsInNode, SplitMethod splitMethod)

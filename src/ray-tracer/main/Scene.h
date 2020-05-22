@@ -24,10 +24,7 @@ namespace Chroma
 		inline Camera* GetCamera(std::string name) { return m_cameras[name]; }
 		//inline Camera* GetActiveCamera() { return m_cameras[active_cam_name]; }
 
-
-		void AddLight(std::string name, std::shared_ptr<DirectionalLight> li);
-		void AddLight(std::string name, std::shared_ptr<PointLight> li);
-		void AddLight(std::string name, std::shared_ptr<SpotLight> li);
+		void AddLight(std::string name, std::shared_ptr<Light> li);
 
 		void InitBVH(int maxPrimsInNode = 1, SplitMethod splitMethod = (SplitMethod)0);
 
