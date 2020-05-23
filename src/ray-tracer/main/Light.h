@@ -77,6 +77,7 @@ namespace Chroma
 		}
 		void DrawUI()
 		{
+			ImGui::Text("DirectionalLight");
 			ImGui::Text("Transform");
 			if (ImGui::Button("D##1"))direction = glm::vec3(1.0f, 0.0f, 0.0f);
 			ImGui::SameLine();
@@ -156,6 +157,7 @@ namespace Chroma
 
 		void DrawUI()
 		{
+			ImGui::Text("PointLight");
 			ImGui::Text("Transform");
 			if (ImGui::Button("P##1"))position = glm::vec3();
 			ImGui::SameLine();
@@ -255,6 +257,7 @@ namespace Chroma
 
 		void DrawUI()
 		{
+			ImGui::Text("SpotLight");
 			ImGui::Text("Transform");
 			if (ImGui::Button("P##1"))position = glm::vec3();
 			ImGui::SameLine();
