@@ -22,6 +22,7 @@ namespace Chroma
 	const std::string AM_LIG = "AmbientLight";
 	const std::string AM_REF = "AmbientReflectance";
 	const std::string APERTURE = "ApertureSize";
+	const std::string A_LIG = "AreaLight";
 	const std::string BCK_COLOR = "BackgroundColor";
 	const std::string BUMP_F = "BumpFactor";
 	const std::string CAMS = "Cameras";
@@ -707,6 +708,43 @@ namespace Chroma
 							lig_prop = lig_prop->NextSibling();
 						}
 						scene->AddLight(lig_name, std::make_shared<SpotLight>(s_l));
+					}
+					else if (std::string(child_node->Value()).compare(A_LIG) == 0)
+					{
+						AreaLight a_l = AreaLight({ 0,0,0 }, { 0,0,0 }, 0.0f);
+						std::string lig_name;
+						lig_name = "area_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
+
+						while (lig_prop)//iterate over each light properties
+						{
+							if (std::string(lig_prop->Value()).compare(POS) == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &a_l.position.x, &a_l.position.y, &a_l.position.z);
+							}
+							else if (std::string(lig_prop->Value()).compare("Normal") == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &a_l.normal.x, &a_l.normal.y, &a_l.normal.z);
+							}
+							else if (std::string(lig_prop->Value()).compare("Radiance") == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								glm::vec3 tmp({ 10,10,10 });
+								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
+
+								a_l.SetIntensity(tmp);
+								a_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+							}
+							else if (std::string(lig_prop->Value()).compare("Size") == 0)
+							{
+								std::string data = lig_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f", &a_l.size);
+							}
+							lig_prop = lig_prop->NextSibling();
+						}
+						scene->AddLight(lig_name, std::make_shared<AreaLight>(a_l));
 					}
 					child_node = child_node->NextSibling();
 				}
