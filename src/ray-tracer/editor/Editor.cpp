@@ -565,20 +565,7 @@ namespace Chroma
 
 				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
 				{
-					switch (m_scene->m_lights[name]->type)
-					{
-					case LIGHT_T::point:
-						selected_item_type = SELECTION_TYPE::p_light;
-						break;
-					case LIGHT_T::directional:
-						selected_item_type = SELECTION_TYPE::d_light;
-						break;
-					case LIGHT_T::spot:
-						selected_item_type = SELECTION_TYPE::s_light;
-						break;
-					default:
-						break;
-					}
+					selected_item_type = SELECTION_TYPE::light;
 					selected_name = name;
 				}
 				i++;
