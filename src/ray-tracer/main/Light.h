@@ -9,6 +9,7 @@
 #include "thirdparty/imgui/imgui_impl_opengl3.h"
 
 #include "Material.h"
+#include "Utilities.h"
 
 #define SET_INTENSITY(a,d,s, intensity) void SetIntensity(glm::vec3 inten){intensity = inten; a=s=d=(glm::clamp(inten/1000.0f, 0.0f, 1.0f));}
 
@@ -285,6 +286,100 @@ namespace Chroma
 			ImGui::SameLine();
 			ImGui::DragFloat("##8", &(cut_off), 0.05f, fall_off, 360, "%.3f");
 
+			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
+			glm::vec3 tmp = ls;
+			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			{
+				SetIntensity(tmp);
+				/*m_scene->m_spot_lights[selected_name]->ambient =
+					m_scene->m_spot_lights[selected_name]->diffuse =
+					m_scene->m_spot_lights[selected_name]->specular = tmp;*/
+			}
+		}
+	};
+
+	class AreaLight : public Light
+	{
+	public:
+		glm::vec3 position;
+		glm::vec3 normal;
+		float size = 1.0f;
+
+
+		AreaLight(glm::vec3 pos, glm::vec3 norm, float _size, std::string name = "Non_renderable")
+			: position(pos), normal(norm), size(_size)
+		{
+			ambient = {0,0,0};
+			diffuse = { 0,0,0 };
+			specular = { 0,0,0 };
+			shader_var_name = name;
+			ls = { 0,0,0 };
+			type = LIGHT_T::area;
+		}
+
+		AreaLight(const AreaLight& other)
+			: position(other.position), normal(other.normal), size(other.size)
+		{
+			ambient = other.ambient;
+			diffuse = other.diffuse;
+			specular = other.specular;
+			shader_var_name = other.shader_var_name;
+			ls = other.ls;
+			type = LIGHT_T::area;
+		}
+
+		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 norm,
+			const glm::vec3 e_vec, const Material* material) const
+		{
+			/*std::random_device rd;  //Will be used to obtain a seed for the random number engine
+			std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+			std::uniform_real_distribution<> dis(-size/2.0f, size/2.0f);*/
+
+			//create orthonormal basis
+			glm::vec3 r = glm::normalize(normal);
+			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
+			glm::vec3 u, v;
+
+			u = glm::normalize(glm::cross(r, r_prime));
+			v = glm::cross(r, u);
+			glm::vec3 sample_pos = position + (Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
+				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
+ 
+			glm::vec3 l_vec = glm::normalize(sample_pos - pos);
+			float d = glm::distance(pos, sample_pos);
+			//Kd * I * cos(theta) /d^2 
+			glm::vec3 diffuse = material->m_diffuse * ls *
+				glm::max(glm::dot(norm, l_vec), 0.0f) / (d * d);
+			//Ks* I * max(0, h . n)^s / d^2
+			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+			glm::vec3 specular = material->m_specular * ls *
+				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(norm))), material->m_shininess) / (d * d);
+			float cos_t = abs(glm::dot(glm::normalize(normal), l_vec));
+			return (specular + diffuse) * cos_t * size *size;
+		}
+
+		void DrawUI()
+		{
+			ImGui::Text("AreaLight(No preview render)");
+			ImGui::Text("Transform");
+			if (ImGui::Button("P##1"))position = glm::vec3();
+			ImGui::SameLine();
+			ImGui::DragFloat3("##4", &(position.x), 0.05f, 0, 0, "%.3f");
+			if (ImGui::Button("D##2"))normal = glm::vec3(1.0f, 0.0f, 0.0f);
+			ImGui::SameLine();
+			ImGui::DragFloat3("##5", &(normal.x), 0.05f, 0, 0, "%.3f");
+			normal = glm::normalize(normal);
+			if (ImGui::Button("S##3"))size = 0.0f;
+			ImGui::SameLine();
+			ImGui::DragFloat("##6", &size, 0.05f, 0.0001, 0, "%.3f");
+
+			ImGui::Separator();
+
+			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
+
+			ImGui::Text("Light");
+
+			ImGui::Separator();
 			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
 			glm::vec3 tmp = ls;
 			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))

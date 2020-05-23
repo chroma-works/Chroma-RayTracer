@@ -1,7 +1,6 @@
 #include "RayTracer.h"
 
 #include <future>
-#include <random>
 #include <limits>
 
 #include <thirdparty\glm\glm\glm.hpp>
@@ -56,6 +55,19 @@ namespace Chroma
 		case LIGHT_T::spot:
 			shadow_ray.direction = glm::normalize(dynamic_cast<SpotLight*>(li.get())->position - isect_data->position);
 			distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->position);
+		case LIGHT_T::area:
+			//create orthonormal basis
+			glm::vec3 r = glm::normalize(dynamic_cast<AreaLight*>(li.get())->normal);
+			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
+			glm::vec3 u, v;
+
+			u = glm::normalize(glm::cross(r, r_prime));
+			v = glm::cross(r, u);
+			glm::vec3 sample_pos = dynamic_cast<AreaLight*>(li.get())->position + 
+				(Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
+				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
+			shadow_ray.direction = glm::normalize(sample_pos - isect_data->position);
+			distance = glm::distance(isect_data->position, sample_pos);
 		default:
 			break;
 		}
