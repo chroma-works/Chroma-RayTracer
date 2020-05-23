@@ -38,44 +38,6 @@ namespace Chroma
 		}
 	}
 
-	glm::vec2 SampleUnitSquare()
-	{
-		std::random_device rd;  //Will be used to obtain a seed for the random number engine
-		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<> dis(0.0, 1.0);
-		return {dis(gen), dis(gen)};
-	}
-	glm::vec2 SampleUnitDisk()
-	{
-		std::random_device rd;  //Will be used to obtain a seed for the random number engine
-		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<double> dis(0.0, 1.0f);
-		const double pi2 = 2.0f * glm::pi<double>();
-		double theta = pi2 * dis(gen);
-		double r = dis(gen);
-
-		return { r*cos(theta), r*sin(theta) };
-	}
-
-	float RandFloat(float l = 0.0f, float u = 1.0f)
-	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_real_distribution<float> dis(l,u);
-
-		return dis(gen);
-	}
-
-	glm::vec3 CalculateNonColinearTo(glm::vec3 r)
-	{
-		glm::vec3 r_abs = glm::abs(r);
-		//Find smallest r component
-		int ind = r_abs.x > r_abs.y ? (r_abs.y > r_abs.z ? 2 : 1) : (r_abs.x > r_abs.z ? 2 : 0);
-		glm::vec3 r_prime = r;
-		r_prime[ind] = 1.0f;
-		return r_prime;
-	}
-
 	bool RayTracer::TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> li)
 	{
 		Ray shadow_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
@@ -303,8 +265,8 @@ namespace Chroma
 					glm::vec3 color = scene.m_sky_color;
 					for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 					{
-						auto offset = SampleUnitSquare();
-						auto lens_offset = SampleUnitDisk();
+						auto offset = Utils::SampleUnitSquare();
+						auto lens_offset = Utils::SampleUnitDisk();
 						//DoF Lens calculation
 						glm::vec3 lens_point = cam_pos +
 							cam->GetApertureSize() * (lens_offset.x * right + lens_offset.y * up);
@@ -317,7 +279,7 @@ namespace Chroma
 
 						primary_ray.origin = lens_point;
 						primary_ray.direction = glm::normalize(focal_point - primary_ray.origin);
-						primary_ray.jitter_t = RandFloat();
+						primary_ray.jitter_t = Utils::RandFloat();
 
 						if(cam->GetNumberOfSamples() ==1)
 							primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
@@ -363,15 +325,15 @@ namespace Chroma
 
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-			glm::vec3 r_prime = CalculateNonColinearTo(r);
+			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 			glm::vec3 u, v;
 			//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
 			u = glm::normalize(glm::cross(r, r_prime));
 			v = glm::cross(r,u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
-				(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
+				(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
-			reflection_ray.jitter_t = RandFloat();
+			reflection_ray.jitter_t = Utils::RandFloat();
 
 			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
@@ -383,15 +345,15 @@ namespace Chroma
 			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-			glm::vec3 r_prime = CalculateNonColinearTo(r);
+			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 			glm::vec3 u, v;
 
 			u = glm::normalize(glm::cross(r, r_prime));
 			v = glm::cross(r, u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-				(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
+				(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
-			reflection_ray.jitter_t = RandFloat();
+			reflection_ray.jitter_t = Utils::RandFloat();
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
 
@@ -421,15 +383,15 @@ namespace Chroma
 				Ray reflection_ray(isect_data.position + proper_normal * m_settings.shadow_eps);
 				//For glossy objects
 				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-				glm::vec3 r_prime = CalculateNonColinearTo(r);
+				glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 				glm::vec3 u, v;
 				//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
 				u = glm::normalize(glm::cross(r, r_prime));
 				v = glm::cross(r, u);
 				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-					(RandFloat(-0.5, 0.5) * u + RandFloat(-0.5, 0.5) * v));
+					(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
 				reflection_ray.intersect_eps = m_settings.intersection_eps;
-				reflection_ray.jitter_t = RandFloat();
+				reflection_ray.jitter_t = Utils::RandFloat();
 
 				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
 			}
@@ -441,7 +403,7 @@ namespace Chroma
 				Ray refraction_ray(isect_data.position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
 				refraction_ray.intersect_eps = m_settings.intersection_eps;
-				refraction_ray.jitter_t = RandFloat();
+				refraction_ray.jitter_t = Utils::RandFloat();
 
 				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
 			}
