@@ -311,52 +311,9 @@ namespace Chroma
 			m_scene->m_cameras[selected_name]->SetImageName(tmp_buf);
 
 		}
-		else if (selected_item_type == SELECTION_TYPE::p_light)
+		else if (selected_item_type == SELECTION_TYPE::light)
 		{
 			m_scene->m_lights[selected_name]->DrawUI();
-		}
-		else if (selected_item_type == SELECTION_TYPE::d_light)
-		{
-			m_scene->m_lights[selected_name]->DrawUI();
-		}
-		else if (selected_item_type == SELECTION_TYPE::s_light)
-		{
-			m_scene->m_lights[selected_name]->DrawUI();
-			//ImGui::Text("Transform");
-			//if (ImGui::Button("P##1"))m_scene->m_spot_lights[selected_name]->position = glm::vec3();
-			//ImGui::SameLine();
-			//ImGui::DragFloat3("##5", &(m_scene->m_spot_lights[selected_name]->position.x), 0.05f, 0, 0, "%.3f");
-			//if (ImGui::Button("D##2"))m_scene->m_spot_lights[selected_name]->direction = glm::vec3();
-			//ImGui::SameLine();
-			//ImGui::DragFloat3("##6", &(m_scene->m_spot_lights[selected_name]->direction.x), 0.05f, 0, 0, "%.3f");
-
-			//ImGui::Separator();
-
-			//ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-
-			//ImGui::Text("Light");
-			//ImGui::ColorEdit3("Ambient Color", &m_scene->m_spot_lights[selected_name]->ambient.x);
-			//ImGui::ColorEdit3("Diffuse Color", &m_scene->m_spot_lights[selected_name]->diffuse.x);
-			//ImGui::ColorEdit3("Specular Color", &m_scene->m_spot_lights[selected_name]->specular.x);
-
-			//ImGui::Separator();
-
-			//if (ImGui::Button("Cut-off##3"))m_scene->m_spot_lights[selected_name]->fall_off = 0.1;
-			//ImGui::SameLine();
-			//ImGui::DragFloat("##7", &(m_scene->m_spot_lights[selected_name]->fall_off), 0.05f, 0, 0, "%.3f");
-			//if (ImGui::Button("O.Cut-off##4"))m_scene->m_spot_lights[selected_name]->cut_off = 0.5;
-			//ImGui::SameLine();
-			//ImGui::DragFloat("##8", &(m_scene->m_spot_lights[selected_name]->cut_off), 0.05f, 0, 0, "%.3f");
-
-			//ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			//glm::vec3 tmp = m_scene->m_spot_lights[selected_name]->intensity;
-			//if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
-			//{
-			//	m_scene->m_spot_lights[selected_name]->SetIntensity(tmp);
-			//	/*m_scene->m_spot_lights[selected_name]->ambient =
-			//		m_scene->m_spot_lights[selected_name]->diffuse =
-			//		m_scene->m_spot_lights[selected_name]->specular = tmp;*/
-			//}
 		}
 
 

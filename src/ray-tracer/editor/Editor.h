@@ -32,7 +32,7 @@ namespace Chroma
 
 	private:
 
-		enum class SELECTION_TYPE{none, obj, cam, p_light, d_light, s_light};
+		enum class SELECTION_TYPE{none, obj, cam, light};
 
 		RayTracer* ray_tracer;
 
