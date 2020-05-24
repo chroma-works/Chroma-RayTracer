@@ -56,13 +56,9 @@ namespace Chroma
 			shadow_ray.direction = glm::normalize(dynamic_cast<SpotLight*>(li.get())->position - isect_data->position);
 			distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->position);
 		case LIGHT_T::area:
-			//create orthonormal basis
-			glm::vec3 r = glm::normalize(dynamic_cast<AreaLight*>(li.get())->normal);
-			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 			glm::vec3 u, v;
+			Utils::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->normal, u, v);
 
-			u = glm::normalize(glm::cross(r, r_prime));
-			v = glm::cross(r, u);
 			glm::vec3 sample_pos = dynamic_cast<AreaLight*>(li.get())->position + 
 				(Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
 				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
@@ -337,11 +333,8 @@ namespace Chroma
 
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 			glm::vec3 u, v;
-			//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
-			u = glm::normalize(glm::cross(r, r_prime));
-			v = glm::cross(r,u);
+			Utils::CreateOrthonormBasis(r, u, v);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
 				(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
@@ -357,11 +350,9 @@ namespace Chroma
 			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 			glm::vec3 u, v;
+			Utils::CreateOrthonormBasis(r, u, v);
 
-			u = glm::normalize(glm::cross(r, r_prime));
-			v = glm::cross(r, u);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 				(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
@@ -395,11 +386,9 @@ namespace Chroma
 				Ray reflection_ray(isect_data.position + proper_normal * m_settings.shadow_eps);
 				//For glossy objects
 				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-				glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 				glm::vec3 u, v;
-				//CH_TRACE(glm::to_string(r) + glm::to_string(r_prime));
-				u = glm::normalize(glm::cross(r, r_prime));
-				v = glm::cross(r, u);
+				Utils::CreateOrthonormBasis(r, u, v);
+
 				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 					(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
 				reflection_ray.intersect_eps = m_settings.intersection_eps;

@@ -22,7 +22,7 @@ namespace Chroma
 
 		SET_INTENSITY(ambient, diffuse, specular, ls)
 
-		virtual glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
+		virtual glm::vec3 IlluminationAt(const glm::vec3 isect_pos, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const = 0;
 
 		virtual void DrawUI() = 0;
@@ -63,17 +63,17 @@ namespace Chroma
 			type = LIGHT_T::directional;
 		}
 
-		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
+		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
 			glm::vec3 l_vec = glm::normalize(-direction);
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse * ls *
-				glm::max(glm::dot(normal, l_vec), 0.0f);
+				glm::max(glm::dot(isect_normal, l_vec), 0.0f);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 			glm::vec3 specular = material->m_specular * ls *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess);
+				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess);
 			return specular + diffuse;
 		}
 		void DrawUI()
@@ -141,18 +141,18 @@ namespace Chroma
 			type = LIGHT_T::point;
 		}
 
-		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
+		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			glm::vec3 l_vec = glm::normalize(position - pos);
-			float d = glm::distance(position, pos);
+			glm::vec3 l_vec = glm::normalize(position - isect_position);
+			float d = glm::distance(position, isect_position);
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse * ls *
-				glm::max(glm::dot(normal, l_vec), 0.0f) / (d * d);
+				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 			glm::vec3 specular = material->m_specular * ls *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess) / (d * d);
+				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
 			return specular + diffuse;
 		}
 
@@ -236,23 +236,23 @@ namespace Chroma
 			type = LIGHT_T::spot;
 		}
 
-		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 normal,
+		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
 			glm::vec3 intensity = ls;
-			glm::vec3 l_vec = glm::normalize(position - pos);
+			glm::vec3 l_vec = glm::normalize(position - isect_position);
 			float theta = acos(glm::dot(l_vec, normalize(-direction)));
 			// spotlight intensity
 			float epsilon = fall_off/2 - cut_off/2;
 			intensity *= pow(glm::clamp((theta - cut_off/2) / epsilon, 0.0f, 1.0f), 4);
-			float d = glm::distance(position, pos);
+			float d = glm::distance(position, isect_position);
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse * intensity *
-				glm::max(glm::dot(normal, l_vec), 0.0f) / (d * d);
+				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 			glm::vec3 specular = material->m_specular * intensity *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess) / (d * d);
+				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
 			return specular + diffuse;
 		}
 
@@ -328,34 +328,26 @@ namespace Chroma
 			type = LIGHT_T::area;
 		}
 
-		glm::vec3 CalculateIllumination(const glm::vec3 pos, const glm::vec3 norm,
+		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			/*std::random_device rd;  //Will be used to obtain a seed for the random number engine
-			std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-			std::uniform_real_distribution<> dis(-size/2.0f, size/2.0f);*/
-
-			//create orthonormal basis
-			glm::vec3 r = glm::normalize(normal);
-			glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
 			glm::vec3 u, v;
-
-			u = glm::normalize(glm::cross(r, r_prime));
-			v = glm::cross(r, u);
+			Utils::CreateOrthonormBasis(normal, u, v);
 			glm::vec3 sample_pos = position + (Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
 				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
  
-			glm::vec3 l_vec = glm::normalize(sample_pos - pos);
-			float d = glm::distance(pos, sample_pos);
+			glm::vec3 l_vec = glm::normalize(sample_pos - isect_position);
+			float d = glm::distance(isect_position, sample_pos);
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse * ls *
-				glm::max(glm::dot(norm, l_vec), 0.0f) / (d * d);
+				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 			glm::vec3 specular = material->m_specular * ls *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(norm))), material->m_shininess) / (d * d);
-			float cos_t = abs(glm::dot(glm::normalize(normal), l_vec));
-			return (specular + diffuse) * cos_t * size *size;
+				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
+
+			float cos_t = abs(glm::dot(l_vec,glm::normalize(normal)));
+			return (specular + diffuse) * cos_t * size *size ;
 		}
 
 		void DrawUI()

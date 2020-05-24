@@ -46,4 +46,14 @@ namespace Utils
 		r_prime[ind] = 1.0f;
 		return r_prime;
 	}
+
+	inline void CreateOrthonormBasis(const glm::vec3 _r, glm::vec3& u, glm::vec3& v)
+	{
+		//create orthonormal basis
+		glm::vec3 r = glm::normalize(_r);
+		glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
+
+		u = glm::normalize(glm::cross(r, r_prime));
+		v = glm::normalize(glm::cross(r, u));
+	}
 }
