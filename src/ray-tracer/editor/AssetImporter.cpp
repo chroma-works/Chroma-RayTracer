@@ -727,6 +727,7 @@ namespace Chroma
 							{
 								std::string data = lig_prop->FirstChild()->Value();
 								sscanf(data.c_str(), "%f %f %f", &a_l.normal.x, &a_l.normal.y, &a_l.normal.z);
+								a_l.normal = glm::normalize(a_l.normal);
 							}
 							else if (std::string(lig_prop->Value()).compare("Radiance") == 0)
 							{
