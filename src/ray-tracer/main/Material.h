@@ -32,6 +32,14 @@ namespace Chroma
 			type = MAT_TYPE::none;
 		}
 
+		inline void Degamma()
+		{
+			glm::vec3 g = { 2.2, 2.2, 2.2 };
+			m_ambient = glm::pow(m_ambient, g);
+			m_diffuse = glm::pow(m_diffuse, g);
+			m_specular = glm::pow(m_specular, g);
+		}
+
 		/*Material& operator=(Material const& mat)
 		{
 			Material ret;
