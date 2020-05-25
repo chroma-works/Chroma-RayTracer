@@ -101,6 +101,7 @@ set (editor_sources
 	src/ray-tracer/editor/Buffer.h
 	src/ray-tracer/editor/Editor.h
 	src/ray-tracer/editor/Editor.cpp
+	src/ray-tracer/editor/ImGuiDrawable.h
 	src/ray-tracer/editor/Logger.h
 	src/ray-tracer/editor/Logger.cpp
 	src/ray-tracer/editor/Settings.h

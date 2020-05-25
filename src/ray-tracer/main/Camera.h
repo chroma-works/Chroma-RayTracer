@@ -1,11 +1,14 @@
 #pragma once
 #include <ray-tracer/editor/Logger.h>
+#include <ray-tracer/editor/ImGuiDrawable.h>
+
 #include <thirdparty/glm/glm/glm.hpp>
+
 #include <string>
 
 namespace Chroma
 {
-	class Camera
+	class Camera : public ImGuiDrawable
 	{
 	public:
 		Camera(float width = 1280, float height = 720, 
@@ -54,6 +57,55 @@ namespace Chroma
 		}
 		inline void SetFocalDistance(float focal_dist) { m_focal_dist = focal_dist; }
 		inline void SetApertureSize(float aperture_size) { m_aperture_size = aperture_size; }
+
+		inline void DrawUI()
+		{
+			ImGui::Text("Camera");
+			ImGui::Separator();
+			ImGui::Text("Transform");
+
+			if (ImGui::Button("P##1"))SetPosition(glm::vec3());
+			ImGui::SameLine();
+			glm::vec3 tmp_pos = GetPosition();
+			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
+			SetPosition(tmp_pos);
+
+			if (ImGui::Button("G##2"))SetGaze(glm::vec3());
+			ImGui::SameLine();
+			glm::vec3 tmp_gaze = GetGaze();
+			ImGui::DragFloat3("##5", &(tmp_gaze.x), 0.05f, 0, 0, "%.3f");
+			SetGaze(glm::normalize(tmp_gaze));
+
+			if (ImGui::Button("U##3"))SetUp(glm::vec3(0.0, 1.0, 0.0));
+			ImGui::SameLine();
+			glm::vec3 tmp_up = GetUp();
+			ImGui::DragFloat3("##6", &(tmp_up.x), 0.05f, 0, 0, "%.3f");
+			SetUp(glm::normalize(tmp_up));
+			ImGui::Separator();
+			ImGui::Text("Lens");
+
+			float tmp_f = GetFocalDistance();
+			ImGui::DragFloat("Focal Dist.", &tmp_f, 0.05f, 0.0f, INFINITY, "%.3f");
+			SetFocalDistance(tmp_f);
+
+			float tmp_a = GetApertureSize();
+			ImGui::DragFloat("Apert. Size", &tmp_a, 0.05f, 0.0f, INFINITY, "%.3f");
+			SetApertureSize(tmp_a);
+
+			ImGui::Separator();
+			ImGui::Text("Tone Mapping Operator");
+			ImGui::DragFloat("Key Value", &m_key_val, 0.05f, 0.0, 1.0f);
+			ImGui::DragFloat("Burn percentage", &m_burn_perc, 0.05f, 0.0, 100.0f);
+			ImGui::DragFloat("Saturation", &m_saturation, 0.05f, 0.0f, 1.0f);
+			ImGui::DragFloat("Gamma", &m_gamma, 0.05f, 1.0f, 3.0f);
+
+
+			ImGui::Separator();
+			char* tmp_buf = strdup(GetImageName().c_str());
+			ImGui::InputText("Image Name", tmp_buf, 20, 0);
+			SetImageName(tmp_buf);
+		}
+
 
 		float m_gamma = 2.2f;
 		float m_saturation = 1.0f;

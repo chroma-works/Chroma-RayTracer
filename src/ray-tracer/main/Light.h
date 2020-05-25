@@ -2,11 +2,11 @@
 
 #include <algorithm>
 #include <string>
-#include <thirdparty\glm\glm\common.hpp>
+
+#include <ray-tracer/editor/ImGuiDrawable.h>
+
+#include <thirdparty/glm/glm/common.hpp>
 #include <thirdparty/glm/glm/glm.hpp>
-#include <thirdparty/imgui/imgui.h>
-#include "thirdparty/imgui/imgui_impl_glfw.h"
-#include "thirdparty/imgui/imgui_impl_opengl3.h"
 
 #include "Material.h"
 #include "Utilities.h"
@@ -16,7 +16,7 @@
 namespace Chroma
 {
 	enum class LIGHT_T {point, directional, spot, enviroment, area};
-	class Light
+	class Light : public ImGuiDrawable
 	{
 	public:
 
@@ -24,8 +24,6 @@ namespace Chroma
 
 		virtual glm::vec3 IlluminationAt(const glm::vec3 isect_pos, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const = 0;
-
-		virtual void DrawUI() = 0;
 
 		std::string shader_var_name;
 		glm::vec3 ambient;
@@ -79,6 +77,7 @@ namespace Chroma
 		void DrawUI()
 		{
 			ImGui::Text("DirectionalLight");
+			ImGui::Separator();
 			ImGui::Text("Transform");
 			if (ImGui::Button("D##1"))direction = glm::vec3(1.0f, 0.0f, 0.0f);
 			ImGui::SameLine();
@@ -159,6 +158,7 @@ namespace Chroma
 		void DrawUI()
 		{
 			ImGui::Text("PointLight");
+			ImGui::Separator();
 			ImGui::Text("Transform");
 			if (ImGui::Button("P##1"))position = glm::vec3();
 			ImGui::SameLine();
@@ -259,6 +259,7 @@ namespace Chroma
 		void DrawUI()
 		{
 			ImGui::Text("SpotLight");
+			ImGui::Separator();
 			ImGui::Text("Transform");
 			if (ImGui::Button("P##1"))position = glm::vec3();
 			ImGui::SameLine();
@@ -353,6 +354,7 @@ namespace Chroma
 		void DrawUI()
 		{
 			ImGui::Text("AreaLight(No preview render)");
+			ImGui::Separator();
 			ImGui::Text("Transform");
 			if (ImGui::Button("P##1"))position = glm::vec3();
 			ImGui::SameLine();

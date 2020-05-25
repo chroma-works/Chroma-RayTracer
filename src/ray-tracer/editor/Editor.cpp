@@ -270,45 +270,11 @@ namespace Chroma
 		}
 		else if (selected_item_type == SELECTION_TYPE::cam)
 		{
+			m_scene->m_cameras[selected_name]->DrawUI();
+			ImGui::Separator();
 			bool tmp = m_settings.act_editor_cam_name.compare(selected_name) == 0;
 			ImGui::Checkbox("Editor Camera", &tmp);
 			m_settings.act_editor_cam_name = tmp ? selected_name : m_settings.act_editor_cam_name;
-
-			ImGui::Separator();
-
-			ImGui::Text("Transform");
-
-			if (ImGui::Button("P##1"))m_scene->m_cameras[selected_name]->SetPosition(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_pos = m_scene->m_cameras[selected_name]->GetPosition();
-			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_cameras[selected_name]->SetPosition(tmp_pos);
-
-			if (ImGui::Button("G##2"))m_scene->m_cameras[selected_name]->SetGaze(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_gaze = m_scene->m_cameras[selected_name]->GetGaze();
-			ImGui::DragFloat3("##5", &(tmp_gaze.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_cameras[selected_name]->SetGaze(glm::normalize(tmp_gaze));
-
-			if (ImGui::Button("U##3"))m_scene->m_cameras[selected_name]->SetUp(glm::vec3(0.0, 1.0, 0.0));
-			ImGui::SameLine();
-			glm::vec3 tmp_up = m_scene->m_cameras[selected_name]->GetUp();
-			ImGui::DragFloat3("##6", &(tmp_up.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_cameras[selected_name]->SetUp(glm::normalize(tmp_up));
-
-			ImGui::Separator();
-			float tmp_f = m_scene->m_cameras[selected_name]->GetFocalDistance();
-			ImGui::DragFloat("Focal Dist.", &tmp_f, 0.05f, 0.0f, INFINITY, "%.3f");
-			m_scene->m_cameras[selected_name]->SetFocalDistance(tmp_f);
-
-			float tmp_a = m_scene->m_cameras[selected_name]->GetApertureSize();
-			ImGui::DragFloat("Apert. Size", &tmp_a, 0.05f, 0.0f, INFINITY, "%.3f");
-			m_scene->m_cameras[selected_name]->SetApertureSize(tmp_a);
-
-			ImGui::Separator();
-			char* tmp_buf = strdup(m_scene->m_cameras[selected_name]->GetImageName().c_str());
-			ImGui::InputText("Image Name", tmp_buf, 20, 0);
-			m_scene->m_cameras[selected_name]->SetImageName(tmp_buf);
 
 		}
 		else if (selected_item_type == SELECTION_TYPE::light)
