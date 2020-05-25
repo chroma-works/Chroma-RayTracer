@@ -42,7 +42,7 @@ namespace Chroma
 		Ray shadow_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 		//shadow_ray.jitter_t = ray.jitter_t; // Uncomment if problems occur
 		float distance;
-		switch (li->type)
+		switch (li->m_type)
 		{
 		case LIGHT_T::point:
 			shadow_ray.direction = glm::normalize(dynamic_cast<PointLight*>(li.get())->position - isect_data->position);
@@ -62,8 +62,12 @@ namespace Chroma
 			glm::vec3 sample_pos = dynamic_cast<AreaLight*>(li.get())->position + 
 				(Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
 				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
-			shadow_ray.direction = glm::normalize(sample_pos - isect_data->position);
-			distance = glm::distance(isect_data->position, sample_pos);
+			//Perturb
+			glm::vec3 pert_pos = isect_data->position + 0.01f * isect_data->normal;
+			sample_pos += 0.01f * dynamic_cast<AreaLight*>(li.get())->normal;
+
+			shadow_ray.direction = glm::normalize(sample_pos - pert_pos);
+			distance = glm::distance(pert_pos, sample_pos);
 		default:
 			break;
 		}

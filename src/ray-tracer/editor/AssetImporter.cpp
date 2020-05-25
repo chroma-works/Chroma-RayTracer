@@ -656,7 +656,7 @@ namespace Chroma
 								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
 
 								p_l.SetIntensity(tmp);
-								p_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+								p_l.m_ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
@@ -684,7 +684,7 @@ namespace Chroma
 								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
 
 								d_l.SetIntensity(tmp);
-								d_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+								d_l.m_ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
@@ -716,7 +716,7 @@ namespace Chroma
 								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
 
 								s_l.SetIntensity(tmp);
-								s_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+								s_l.m_ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
 							}
 							else if (std::string(lig_prop->Value()).compare("CoverageAngle") == 0)
 							{
@@ -761,7 +761,7 @@ namespace Chroma
 								sscanf(data.c_str(), "%f %f %f", &tmp.x, &tmp.y, &tmp.z);
 
 								a_l.SetIntensity(tmp);
-								a_l.ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
+								a_l.m_ambient = glm::clamp(scene->m_ambient_l / 1000.0f, 0.0f, 1.0f);//Reset ambient light to approixmate ray traced env
 							}
 							else if (std::string(lig_prop->Value()).compare("Size") == 0)
 							{

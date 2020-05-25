@@ -113,20 +113,20 @@ namespace Chroma
 	{
 		if (num_dir_lights < MAX_NUM_LIGHTS)
 		{
-			Uniform direction(lig->shader_var_name + "[" + std::to_string(num_dir_lights) + "].direction", ShaderDataType::Float3);
+			Uniform direction(lig->m_shader_var_name + "[" + std::to_string(num_dir_lights) + "].direction", ShaderDataType::Float3);
 			direction.data = (void*)&lig->direction;
 			AddUniform(direction);
 
-			Uniform ambient(lig->shader_var_name + "[" + std::to_string(num_dir_lights) + "].ambient", ShaderDataType::Float3);
-			ambient.data = (void*)&lig->ambient;
+			Uniform ambient(lig->m_shader_var_name + "[" + std::to_string(num_dir_lights) + "].ambient", ShaderDataType::Float3);
+			ambient.data = (void*)&lig->m_ambient;
 			AddUniform(ambient);
 
-			Uniform diffuse(lig->shader_var_name + "[" + std::to_string(num_dir_lights) + "].diffuse", ShaderDataType::Float3);
-			diffuse.data = (void*)&lig->diffuse;
+			Uniform diffuse(lig->m_shader_var_name + "[" + std::to_string(num_dir_lights) + "].diffuse", ShaderDataType::Float3);
+			diffuse.data = (void*)&lig->m_diffuse;
 			AddUniform(diffuse);
 
-			Uniform specular(lig->shader_var_name + "[" + std::to_string(num_dir_lights) + "].specular", ShaderDataType::Float3);
-			specular.data = (void*)&lig->specular;
+			Uniform specular(lig->m_shader_var_name + "[" + std::to_string(num_dir_lights) + "].specular", ShaderDataType::Float3);
+			specular.data = (void*)&lig->m_specular;
 			AddUniform(specular);
 			//m_dir_lights.push_back(lig);
 			num_dir_lights++;
@@ -144,32 +144,32 @@ namespace Chroma
 	{
 		if (num_point_lights < MAX_NUM_LIGHTS)
 		{
-			Uniform position(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].position", ShaderDataType::Float3);
+			Uniform position(lig->m_shader_var_name + "[" + std::to_string(num_point_lights) + "].position", ShaderDataType::Float3);
 			position.data = (void*)&lig->position;
 			AddUniform(position);
 
-			Uniform constant(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].constant", ShaderDataType::Float);
+			Uniform constant(lig->m_shader_var_name + "[" + std::to_string(num_point_lights) + "].constant", ShaderDataType::Float);
 			constant.data = (void*)&lig->constant; //i hate you so fucking much
 			AddUniform(constant);
 
-			Uniform linear(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].linear", ShaderDataType::Float);
+			Uniform linear(lig->m_shader_var_name + "[" + std::to_string(num_point_lights) + "].linear", ShaderDataType::Float);
 			linear.data = (void*)&lig->linear;
 			AddUniform(linear);
 
-			Uniform quadratic(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].quadratic", ShaderDataType::Float);
+			Uniform quadratic(lig->m_shader_var_name + "[" + std::to_string(num_point_lights) + "].quadratic", ShaderDataType::Float);
 			quadratic.data = (void*)&lig->quadratic;
 			AddUniform(quadratic);
 
-			Uniform ambient(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].ambient", ShaderDataType::Float3);
-			ambient.data = (void*)&lig->ambient;
+			Uniform ambient(lig->m_shader_var_name + "[" + std::to_string(num_point_lights) + "].ambient", ShaderDataType::Float3);
+			ambient.data = (void*)&lig->m_ambient;
 			AddUniform(ambient);
 
-			Uniform diffuse(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].diffuse", ShaderDataType::Float3);
-			diffuse.data = (void*)&lig->diffuse;
+			Uniform diffuse(lig->m_shader_var_name + "[" + std::to_string(num_point_lights) + "].diffuse", ShaderDataType::Float3);
+			diffuse.data = (void*)&lig->m_diffuse;
 			AddUniform(diffuse);
 
-			Uniform specular(lig->shader_var_name + "[" + std::to_string(num_point_lights) + "].specular", ShaderDataType::Float3);
-			specular.data = (void*)&lig->specular;
+			Uniform specular(lig->m_shader_var_name + "[" + std::to_string(num_point_lights) + "].specular", ShaderDataType::Float3);
+			specular.data = (void*)&lig->m_specular;
 			AddUniform(specular);
 			//m_point_lights.push_back(lig);
 			num_point_lights++;
@@ -187,44 +187,44 @@ namespace Chroma
 	{
 		if (num_spot_lights < MAX_NUM_LIGHTS)
 		{
-			Uniform position(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].position", ShaderDataType::Float3);
+			Uniform position(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].position", ShaderDataType::Float3);
 			position.data = (void*)&lig->position;
 			AddUniform(position);
 
-			Uniform direction(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].direction", ShaderDataType::Float3);
+			Uniform direction(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].direction", ShaderDataType::Float3);
 			direction.data = (void*)&lig->direction;
 			AddUniform(direction);
 
-			Uniform cutOff(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].cutOff", ShaderDataType::Float);
+			Uniform cutOff(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].cutOff", ShaderDataType::Float);
 			cutOff.data = (void*)&lig->fall_off;
 			AddUniform(cutOff);
 
-			Uniform outerCutOff(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].outerCutOff", ShaderDataType::Float);
+			Uniform outerCutOff(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].outerCutOff", ShaderDataType::Float);
 			outerCutOff.data = (void*)&lig->cut_off;
 			AddUniform(outerCutOff);
 
-			Uniform constant(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].constant", ShaderDataType::Float);
+			Uniform constant(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].constant", ShaderDataType::Float);
 			constant.data = (void*)&lig->constant;
 			AddUniform(constant);
 
-			Uniform linear(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].linear", ShaderDataType::Float);
+			Uniform linear(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].linear", ShaderDataType::Float);
 			linear.data = (void*)&lig->linear;
 			AddUniform(linear);
 
-			Uniform quadratic(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].quadratic", ShaderDataType::Float);
+			Uniform quadratic(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].quadratic", ShaderDataType::Float);
 			quadratic.data = (void*)&lig->quadratic;
 			AddUniform(quadratic);
 
-			Uniform ambient(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].ambient", ShaderDataType::Float3);
-			ambient.data = (void*)&lig->ambient;
+			Uniform ambient(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].ambient", ShaderDataType::Float3);
+			ambient.data = (void*)&lig->m_ambient;
 			AddUniform(ambient);
 
-			Uniform diffuse(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].diffuse", ShaderDataType::Float3);
-			diffuse.data = (void*)&lig->diffuse;
+			Uniform diffuse(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].diffuse", ShaderDataType::Float3);
+			diffuse.data = (void*)&lig->m_diffuse;
 			AddUniform(diffuse);
 
-			Uniform specular(lig->shader_var_name + "[" + std::to_string(num_spot_lights) + "].specular", ShaderDataType::Float3);
-			specular.data = (void*)&lig->specular;
+			Uniform specular(lig->m_shader_var_name + "[" + std::to_string(num_spot_lights) + "].specular", ShaderDataType::Float3);
+			specular.data = (void*)&lig->m_specular;
 			AddUniform(specular);
 			//m_spot_lights.push_back(lig);
 			num_spot_lights++;
