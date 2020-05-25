@@ -131,7 +131,7 @@ namespace Chroma
 		}
 		if (m_rendered_image->IsHDR())
 		{
-			m_rendered_image->ToneMap(cam->m_key_val, cam->m_burn, 
+			m_rendered_image->ToneMap(cam->m_key_val, cam->m_burn_perc, 
 				cam->m_saturation, cam->m_gamma);
 		}
 		//while (progress_pers != 1.0f)

@@ -58,7 +58,7 @@ namespace Chroma
 		float m_gamma = 2.2f;
 		float m_saturation = 1.0f;
 		float m_key_val = 0.18f;
-		float m_burn = 1.0f;
+		float m_burn_perc = 1.0f;
 
 	private:
 		unsigned int m_id;

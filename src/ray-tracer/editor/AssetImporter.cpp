@@ -431,6 +431,31 @@ namespace Chroma
 				sscanf(data.c_str(), "%f", &d);
 				cam->SetApertureSize(d);
 			}
+			//---------------Tone Map params-----------------
+			else if (std::string(cam_prop->Value()).compare("Tonemap") == 0)
+			{
+				auto tone_prop = cam_prop->FirstChild();
+				while (tone_prop)//iterate over tonemap items
+				{
+					auto prop_name = std::string(tone_prop->Value());
+					if (prop_name.compare("TMOOptions") == 0)
+					{
+						std::string data = tone_prop->FirstChild()->Value();
+						sscanf(data.c_str(), "%f %f", &cam->m_key_val, &cam->m_burn_perc);
+					}
+					else if (prop_name.compare("Saturation") == 0)
+					{
+						std::string data = tone_prop->FirstChild()->Value();
+						sscanf(data.c_str(), "%f", &cam->m_saturation);
+					}
+					else if (prop_name.compare("Gamma") == 0)
+					{
+						std::string data = tone_prop->FirstChild()->Value();
+						sscanf(data.c_str(), "%f", &cam->m_gamma);
+					}
+					tone_prop = tone_prop->NextSibling();
+				}
+			}
 			//----------------Typeless cam-------------------
 			else if (!cam_type &&
 				std::string(cam_prop->Value()).compare(N_PLANE) == 0)
@@ -792,6 +817,10 @@ namespace Chroma
 					std::shared_ptr<Material> mat;
 					MAT_TYPE type = MAT_TYPE::none;
 					bool flag = true;
+					auto nn = child_node->ToElement()->FindAttribute("degamma");
+					bool degamma = false;
+					if(nn)
+						degamma= std::string(nn->Value()).compare("true") == 0;
 					tinyxml2::XMLNode* material_prop = child_node->FirstChild();
 					if (child_node->ToElement()->FindAttribute("type"))
 					{
@@ -895,6 +924,8 @@ namespace Chroma
 					}
 
 					child_node = child_node->NextSibling();
+					if(degamma)
+						mat->Degamma();
 					materials.push_back(mat);
 				}
 			}
