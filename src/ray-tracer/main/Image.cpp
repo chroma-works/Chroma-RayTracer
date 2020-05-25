@@ -1,9 +1,13 @@
 #include "Image.h"
+
+#include <algorithm>
+
 #include <ray-tracer/editor/Logger.h>
 #include <thirdparty/glm/glm/glm.hpp>
 #include <thirdparty/glm/glm/common.hpp>
 #include <thirdparty/glm/glm/gtx/color_space.hpp>
 #include <thirdparty/glm/glm/gtx/component_wise.hpp>
+#include <thirdparty/glm/glm/exponential.hpp>
 
 //#define TINYEXR_IMPLEMENTATION
 #include "thirdparty/tinyexr/tinyexr.h"
@@ -13,6 +17,11 @@
 
 namespace Chroma
 {
+	float luminosity(glm::vec3 color)
+	{
+		return color.r + color.g * 4.590f + color.b * 0.060f;
+	}
+
 	bool SaveEXR(const float* rgb, int width, int height, const char* outfilename) {
 
 		EXRHeader header;
@@ -103,27 +112,36 @@ namespace Chroma
 	{
 		return m_pixels;
 	}
-	void Image::ToneMap(float key_v, float burn, float satur, float gamma)
+	void Image::ToneMap(float key_v, float burn_per, float satur, float gamma)
 	{
 		float tmp = 0.0f;
+
+		std::vector<float> luminances(m_width * m_height);
+		//Calculate L_w_hat
 		for (int i = 0; i < m_width * m_height; i++)
 		{
-			m_hdr_pixels[i] = glm::saturation(satur, m_hdr_pixels[i]);
+			luminances[i] = glm::luminosity(m_hdr_pixels[i]);
+			tmp += std::logf( 0.00001f + luminances[i]);
 		}
+		float l_w_hat = expf(tmp / ((float)m_width * m_height));
+
+		//sort luminaces to find L_white
+		std::sort(luminances.begin(), luminances.end());
+		float l_white = luminances[(m_width * m_height) * (1.0f - burn_per / 100.0f)];
+
 		for (int i = 0; i < m_width * m_height; i++)
 		{
-			tmp += std::logf(glm::luminosity(m_hdr_pixels[i]));
-		}
-		float l_w = std::expf(tmp) / (m_width * m_height);
-		for (int i = 0; i < m_width * m_height; i++)
-		{
-			glm::vec3 cur_pixel = m_hdr_pixels[i];
-			float lum = key_v / (l_w) * glm::luminosity(m_hdr_pixels[i]);
-			m_hdr_pixels[i] *= (lum * (1 + lum / (burn * burn))) / (1 + lum);
+			float l_scaled = key_v / l_w_hat * (glm::luminosity(m_hdr_pixels[i]));
+
+			float l_out = ( l_scaled * (1 + l_scaled / (l_white * l_white)) );
+
+			m_hdr_pixels[i] = l_out * glm::pow(m_hdr_pixels[i] / glm::luminosity(m_hdr_pixels[i]), glm::vec3(1,1,1) * satur);
 
 			//gamma correction
-			//m_hdr_pixels[i] = glm::pow(m_hdr_pixels[i], gamma);
+			m_hdr_pixels[i] = 255.0f * glm::pow(m_hdr_pixels[i], glm::vec3(1,1,1) / gamma);
+			m_pixels[i] = m_hdr_pixels[i];
 		}
+		
 	}
 	void Image::SetPixel(int x, int y, const glm::vec3& pixel)
 	{
