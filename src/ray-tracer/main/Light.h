@@ -20,19 +20,19 @@ namespace Chroma
 	{
 	public:
 
-		SET_INTENSITY(ambient, diffuse, specular, ls)
+		SET_INTENSITY(m_ambient, m_diffuse, m_specular, m_inten)
 
 		virtual glm::vec3 IlluminationAt(const glm::vec3 isect_pos, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const = 0;
 
-		std::string shader_var_name;
-		glm::vec3 ambient;
-		glm::vec3 diffuse;
-		glm::vec3 specular;
+		std::string m_shader_var_name;
+		glm::vec3 m_ambient;
+		glm::vec3 m_diffuse;
+		glm::vec3 m_specular;
 
-		glm::vec3 ls;
+		glm::vec3 m_inten;
 
-		LIGHT_T type;
+		LIGHT_T m_type;
 	};
 
 	class DirectionalLight : public Light {
@@ -40,37 +40,37 @@ namespace Chroma
 
 		DirectionalLight(glm::vec3 dir, glm::vec3 amb,
 			glm::vec3 diff, glm::vec3 spec, std::string name = "u_DirLights")
-			: direction(glm::normalize(dir))
+			: m_direction(glm::normalize(dir))
 		{
-			ambient = amb;
-			diffuse = diff;
-			specular = spec;
-			shader_var_name = name;
-			ls = { 0,0,0 };
-			type = LIGHT_T::directional;
+			m_ambient = amb;
+			m_diffuse = diff;
+			m_specular = spec;
+			m_shader_var_name = name;
+			m_inten = { 0,0,0 };
+			m_type = LIGHT_T::directional;
 		}
 
 		DirectionalLight(const DirectionalLight& other)
-			: direction(other.direction)
+			: m_direction(other.m_direction)
 		{
-			ambient = other.ambient;
-			diffuse = other.diffuse;
-			specular = other.specular;
-			shader_var_name = other.shader_var_name;
-			ls = other.ls;
-			type = LIGHT_T::directional;
+			m_ambient = other.m_ambient;
+			m_diffuse = other.m_diffuse;
+			m_specular = other.m_specular;
+			m_shader_var_name = other.m_shader_var_name;
+			m_inten = other.m_inten;
+			m_type = LIGHT_T::directional;
 		}
 
 		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			glm::vec3 l_vec = glm::normalize(-direction);
+			glm::vec3 l_vec = glm::normalize(-m_direction);
 			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * ls *
+			glm::vec3 diffuse = material->m_diffuse * m_inten *
 				glm::max(glm::dot(isect_normal, l_vec), 0.0f);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * ls *
+			glm::vec3 specular = material->m_specular * m_inten *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess);
 			return specular + diffuse;
 		}
@@ -79,21 +79,21 @@ namespace Chroma
 			ImGui::Text("DirectionalLight");
 			ImGui::Separator();
 			ImGui::Text("Transform");
-			if (ImGui::Button("D##1"))direction = glm::vec3(1.0f, 0.0f, 0.0f);
+			if (ImGui::Button("D##1"))m_direction = glm::vec3(1.0f, 0.0f, 0.0f);
 			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(direction.x), 0.05f, 0, 0, "%.3f");
-			direction = glm::normalize(direction);
+			ImGui::DragFloat3("##4", &(m_direction.x), 0.05f, 0, 0, "%.3f");
+			m_direction = glm::normalize(m_direction);
 
 			ImGui::Separator();
 
 			ImGui::Text("Light");
 			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-			ImGui::ColorEdit3("Ambient Color", &ambient.x);
-			ImGui::ColorEdit3("Diffuse Color", &diffuse.x);
-			ImGui::ColorEdit3("Specular Color", &specular.x);
+			ImGui::ColorEdit3("Ambient Color", &m_ambient.x);
+			ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x);
+			ImGui::ColorEdit3("Specular Color", &m_specular.x);
 
 			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = ls;
+			glm::vec3 tmp = m_inten;
 			if (ImGui::DragFloat3("Radiance", &tmp.x, 1.0f, 0.0f, 1000.0f))
 			{
 				SetIntensity(tmp);
@@ -104,53 +104,53 @@ namespace Chroma
 			}
 		}
 
-		glm::vec3 direction;
+		glm::vec3 m_direction;
 	};
 
 	class PointLight : public Light{
 	public:
-		glm::vec3 position;
+		glm::vec3 m_position;
 
-		float constant;
-		float linear;
-		float quadratic;
+		float m_constant;
+		float m_linear;
+		float m_quadratic;
 
 		PointLight(glm::vec3 pos, glm::vec3 amb,
 			glm::vec3 diff, glm::vec3 spec, float cons = 1.0f, float lin = 0.01f, float quad = 0.0001f,
 			std::string name = "u_PointLights")
-			: position(pos), constant(cons), linear(lin), quadratic(quad)
+			: m_position(pos), m_constant(cons), m_linear(lin), m_quadratic(quad)
 		{
-			ambient = amb;
-			diffuse = diff;
-			specular = spec;
-			shader_var_name = name;
-			ls = { 0,0,0 };
-			type = LIGHT_T::point;
+			m_ambient = amb;
+			m_diffuse = diff;
+			m_specular = spec;
+			m_shader_var_name = name;
+			m_inten = { 0,0,0 };
+			m_type = LIGHT_T::point;
 		}
 
 		PointLight(const PointLight& other)
-			: position(other.position),constant(other.constant),
-			linear(other.linear), quadratic(other.quadratic)
+			: m_position(other.m_position),m_constant(other.m_constant),
+			m_linear(other.m_linear), m_quadratic(other.m_quadratic)
 		{
-			ambient = other.ambient;
-			diffuse = other.diffuse;
-			specular = other.specular;
-			shader_var_name = other.shader_var_name;
-			ls = other.ls;
-			type = LIGHT_T::point;
+			m_ambient = other.m_ambient;
+			m_diffuse = other.m_diffuse;
+			m_specular = other.m_specular;
+			m_shader_var_name = other.m_shader_var_name;
+			m_inten = other.m_inten;
+			m_type = LIGHT_T::point;
 		}
 
 		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			glm::vec3 l_vec = glm::normalize(position - isect_position);
-			float d = glm::distance(position, isect_position);
+			glm::vec3 l_vec = glm::normalize(m_position - isect_position);
+			float d = glm::distance(m_position, isect_position);
 			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * ls *
+			glm::vec3 diffuse = material->m_diffuse * m_inten *
 				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * ls *
+			glm::vec3 specular = material->m_specular * m_inten *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
 			return specular + diffuse;
 		}
@@ -160,22 +160,22 @@ namespace Chroma
 			ImGui::Text("PointLight");
 			ImGui::Separator();
 			ImGui::Text("Transform");
-			if (ImGui::Button("P##1"))position = glm::vec3();
+			if (ImGui::Button("P##1"))m_position = glm::vec3();
 			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(position.x), 0.05f, 0, 0, "%.3f");
+			ImGui::DragFloat3("##4", &(m_position.x), 0.05f, 0, 0, "%.3f");
 
 			ImGui::Separator();
 
 			ImGui::Text("Light");
 			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
 
-			ImGui::ColorEdit3("Ambient Color", &ambient.x, ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit3("Diffuse Color", &diffuse.x, ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit3("Specular Color", &specular.x, ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit3("Ambient Color", &m_ambient.x, ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x, ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit3("Specular Color", &m_specular.x, ImGuiColorEditFlags_Float);
 
 
 			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = ls;
+			glm::vec3 tmp = m_inten;
 			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
 			{
 				SetIntensity(tmp);
@@ -191,14 +191,14 @@ namespace Chroma
 	public:
 		//std::string shader_var_name = "u_SpotLights";
 
-		glm::vec3 position;
-		glm::vec3 direction;
-		float fall_off;
-		float cut_off;
+		glm::vec3 m_position;
+		glm::vec3 m_direction;
+		float m_fall_off;
+		float m_cut_off;
 
-		float constant;
-		float linear;
-		float quadratic;
+		float m_constant;
+		float m_linear;
+		float m_quadratic;
 
 		/*glm::vec3 ambient;
 		glm::vec3 diffuse;
@@ -211,41 +211,41 @@ namespace Chroma
 		SpotLight(glm::vec3 pos, glm::vec3 dir, glm::vec3 amb,
 			glm::vec3 diff, glm::vec3 spec, float cons = 1.0f, float lin = 0.01f, float quad = 0.0001f,
 			float cut = 0.976296f, float outerCut = 0.963630f, std::string name = "u_SpotLights")
-			: position(pos), direction(dir), constant(cons), linear(lin), quadratic(quad),
-			fall_off(cut), cut_off(outerCut)
+			: m_position(pos), m_direction(dir), m_constant(cons), m_linear(lin), m_quadratic(quad),
+			m_fall_off(cut), m_cut_off(outerCut)
 		{
-			ambient = amb;
-			diffuse = diff;
-			specular = spec;
-			shader_var_name = name;
-			ls = { 0,0,0 };
-			type = LIGHT_T::spot;
+			m_ambient = amb;
+			m_diffuse = diff;
+			m_specular = spec;
+			m_shader_var_name = name;
+			m_inten = { 0,0,0 };
+			m_type = LIGHT_T::spot;
 		}
 
 		SpotLight(const SpotLight& other)
-			: position(other.position), direction(other.direction),
-			constant(other.constant), linear(other.linear),
-			quadratic(other.quadratic), fall_off(other.fall_off),
-			cut_off(other.cut_off)
+			: m_position(other.m_position), m_direction(other.m_direction),
+			m_constant(other.m_constant), m_linear(other.m_linear),
+			m_quadratic(other.m_quadratic), m_fall_off(other.m_fall_off),
+			m_cut_off(other.m_cut_off)
 		{
-			ambient = other.ambient;
-			diffuse = other.diffuse;
-			specular = other.specular;
-			shader_var_name = other.shader_var_name;
-			ls = other.ls;
-			type = LIGHT_T::spot;
+			m_ambient = other.m_ambient;
+			m_diffuse = other.m_diffuse;
+			m_specular = other.m_specular;
+			m_shader_var_name = other.m_shader_var_name;
+			m_inten = other.m_inten;
+			m_type = LIGHT_T::spot;
 		}
 
 		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			glm::vec3 intensity = ls;
-			glm::vec3 l_vec = glm::normalize(position - isect_position);
-			float theta = acos(glm::dot(l_vec, normalize(-direction)));
+			glm::vec3 intensity = m_inten;
+			glm::vec3 l_vec = glm::normalize(m_position - isect_position);
+			float theta = acos(glm::dot(l_vec, normalize(-m_direction)));
 			// spotlight intensity
-			float epsilon = fall_off/2 - cut_off/2;
-			intensity *= pow(glm::clamp((theta - cut_off/2) / epsilon, 0.0f, 1.0f), 4);
-			float d = glm::distance(position, isect_position);
+			float epsilon = m_fall_off/2 - m_cut_off/2;
+			intensity *= pow(glm::clamp((theta - m_cut_off/2) / epsilon, 0.0f, 1.0f), 4);
+			float d = glm::distance(m_position, isect_position);
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse * intensity *
 				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
@@ -261,34 +261,34 @@ namespace Chroma
 			ImGui::Text("SpotLight");
 			ImGui::Separator();
 			ImGui::Text("Transform");
-			if (ImGui::Button("P##1"))position = glm::vec3();
+			if (ImGui::Button("P##1"))m_position = glm::vec3();
 			ImGui::SameLine();
-			ImGui::DragFloat3("##5", &(position.x), 0.05f, 0, 0, "%.3f");
-			if (ImGui::Button("D##2"))direction = glm::vec3(1.0f,0.0f,0.0f);
+			ImGui::DragFloat3("##5", &(m_position.x), 0.05f, 0, 0, "%.3f");
+			if (ImGui::Button("D##2"))m_direction = glm::vec3(1.0f,0.0f,0.0f);
 			ImGui::SameLine();
-			ImGui::DragFloat3("##6", &(direction.x), 0.05f, 0, 0, "%.3f");
-			direction = glm::normalize(direction);
+			ImGui::DragFloat3("##6", &(m_direction.x), 0.05f, 0, 0, "%.3f");
+			m_direction = glm::normalize(m_direction);
 
 			ImGui::Separator();
 
 			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
 
 			ImGui::Text("Light");
-			ImGui::ColorEdit3("Ambient Color", &ambient.x);
-			ImGui::ColorEdit3("Diffuse Color", &diffuse.x);
-			ImGui::ColorEdit3("Specular Color", &specular.x);
+			ImGui::ColorEdit3("Ambient Color", &m_ambient.x);
+			ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x);
+			ImGui::ColorEdit3("Specular Color", &m_specular.x);
 
 			ImGui::Separator();
 
-			if (ImGui::Button("Fall-off##3"))fall_off = 0.1;
+			if (ImGui::Button("Fall-off##3"))m_fall_off = 0.1;
 			ImGui::SameLine();
-			ImGui::DragFloat("##7", &(fall_off), 0.05f, 0.00001, 3600, "%.3f");
-			if (ImGui::Button("Cut-off##4"))cut_off = 0.5;
+			ImGui::DragFloat("##7", &(m_fall_off), 0.05f, 0.00001, 3600, "%.3f");
+			if (ImGui::Button("Cut-off##4"))m_cut_off = 0.5;
 			ImGui::SameLine();
-			ImGui::DragFloat("##8", &(cut_off), 0.05f, fall_off, 360, "%.3f");
+			ImGui::DragFloat("##8", &(m_cut_off), 0.05f, m_fall_off, 360, "%.3f");
 
 			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = ls;
+			glm::vec3 tmp = m_inten;
 			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
 			{
 				SetIntensity(tmp);
@@ -302,53 +302,57 @@ namespace Chroma
 	class AreaLight : public Light
 	{
 	public:
-		glm::vec3 position;
-		glm::vec3 normal;
-		float size = 1.0f;
+		glm::vec3 m_position;
+		glm::vec3 m_normal;
+		float m_size = 1.0f;
 
 
 		AreaLight(glm::vec3 pos, glm::vec3 norm, float _size, std::string name = "Non_renderable")
-			: position(pos), normal(norm), size(_size)
+			: m_position(pos), m_normal(norm), m_size(_size)
 		{
-			ambient = {0,0,0};
-			diffuse = { 0,0,0 };
-			specular = { 0,0,0 };
-			shader_var_name = name;
-			ls = { 0,0,0 };
-			type = LIGHT_T::area;
+			m_ambient = {0,0,0};
+			m_diffuse = { 0,0,0 };
+			m_specular = { 0,0,0 };
+			m_shader_var_name = name;
+			m_inten = { 0,0,0 };
+			m_type = LIGHT_T::area;
 		}
 
 		AreaLight(const AreaLight& other)
-			: position(other.position), normal(other.normal), size(other.size)
+			: m_position(other.m_position), m_normal(other.m_normal), m_size(other.m_size)
 		{
-			ambient = other.ambient;
-			diffuse = other.diffuse;
-			specular = other.specular;
-			shader_var_name = other.shader_var_name;
-			ls = other.ls;
-			type = LIGHT_T::area;
+			m_ambient = other.m_ambient;
+			m_diffuse = other.m_diffuse;
+			m_specular = other.m_specular;
+			m_shader_var_name = other.m_shader_var_name;
+			m_inten = other.m_inten;
+			m_type = LIGHT_T::area;
 		}
 
 		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			glm::vec3 u, v;
-			Utils::CreateOrthonormBasis(normal, u, v);
-			glm::vec3 sample_pos = position + (Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
-				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
+			glm::vec3 u, v, pert_pos;
+			Utils::CreateOrthonormBasis(m_normal, u, v);
+			glm::vec3 sample_pos = m_position + (Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
+				Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * v);
+
+			//Perturb
+			pert_pos = isect_position + 0.01f * isect_normal;
+			sample_pos += 0.01f * m_normal;
  
-			glm::vec3 l_vec = glm::normalize(sample_pos - isect_position);
-			float d = glm::distance(isect_position, sample_pos);
+			glm::vec3 l_vec = glm::normalize(sample_pos - pert_pos);
+			float d = glm::distance(pert_pos, sample_pos);
 			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * ls *
+			glm::vec3 diffuse = material->m_diffuse * m_inten *
 				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * ls *
+			glm::vec3 specular = material->m_specular * m_inten *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
 
-			float cos_t = abs(glm::dot(l_vec,glm::normalize(normal)));
-			return (specular + diffuse) * cos_t * size *size ;
+			float cos_t = abs(glm::dot(l_vec,glm::normalize(m_normal)));
+			return (specular + diffuse) * cos_t * m_size *m_size ;
 		}
 
 		void DrawUI()
@@ -356,16 +360,16 @@ namespace Chroma
 			ImGui::Text("AreaLight(No preview render)");
 			ImGui::Separator();
 			ImGui::Text("Transform");
-			if (ImGui::Button("P##1"))position = glm::vec3();
+			if (ImGui::Button("P##1"))m_position = glm::vec3();
 			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(position.x), 0.05f, 0, 0, "%.3f");
-			if (ImGui::Button("D##2"))normal = glm::vec3(1.0f, 0.0f, 0.0f);
+			ImGui::DragFloat3("##4", &(m_position.x), 0.05f, 0, 0, "%.3f");
+			if (ImGui::Button("D##2"))m_normal = glm::vec3(1.0f, 0.0f, 0.0f);
 			ImGui::SameLine();
-			ImGui::DragFloat3("##5", &(normal.x), 0.05f, 0, 0, "%.3f");
-			normal = glm::normalize(normal);
-			if (ImGui::Button("S##3"))size = 0.0f;
+			ImGui::DragFloat3("##5", &(m_normal.x), 0.05f, 0, 0, "%.3f");
+			m_normal = glm::normalize(m_normal);
+			if (ImGui::Button("S##3"))m_size = 0.0f;
 			ImGui::SameLine();
-			ImGui::DragFloat("##6", &size, 0.05f, 0.0001, 0, "%.3f");
+			ImGui::DragFloat("##6", &m_size, 0.05f, 0.0001, 0, "%.3f");
 
 			ImGui::Separator();
 
@@ -375,7 +379,7 @@ namespace Chroma
 
 			ImGui::Separator();
 			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = ls;
+			glm::vec3 tmp = m_inten;
 			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
 			{
 				SetIntensity(tmp);
