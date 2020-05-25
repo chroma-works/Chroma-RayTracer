@@ -45,26 +45,26 @@ namespace Chroma
 		switch (li->m_type)
 		{
 		case LIGHT_T::point:
-			shadow_ray.direction = glm::normalize(dynamic_cast<PointLight*>(li.get())->position - isect_data->position);
-			distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->position);
+			shadow_ray.direction = glm::normalize(dynamic_cast<PointLight*>(li.get())->m_position - isect_data->position);
+			distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->m_position);
 			break;
 		case LIGHT_T::directional:
-			shadow_ray.direction = -glm::normalize(dynamic_cast<DirectionalLight*>(li.get())->direction);
+			shadow_ray.direction = -glm::normalize(dynamic_cast<DirectionalLight*>(li.get())->m_direction);
 			distance = INFINITY;
 			break;
 		case LIGHT_T::spot:
-			shadow_ray.direction = glm::normalize(dynamic_cast<SpotLight*>(li.get())->position - isect_data->position);
-			distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->position);
+			shadow_ray.direction = glm::normalize(dynamic_cast<SpotLight*>(li.get())->m_position - isect_data->position);
+			distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->m_position);
 		case LIGHT_T::area:
 			glm::vec3 u, v;
-			Utils::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->normal, u, v);
+			Utils::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->m_normal, u, v);
 
-			glm::vec3 sample_pos = dynamic_cast<AreaLight*>(li.get())->position + 
+			glm::vec3 sample_pos = dynamic_cast<AreaLight*>(li.get())->m_position + 
 				(Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
 				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
 			//Perturb
 			glm::vec3 pert_pos = isect_data->position + 0.01f * isect_data->normal;
-			sample_pos += 0.01f * dynamic_cast<AreaLight*>(li.get())->normal;
+			sample_pos += 0.01f * dynamic_cast<AreaLight*>(li.get())->m_normal;
 
 			shadow_ray.direction = glm::normalize(sample_pos - pert_pos);
 			distance = glm::distance(pert_pos, sample_pos);
