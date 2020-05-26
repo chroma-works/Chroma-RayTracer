@@ -145,6 +145,9 @@ target_link_libraries(chroma-ray-tracer spdlog)
 add_definitions(-DNOC_FILE_DIALOG_IMPLEMENTATION)
 add_definitions(-DNOC_FILE_DIALOG_WIN32)
 
+#Tinyexr
+add_definitions(-DTINYEXR_USE_THREAD)
+
 #glm
 add_definitions(-DGLM_FORCE_RADIANS)
 
