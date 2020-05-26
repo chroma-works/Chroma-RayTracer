@@ -332,17 +332,13 @@ namespace Chroma
 		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			glm::vec3 u, v, pert_pos;
+			glm::vec3 u, v;
 			Utils::CreateOrthonormBasis(m_normal, u, v);
 			glm::vec3 sample_pos = m_position + (Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
 				Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * v);
-
-			//Perturb
-			pert_pos = isect_position + 0.01f * isect_normal;
-			sample_pos += 0.01f * m_normal;
  
-			glm::vec3 l_vec = glm::normalize(sample_pos - pert_pos);
-			float d = glm::distance(pert_pos, sample_pos);
+			glm::vec3 l_vec = glm::normalize(sample_pos - isect_position);
+			float d = glm::distance(isect_position, sample_pos);
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse * m_inten *
 				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
