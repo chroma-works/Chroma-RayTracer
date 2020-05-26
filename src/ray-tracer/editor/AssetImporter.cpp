@@ -647,7 +647,7 @@ namespace Chroma
 							if (std::string(lig_prop->Value()).compare(POS) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &p_l.position.x, &p_l.position.y, &p_l.position.z);
+								sscanf(data.c_str(), "%f %f %f", &p_l.m_position.x, &p_l.m_position.y, &p_l.m_position.z);
 							}
 							else if (std::string(lig_prop->Value()).compare(INTEN) == 0)
 							{
@@ -675,7 +675,7 @@ namespace Chroma
 							if (std::string(lig_prop->Value()).compare(DIR) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &d_l.direction.x, &d_l.direction.y, &d_l.direction.z);
+								sscanf(data.c_str(), "%f %f %f", &d_l.m_direction.x, &d_l.m_direction.y, &d_l.m_direction.z);
 							}
 							else if (std::string(lig_prop->Value()).compare("Radiance") == 0)
 							{
@@ -702,12 +702,12 @@ namespace Chroma
 							if (std::string(lig_prop->Value()).compare(POS) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &s_l.position.x, &s_l.position.y, &s_l.position.z);
+								sscanf(data.c_str(), "%f %f %f", &s_l.m_position.x, &s_l.m_position.y, &s_l.m_position.z);
 							}
 							else if (std::string(lig_prop->Value()).compare(DIR) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &s_l.direction.x, &s_l.direction.y, &s_l.direction.z);
+								sscanf(data.c_str(), "%f %f %f", &s_l.m_direction.x, &s_l.m_direction.y, &s_l.m_direction.z);
 							}
 							else if (std::string(lig_prop->Value()).compare(INTEN) == 0)
 							{
@@ -721,14 +721,14 @@ namespace Chroma
 							else if (std::string(lig_prop->Value()).compare("CoverageAngle") == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f", &s_l.cut_off);
-								s_l.cut_off = glm::radians(s_l.cut_off);
+								sscanf(data.c_str(), "%f", &s_l.m_cut_off);
+								s_l.m_cut_off = glm::radians(s_l.m_cut_off);
 							}
 							else if (std::string(lig_prop->Value()).compare("FalloffAngle") == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f", &s_l.fall_off);
-								s_l.fall_off = glm::radians(s_l.fall_off);
+								sscanf(data.c_str(), "%f", &s_l.m_fall_off);
+								s_l.m_fall_off = glm::radians(s_l.m_fall_off);
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
@@ -746,13 +746,13 @@ namespace Chroma
 							if (std::string(lig_prop->Value()).compare(POS) == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &a_l.position.x, &a_l.position.y, &a_l.position.z);
+								sscanf(data.c_str(), "%f %f %f", &a_l.m_position.x, &a_l.m_position.y, &a_l.m_position.z);
 							}
 							else if (std::string(lig_prop->Value()).compare("Normal") == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f %f %f", &a_l.normal.x, &a_l.normal.y, &a_l.normal.z);
-								a_l.normal = glm::normalize(a_l.normal);
+								sscanf(data.c_str(), "%f %f %f", &a_l.m_normal.x, &a_l.m_normal.y, &a_l.m_normal.z);
+								a_l.m_normal = glm::normalize(a_l.m_normal);
 							}
 							else if (std::string(lig_prop->Value()).compare("Radiance") == 0)
 							{
@@ -766,7 +766,7 @@ namespace Chroma
 							else if (std::string(lig_prop->Value()).compare("Size") == 0)
 							{
 								std::string data = lig_prop->FirstChild()->Value();
-								sscanf(data.c_str(), "%f", &a_l.size);
+								sscanf(data.c_str(), "%f", &a_l.m_size);
 							}
 							lig_prop = lig_prop->NextSibling();
 						}
