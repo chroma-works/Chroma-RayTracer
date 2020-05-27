@@ -311,7 +311,9 @@ namespace Chroma
 			ray_tracer->SetResoultion(m_settings.resolution);
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_settings.resolution.x, m_settings.resolution.y, 0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_settings.resolution.x, m_settings.resolution.y, 0, 
+				GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
@@ -320,7 +322,9 @@ namespace Chroma
 			//m_scene->m_cameras[m_settings.act_rt_cam_name]->SetFocalDistance(m_scene->m_cameras[m_settings.act_rt_cam_name]->GetFocalDistance() + 1.0f);
 			ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name],  *m_scene, false);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings.resolution.x, m_settings.resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings.resolution.x, m_settings.resolution.y,
+				GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 		}
 
 		ImGui::Begin("Ray Tracer", 0, ImGuiWindowFlags_None);
@@ -373,7 +377,9 @@ namespace Chroma
 			ray_tracer->SetResoultion(m_settings.resolution);
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_settings.resolution.x, m_settings.resolution.y, 0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_settings.resolution.x, m_settings.resolution.y,
+				0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
@@ -416,7 +422,8 @@ namespace Chroma
 				std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
 				ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
 				glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_settings.resolution.x, ray_tracer->m_settings.resolution.y, GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_settings.resolution.x, ray_tracer->m_settings.resolution.y, GL_RGB,
+					GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 			}
 			else
 				CH_FATAL("Acceleration structure is NOT initialized");
@@ -430,6 +437,14 @@ namespace Chroma
 		{
 			delete ray_tracer->m_rendered_image;
 			ray_tracer->m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.save_exr);
+		}
+		if (m_settings.save_exr)
+		{
+			static int e = m_settings.ldr_post_process;
+			ImGui::Text("-LDR Image Options-");
+			ImGui::RadioButton("Clamp pixels", &e, 0); ImGui::SameLine();
+			ImGui::RadioButton("Tone Map", &e, 1);
+			m_settings.ldr_post_process = (IM_POST_PROC_T)e;
 		}
 
 		ImGui::Separator();

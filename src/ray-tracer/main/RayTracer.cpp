@@ -41,7 +41,7 @@ namespace Chroma
 	{
 		Ray shadow_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 		//shadow_ray.jitter_t = ray.jitter_t; // Uncomment if problems occur
-		float distance;
+		float distance = 0.0f;
 		switch (li->m_type)
 		{
 		case LIGHT_T::point:
@@ -59,15 +59,16 @@ namespace Chroma
 			glm::vec3 u, v;
 			Utils::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->m_normal, u, v);
 
-			glm::vec3 sample_pos = dynamic_cast<AreaLight*>(li.get())->m_position + 
+			glm::vec3 sample_l_pos = dynamic_cast<AreaLight*>(li.get())->m_position + 
 				(Utils::RandFloat(-size / 2.0f, size / 2.0f) * u +
 				Utils::RandFloat(-size / 2.0f, size / 2.0f) * v);
 			//Perturb
 			glm::vec3 pert_pos = isect_data->position + 0.01f * isect_data->normal;
-			sample_pos += 0.01f * dynamic_cast<AreaLight*>(li.get())->m_normal;
+			sample_l_pos += 0.01f * glm::normalize(sample_l_pos - pert_pos);
 
-			shadow_ray.direction = glm::normalize(sample_pos - pert_pos);
-			distance = glm::distance(pert_pos, sample_pos);
+			shadow_ray.direction = glm::normalize(sample_l_pos - pert_pos);
+			//shadow_ray.intersect_eps = m_settings.intersection_eps;
+			distance = glm::distance(pert_pos, sample_l_pos);
 		default:
 			break;
 		}
@@ -135,8 +136,11 @@ namespace Chroma
 		}
 		if (m_rendered_image->IsHDR())
 		{
-			m_rendered_image->ToneMap(cam->m_key_val, cam->m_burn_perc, 
-				cam->m_saturation, cam->m_gamma);
+			if (m_settings.ldr_post_process == 1)
+				m_rendered_image->ToneMap(cam->m_key_val, cam->m_burn_perc,
+					cam->m_saturation, cam->m_gamma);
+			else
+				m_rendered_image->Clamp(0, 255);
 		}
 		//while (progress_pers != 1.0f)
 		//	if (progress_pers == 1.0f)

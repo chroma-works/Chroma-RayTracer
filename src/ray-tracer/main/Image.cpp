@@ -84,13 +84,13 @@ namespace Chroma
 	Image::Image(int width, int height, bool is_hdr)
 		: m_width(width), m_height(height), m_hdr(is_hdr)
 	{
-		m_pixels = new glm::u8vec3[m_width * m_height];
+		m_ldr_pixels = new glm::u8vec3[m_width * m_height];
 		if(m_hdr)
 			m_hdr_pixels = new glm::vec3[m_width * m_height];
 	}
 	Image::~Image()
 	{
-		delete[] m_pixels;
+		delete[] m_ldr_pixels;
 		if (m_hdr)
 			delete[] m_hdr_pixels;
 	}
@@ -110,7 +110,7 @@ namespace Chroma
 	}*/
 	glm::u8vec3* Image::GetPixels() const
 	{
-		return m_pixels;
+		return m_ldr_pixels;
 	}
 	void Image::ToneMap(float key_v, float burn_per, float satur, float gamma)
 	{
@@ -135,19 +135,23 @@ namespace Chroma
 
 			float l_out = ( l_scaled * (1 + l_scaled / (l_white * l_white)) );
 
-			m_hdr_pixels[i] = l_out * glm::pow(m_hdr_pixels[i] / glm::luminosity(m_hdr_pixels[i]), glm::vec3(1,1,1) * satur);
+			glm::vec3 color = glm::clamp(l_out * glm::pow(m_hdr_pixels[i] / glm::luminosity(m_hdr_pixels[i]), glm::vec3(1,1,1) * satur)
+				,0.0f,1.0f);
 
 			//gamma correction
-			m_hdr_pixels[i] = 255.0f * glm::pow(m_hdr_pixels[i], glm::vec3(1,1,1) / gamma);
-			m_pixels[i] = m_hdr_pixels[i];
+			m_ldr_pixels[i] = 255.0f * glm::pow(color, glm::vec3(1,1,1) / gamma);
+			//m_ldr_pixels[i] = m_hdr_pixels[i];
 		}
 		
 	}
 	void Image::SetPixel(int x, int y, const glm::vec3& pixel)
 	{
-		m_pixels[y * m_width + x] = glm::clamp(pixel, 0.0f, 255.0f);
 		if (m_hdr)
 			m_hdr_pixels[y * m_width + x] = pixel;
+		else
+		{
+			m_ldr_pixels[y * m_width + x] = glm::clamp(pixel, 0.0f, 255.0f);
+		}
 	}
 	void Image::SaveToDisk(const char* file_name) const
 	{
@@ -156,7 +160,7 @@ namespace Chroma
 		std::string token = s.substr(0,index);
 		std::string tmp = token;
 
-		stbi_write_png(tmp.append(".png").c_str(), m_width, m_height, 3, m_pixels, 3 * m_width);
+		stbi_write_png(tmp.append(".png").c_str(), m_width, m_height, 3, m_ldr_pixels, 3 * m_width);
 		CH_TRACE("Image Saved to" + tmp);
 		if (m_hdr)
 		{
