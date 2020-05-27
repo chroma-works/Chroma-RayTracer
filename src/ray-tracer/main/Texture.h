@@ -19,9 +19,10 @@ namespace Chroma
         void Bind(unsigned int slot = 0) const;
         void Unbind() const;
 
+        inline int GetWidth() const { return m_width; }
+		inline int GetHeigth() const { return m_height; }
 
-        int inline GetWidth() const { return m_width; }
-        int inline GetHeigth() const { return m_heigth; }
+		inline std::string GetFilePath() const { return m_filepath; }
 
 
 		glm::vec4 SampleAt(glm::ivec2 p);
@@ -30,7 +31,10 @@ namespace Chroma
         unsigned int m_renderer_id;
         std::string m_filepath;
         unsigned char* m_localbuffer;
-        int m_width, m_heigth, m_BPP;
+        int m_width, m_height, m_BPP;
         TextureWrap m_t_wrap;
+
+		float* m_hdr_localbuffer;
+		bool m_hdr = false;
     };
 }
