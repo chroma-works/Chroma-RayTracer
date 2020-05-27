@@ -8,8 +8,10 @@
 #include <thirdparty/glm/glm/common.hpp>
 #include <thirdparty/glm/glm/glm.hpp>
 
+#include "ImageTextureMap.h"
 #include "Material.h"
 #include "Utilities.h"
+//#include <ray-tracer\main\ImageTextureMap.h>
 
 #define SET_INTENSITY(a,d,s, intensity) void SetIntensity(glm::vec3 inten){intensity = inten; a=s=d=(glm::clamp(inten/1000.0f, 0.0f, 1.0f));}
 
@@ -335,7 +337,7 @@ namespace Chroma
 			glm::vec3 u, v;
 			Utils::CreateOrthonormBasis(m_normal, u, v);
 			glm::vec3 sample_pos = m_position + (Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
-				Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * v);
+				Utils::RandFloat(-m_size, m_size) * v);
  
 			glm::vec3 l_vec = glm::normalize(sample_pos - isect_position);
 			float d = glm::distance(isect_position, sample_pos);
@@ -384,6 +386,58 @@ namespace Chroma
 					m_scene->m_spot_lights[selected_name]->specular = tmp;*/
 			}
 		}
+	};
+
+	class EnvironmentLight : public Light {
+	public:
+
+		EnvironmentLight(std::shared_ptr<ImageTextureMap> img, std::string name = "Non_renderable")
+			: m_tex_map(img)
+		{
+			m_ambient = { 0,0,0 };
+			m_diffuse = { 0,0,0 };
+			m_specular = { 0,0,0 };
+			m_shader_var_name = name;
+			m_inten = { 0,0,0 };
+			m_type = LIGHT_T::enviroment;
+		}
+
+		EnvironmentLight(const EnvironmentLight& other)
+			: m_tex_map(other.m_tex_map)
+		{
+			m_ambient = other.m_ambient;
+			m_diffuse = other.m_diffuse;
+			m_specular = other.m_specular;
+			m_shader_var_name = other.m_shader_var_name;
+			m_inten = other.m_inten;
+			m_type = LIGHT_T::enviroment;
+		}
+
+		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
+			const glm::vec3 e_vec, const Material* material) const
+		{
+			
+			return {110,110,110};
+		}
+		void DrawUI()
+		{
+			ImGui::Text("Environment Light");
+			ImGui::Separator();
+			char* a = new char[m_tex_map->m_texture->GetFilePath().size()];
+			strcpy(a, m_tex_map->m_texture->GetFilePath().c_str());
+			ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
+			if (ImGui::InputText("Image", a, 128, flags))
+			{
+				if (std::string(a).compare(m_tex_map->m_texture->GetFilePath()) != 0)
+				{
+					std::shared_ptr<Texture> tex = std::make_shared<Texture>(std::string(a));
+					m_tex_map = std::make_shared<ImageTextureMap>(tex, m_tex_map->GetDecalMode(), m_tex_map->IsInterpolated());
+				}
+			}
+			delete[] a;
+		}
+
+		std::shared_ptr<ImageTextureMap> m_tex_map;
 	};
 
 }

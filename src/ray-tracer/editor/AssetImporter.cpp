@@ -31,6 +31,7 @@ namespace Chroma
 	const std::string DIF_REF = "DiffuseReflectance";
 	const std::string D_LIG = "DirectionalLight";
 	const std::string DIR = "Direction";
+	const std::string E_LIG = "SphericalDirectionalLight";
 	const std::string FACES = "Faces";
 	const std::string FOCUS = "FocusDistance";
 	const std::string GAZE = "Gaze";
@@ -125,9 +126,8 @@ namespace Chroma
 
 	//========================================================================================================================//
 
-	std::vector<std::shared_ptr<TextureMap>> ParseTextures(tinyxml2::XMLNode* node, std::string file_path)
+	std::vector<std::shared_ptr<TextureMap>> ParseTextures(tinyxml2::XMLNode* node, std::string file_path, std::vector<std::shared_ptr<Texture>>& textures)
 	{
-		std::vector<std::shared_ptr<Texture>> textures;
 		std::vector<std::shared_ptr<TextureMap>> texture_maps;
 
 		while (node)
@@ -325,11 +325,15 @@ namespace Chroma
 
 		happly::PLYData ply_in(ply_path);
 		std::vector<std::array<double, 3>> v_pos = ply_in.getVertexPositions();
+		std::vector<double> us = ply_in.getElement("vertex").getProperty<double>("u");
+		std::vector<double> vs = ply_in.getElement("vertex").getProperty<double>("v");
 		std::vector<std::vector<size_t>> f_ind = ply_in.getFaceIndices<size_t>();
 
 		for (int i = 0; i < v_pos.size(); i++)
 		{
 			mesh_verts.push_back(std::make_shared<glm::vec3>(v_pos[i][0], v_pos[i][1], v_pos[i][2]));
+			if(us.size() >= i)
+				mesh_uvs.push_back(std::make_shared<glm::vec2>(us[i], vs[i]));
 			/*mesh_verts.push_back({ v_pos[i+1][0], v_pos[i+1][1], v_pos[i+1][2] });
 			mesh_verts.push_back({ v_pos[i+2][0], v_pos[i+2][1], v_pos[i+2][2] });*/
 		}
@@ -581,6 +585,7 @@ namespace Chroma
 		doc.LoadFile(file_path.c_str());
 		std::vector<std::shared_ptr<Material>> materials;
 		std::vector<std::shared_ptr<TextureMap>> texturemaps;
+		std::vector<std::shared_ptr<Texture>> textures;		//just incase of a env. light
 		std::vector<std::shared_ptr<glm::vec3>> vertices;
 		std::vector<std::shared_ptr<glm::vec2>>texture_coords;
 
@@ -772,6 +777,16 @@ namespace Chroma
 						}
 						scene->AddLight(lig_name, std::make_shared<AreaLight>(a_l));
 					}
+					else if (std::string(child_node->Value()).compare(E_LIG) == 0)
+					{
+						std::string lig_name;
+						lig_name = "environmental_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
+						std::shared_ptr<ImageTextureMap> tex_map = 
+							std::make_shared<ImageTextureMap>(textures[atoi(lig_prop->FirstChild()->Value())-1], DECAL_M::bl_kd);
+						auto e_l = std::make_shared<EnvironmentLight>(tex_map);
+						scene->AddLight(lig_name, e_l);
+					}
 					child_node = child_node->NextSibling();
 				}
 			}
@@ -933,7 +948,7 @@ namespace Chroma
 			{
 				tinyxml2::XMLNode* child_node = node->FirstChild();
 
-				texturemaps = ParseTextures(child_node, file_path.substr(0, found + 1));
+				texturemaps = ParseTextures(child_node, file_path.substr(0, found + 1), textures);
 				for (auto t : texturemaps)
 				{
 					if (t->GetDecalMode() == DECAL_M::re_bg)
