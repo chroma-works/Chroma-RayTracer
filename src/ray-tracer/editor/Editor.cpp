@@ -433,17 +433,19 @@ namespace Chroma
 			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
 			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
 		}
-		if (ImGui::Checkbox("Save HDR Image(.exr)", &m_settings.save_exr))
+		static bool save_exr = m_settings.ldr_post_process;
+		if (ImGui::Checkbox("Save HDR Image(.exr)", &save_exr))
 		{
+			//m_settings.ldr_post_process = save_exr;
 			delete ray_tracer->m_rendered_image;
-			ray_tracer->m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.save_exr);
+			ray_tracer->m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.ldr_post_process);
 		}
-		if (m_settings.save_exr)
+		if (save_exr)
 		{
-			static int e = m_settings.ldr_post_process;
+			static int e = 2;
 			ImGui::Text("-LDR Image Options-");
-			ImGui::RadioButton("Clamp pixels", &e, 0); ImGui::SameLine();
-			ImGui::RadioButton("Tone Map", &e, 1);
+			ImGui::RadioButton("Clamp pixels", &e, 1); ImGui::SameLine();
+			ImGui::RadioButton("Tone Map", &e, 2);
 			m_settings.ldr_post_process = (IM_POST_PROC_T)e;
 		}
 

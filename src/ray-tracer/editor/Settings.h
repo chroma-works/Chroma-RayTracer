@@ -4,7 +4,7 @@
 
 namespace Chroma
 {
-	enum IM_POST_PROC_T{clamp = 0, tone_map=1 };
+	enum IM_POST_PROC_T{none=0, clamp = 1, tone_map=2 };//none means already ldr
 	struct Settings
 	{
 		int thread_count = 8;
@@ -19,7 +19,6 @@ namespace Chroma
 		bool calc_reflections = true;
 		bool calc_refractions = true;
 		int recur_depth = 6;
-		bool save_exr = false;
-		IM_POST_PROC_T ldr_post_process = clamp;
+		IM_POST_PROC_T ldr_post_process = none;
 	};
 }
