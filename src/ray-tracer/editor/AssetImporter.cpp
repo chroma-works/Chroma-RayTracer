@@ -780,11 +780,9 @@ namespace Chroma
 					else if (std::string(child_node->Value()).compare(E_LIG) == 0)
 					{
 						std::string lig_name;
-						lig_name = "environmental_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						lig_name = "environment_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
-						std::shared_ptr<ImageTextureMap> tex_map = 
-							std::make_shared<ImageTextureMap>(textures[atoi(lig_prop->FirstChild()->Value())-1], DECAL_M::bl_kd);
-						auto e_l = std::make_shared<EnvironmentLight>(tex_map);
+						auto e_l = std::make_shared<EnvironmentLight>(textures[atoi(lig_prop->FirstChild()->Value()) - 1]);
 						scene->AddLight(lig_name, e_l);
 					}
 					child_node = child_node->NextSibling();

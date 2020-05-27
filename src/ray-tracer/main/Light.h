@@ -8,7 +8,7 @@
 #include <thirdparty/glm/glm/common.hpp>
 #include <thirdparty/glm/glm/glm.hpp>
 
-#include "ImageTextureMap.h"
+#include "Texture.h"
 #include "Material.h"
 #include "Utilities.h"
 //#include <ray-tracer\main\ImageTextureMap.h>
@@ -17,7 +17,7 @@
 
 namespace Chroma
 {
-	enum class LIGHT_T {point, directional, spot, enviroment, area};
+	enum class LIGHT_T {point, directional, spot, environment, area};
 	class Light : public ImGuiDrawable
 	{
 	public:
@@ -337,7 +337,7 @@ namespace Chroma
 			glm::vec3 u, v;
 			Utils::CreateOrthonormBasis(m_normal, u, v);
 			glm::vec3 sample_pos = m_position + (Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
-				Utils::RandFloat(-m_size, m_size) * v);
+				Utils::RandFloat(-m_size/2.0f, m_size/2.0f) * v);
  
 			glm::vec3 l_vec = glm::normalize(sample_pos - isect_position);
 			float d = glm::distance(isect_position, sample_pos);
@@ -391,53 +391,63 @@ namespace Chroma
 	class EnvironmentLight : public Light {
 	public:
 
-		EnvironmentLight(std::shared_ptr<ImageTextureMap> img, std::string name = "Non_renderable")
-			: m_tex_map(img)
+		EnvironmentLight(std::shared_ptr<Texture> img, std::string name = "Non_renderable")
+			: m_tex(img)
 		{
 			m_ambient = { 0,0,0 };
 			m_diffuse = { 0,0,0 };
 			m_specular = { 0,0,0 };
 			m_shader_var_name = name;
 			m_inten = { 0,0,0 };
-			m_type = LIGHT_T::enviroment;
+			m_type = LIGHT_T::environment;
 		}
 
 		EnvironmentLight(const EnvironmentLight& other)
-			: m_tex_map(other.m_tex_map)
+			: m_tex(other.m_tex)
 		{
 			m_ambient = other.m_ambient;
 			m_diffuse = other.m_diffuse;
 			m_specular = other.m_specular;
 			m_shader_var_name = other.m_shader_var_name;
 			m_inten = other.m_inten;
-			m_type = LIGHT_T::enviroment;
+			m_type = LIGHT_T::environment;
 		}
 
 		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
 			const glm::vec3 e_vec, const Material* material) const
 		{
-			
-			return {110,110,110};
+			//Randomly sample a direction. Random rejection sampling
+			glm::vec3 direction;
+			while (true)
+			{
+				direction = { Utils::RandFloat(-1,1), Utils::RandFloat(-1,1), Utils::RandFloat(-1,1) };
+
+				bool valid_direction = glm::length(direction) < 1.0f &&
+					glm::dot(direction, isect_normal) > 0.0f;
+				if (valid_direction)
+					break;
+			}
+			direction = glm::normalize(direction);
+			return { 100,100,100 };
 		}
 		void DrawUI()
 		{
 			ImGui::Text("Environment Light");
 			ImGui::Separator();
-			char* a = new char[m_tex_map->m_texture->GetFilePath().size()];
-			strcpy(a, m_tex_map->m_texture->GetFilePath().c_str());
+			char* a = new char[m_tex->GetFilePath().size()];
+			strcpy(a, m_tex->GetFilePath().c_str());
 			ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
-			if (ImGui::InputText("Image", a, 128, flags))
+			if (ImGui::InputText("Radiance Map", a, 128, flags))
 			{
-				if (std::string(a).compare(m_tex_map->m_texture->GetFilePath()) != 0)
+				if (std::string(a).compare(m_tex->GetFilePath()) != 0)
 				{
-					std::shared_ptr<Texture> tex = std::make_shared<Texture>(std::string(a));
-					m_tex_map = std::make_shared<ImageTextureMap>(tex, m_tex_map->GetDecalMode(), m_tex_map->IsInterpolated());
+					m_tex = std::make_shared<Texture>(std::string(a));
 				}
 			}
 			delete[] a;
 		}
 
-		std::shared_ptr<ImageTextureMap> m_tex_map;
+		std::shared_ptr<Texture> m_tex;
 	};
 
 }
