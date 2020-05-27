@@ -33,7 +33,7 @@ namespace Utils
 
 	inline float RandFloat(float l = 0.0f, float u = 1.0f)
 	{
-		thread_local std::uniform_real_distribution<double> dis(l, u);
+		std::uniform_real_distribution<double> dis(l, u);
 		return dis(s_gen);
 	}
 
