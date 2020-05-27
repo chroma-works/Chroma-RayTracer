@@ -19,7 +19,7 @@ namespace Chroma
 {
 	float luminosity(glm::vec3 color)
 	{
-		return color.r + color.g * 4.590f + color.b * 0.060f;
+		return color.r * 0.2126 + color.g * 0.7125 + color.b * 0.0722;
 	}
 
 	bool SaveEXR(const float* rgb, int width, int height, const char* outfilename) {
@@ -120,10 +120,14 @@ namespace Chroma
 		//Calculate L_w_hat
 		for (int i = 0; i < m_width * m_height; i++)
 		{
-			luminances[i] = glm::luminosity(m_hdr_pixels[i]);
-			tmp += std::logf( 0.00001f + luminances[i]);
+			tmp += std::logf( 0.00001f + luminosity(m_hdr_pixels[i]));
 		}
 		float l_w_hat = expf(tmp / ((float)m_width * m_height));
+
+		for (int i = 0; i < m_width * m_height; i++)
+		{
+			luminances[i] = key_v * (luminosity(m_hdr_pixels[i])) / l_w_hat;
+		}
 
 		//sort luminaces to find L_white
 		std::sort(luminances.begin(), luminances.end());
@@ -131,16 +135,18 @@ namespace Chroma
 
 		for (int i = 0; i < m_width * m_height; i++)
 		{
-			float l_scaled = key_v / l_w_hat * (glm::luminosity(m_hdr_pixels[i]));
+			float l_scaled = key_v * (luminosity(m_hdr_pixels[i])) / l_w_hat ;
 
-			float l_out = ( l_scaled * (1 + l_scaled / (l_white * l_white)) );
+			float l_out = (l_scaled * (1.0f + l_scaled / (pow(l_white,2 )))) / (1.0f + l_scaled);
 
-			glm::vec3 color = glm::clamp(l_out * glm::pow(m_hdr_pixels[i] / glm::luminosity(m_hdr_pixels[i]), glm::vec3(1,1,1) * satur)
-				,0.0f,1.0f);
+			glm::vec3 color;
+			if (luminosity(m_hdr_pixels[i]) > 0.0f && glm::compAdd(m_hdr_pixels[i])> 0.0)
+				color = l_out * glm::pow(m_hdr_pixels[i] / luminosity(m_hdr_pixels[i]), glm::vec3(1, 1, 1) * satur);
+			else
+				color = { 0,0,0 };
 
 			//gamma correction
-			m_ldr_pixels[i] = 255.0f * glm::pow(color, glm::vec3(1,1,1) / gamma);
-			//m_ldr_pixels[i] = m_hdr_pixels[i];
+			m_ldr_pixels[i] = glm::clamp(255.0f * glm::pow(color, glm::vec3(1,1,1) / gamma),0.0f, 255.0f);
 		}
 		
 	}
@@ -149,9 +155,7 @@ namespace Chroma
 		if (m_hdr)
 			m_hdr_pixels[y * m_width + x] = pixel;
 		else
-		{
 			m_ldr_pixels[y * m_width + x] = glm::clamp(pixel, 0.0f, 255.0f);
-		}
 	}
 	void Image::SaveToDisk(const char* file_name) const
 	{
