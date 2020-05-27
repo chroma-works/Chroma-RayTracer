@@ -1,8 +1,6 @@
 #pragma once
 
 #include <ray-tracer/main/Scene.h>
-#include <ray-tracer/main/SceneObject.h>
-#include <ray-tracer/main/Texture.h>
 #include "Settings.h"
 
 #include <thirdparty/tinyxml2/tinyxml2.h>
