@@ -94,7 +94,7 @@ namespace Chroma
 
 			ImGui::Separator();
 			ImGui::Text("Tone Mapping Operator");
-			ImGui::DragFloat("Key Value", &m_key_val, 0.05f, 0.0, 1.0f);
+			ImGui::DragFloat("Key Value", &m_key_val, 0.005f, 0.0, 0.40f);
 			ImGui::DragFloat("Burn percentage", &m_burn_perc, 0.05f, 0.0, 100.0f);
 			ImGui::DragFloat("Saturation", &m_saturation, 0.05f, 0.0f, 1.0f);
 			ImGui::DragFloat("Gamma", &m_gamma, 0.05f, 1.0f, 3.0f);
