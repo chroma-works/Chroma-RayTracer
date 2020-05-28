@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<Chroma::Scene> scene;
 	Chroma::Settings s;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/cube_directional.xml", &s)));
+	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/veach_ajar/scene.xml", &s)));
 	//init editor
 	Chroma::Editor editor(&window, scene.get(), s);
 
