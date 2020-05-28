@@ -26,6 +26,7 @@ namespace Chroma
 	const std::string BCK_COLOR = "BackgroundColor";
 	const std::string BUMP_F = "BumpFactor";
 	const std::string CAMS = "Cameras";
+	const std::string COMP = "Composite";
 	const std::string CNTR = "Center";
 	const std::string DEC_M = "DecalMode";
 	const std::string DIF_REF = "DiffuseReflectance";
@@ -288,6 +289,7 @@ namespace Chroma
 		std::vector<glm::mat4> translations,
 		std::vector<glm::mat4> rotations, 
 		std::vector<glm::mat4> scalings,
+		std::vector<glm::mat4> composites,
 		tinyxml2::XMLNode* node)
 	{
 		std::string data = node->FirstChild()->Value();
@@ -309,6 +311,10 @@ namespace Chroma
 			else if (v[i].at(0) == 's')
 			{
 				trnsfm *= scalings[ std::stoi(v[i].substr(1)) -1];
+			}
+			else if (v[i].at(0) == 'c')
+			{
+				trnsfm *= composites[std::stoi(v[i].substr(1)) - 1];
 			}
 		}
 		return trnsfm;
@@ -597,6 +603,7 @@ namespace Chroma
 		std::vector<glm::mat4> translations;
 		std::vector<glm::mat4> rotations;
 		std::vector<glm::mat4> scalings;
+		std::vector<glm::mat4> composites;
 
 		tinyxml2::XMLNode* node = doc.RootElement()->FirstChild();
 		while (node)
@@ -826,6 +833,20 @@ namespace Chroma
 						sscanf(data.c_str(), "%f %f %f", &temp.x, &temp.y, &temp.z);
 						t = glm::scale(glm::mat4(1.0f), temp);
 						scalings.push_back(t);
+					}
+					else if (std::string(child_node->Value()).compare(COMP) == 0)
+					{
+						std::string data = child_node->FirstChild()->Value();
+						std::istringstream iss(data);
+						glm::mat4 mat;
+						int i = 0;
+						double n;
+						while (iss >> n)
+						{
+							mat[i%4][i/4] = n;
+							i++;
+						}
+						composites.push_back(mat);
 					}
 					child_node = child_node->NextSibling();
 				}
@@ -1088,7 +1109,7 @@ namespace Chroma
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
-								transform = CalculateTransforms(translations, rotations,scalings, object_prop);
+								transform = CalculateTransforms(translations, rotations,scalings, composites, object_prop);
 							}
 							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
 							{
@@ -1164,7 +1185,7 @@ namespace Chroma
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
-								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
+								transform = CalculateTransforms(translations, rotations, scalings, composites, object_prop);
 							}
 							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
 							{
@@ -1233,7 +1254,7 @@ namespace Chroma
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
-								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
+								transform = CalculateTransforms(translations, rotations, scalings, composites, object_prop);
 							}
 							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
 							{
@@ -1256,11 +1277,12 @@ namespace Chroma
 					else if (std::string(child_node->Value()).compare(MESH_INS) == 0)
 					{
 						std::string name = "Instance_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
-						int base_mesh_index = atoi(child_node->ToElement()->FindAttribute("baseMeshId")->Value()) - 1;
+						std::string base_mesh_index = "scene_object_" + std::string(child_node->ToElement()->FindAttribute("baseMeshId")->Value());
 						bool reset_transform = std::string(child_node->ToElement()->FindAttribute("resetTransform")->Value()).compare("true") == 0;
-						auto it = scene->m_scene_objects.begin();
-						std::advance(it, base_mesh_index);
-						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateInstance(name, it->second, reset_transform));
+						/*auto it = scene->m_scene_objects.begin();
+						std::advance(it, base_mesh_index);*/
+						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateInstance(name, 
+							scene->m_scene_objects[base_mesh_index], reset_transform));
 
 						glm::mat4 transform = glm::mat4(1.0f);
 						glm::vec3 m_b = { 0,0,0 };
@@ -1286,7 +1308,7 @@ namespace Chroma
 							}
 							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
 							{
-								transform = CalculateTransforms(translations, rotations, scalings, object_prop);
+								transform = CalculateTransforms(translations, rotations, scalings, composites, object_prop);
 							}
 							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
 							{
@@ -1296,7 +1318,7 @@ namespace Chroma
 							object_prop = object_prop->NextSibling();
 						}
 						if (!reset_transform)
-							transform = transform * it->second->GetModelMatrix();
+							transform = transform * scene->m_scene_objects[base_mesh_index]->GetModelMatrix();
 						scene_obj->SetTransforms(transform);
 						scene_obj->SetMotionBlur(m_b);
 						if (tex_map_ind_1 > -1)
