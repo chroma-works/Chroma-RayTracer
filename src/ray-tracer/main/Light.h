@@ -417,34 +417,34 @@ namespace Chroma
 			const glm::vec3 e_vec, const Material* material) const
 		{
 			//Randomly sample a direction. Random rejection sampling
-			glm::vec3 l_vec;
+			glm::vec3 direction;
 			while (true)
 			{
-				l_vec = { Utils::RandFloat(-1,1), Utils::RandFloat(-1,1), Utils::RandFloat(-1,1) };
+				direction = { Utils::RandFloat(-1,1), Utils::RandFloat(-1,1), Utils::RandFloat(-1,1) };
 
-				bool valid_direction = glm::dot(l_vec,l_vec) <= 1.0f &&
-					glm::dot(l_vec, isect_normal) > 0.0f;
+				bool valid_direction = glm::dot(direction, direction) <= 1.0f &&
+					glm::dot(direction, isect_normal) > 0.0f;
 				if (valid_direction)
 					break;
 			}
 
 			float u, v;
-			l_vec = glm::normalize(l_vec);
-			u = 0.5f - atan2f(l_vec.z, l_vec.x) * (0.5f / Utils::PI);
-			v = acosf(l_vec.y)/ Utils::PI;
+			direction = glm::normalize(direction);
+			u = 0.5f - atan2f(direction.z, direction.x) * (0.5f / Utils::PI);
+			v = acosf(direction.y)/ Utils::PI;
 			auto t_coord = glm::vec3(u, v, NAN);
 			glm::vec3 radiance = m_tex->SampleAt(t_coord);
-			radiance = glm::vec3({ radiance.b, radiance.g, radiance.r });
-			radiance *= 2.0f * (float)Utils::PI;
+			radiance =  glm::vec3({ radiance.b, radiance.g, radiance.r });
 
+			glm::vec3 l_vec = direction;
 			//Kd * I * cos(theta) /d^2 
 			glm::vec3 diffuse = material->m_diffuse *
-				glm::max(glm::dot(isect_normal, l_vec), 0.0f);
+				glm::abs(glm::dot(isect_normal, l_vec));
 			//Ks* I * max(0, h . n)^s / d^2
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 			glm::vec3 specular = material->m_specular *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess);
-			return (specular + diffuse) * radiance;
+			return (specular + diffuse) * radiance * 2.0f * (float)Utils::PI;
 		}
 		void DrawUI()
 		{
