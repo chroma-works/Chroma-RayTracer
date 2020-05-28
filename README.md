@@ -322,6 +322,73 @@ Also I prepared a animation that demostrates the spatial location based noise pr
 <img src= "resources/perlin_bump.gif" width = "600">  
 **Figure 30:** Perlin noise animation.  
 
+## Weeks 13 & 14  
+These weeks were particularly difficult. I had to submit many other projects thus leaving little to no time to Chroma. However luckily I had the chance to use my late submission days(First time I used any sort of late submission in my entire academic life). All the business aside this weeks assignment was particularly difficult due to HDR imaging subjects and them being particularly not very interesting to me.  
+
+To begin with this weeks development process it was expected from us to implement the global tone mapping operator from Reinhard et al. paper [[9]](#9). Along side with some advanced lighting techniques:
+* PointLight
+* DirectionalLight
+* SpotLight
+* AreaLight
+* EnvironmentLight
+
+The implementation process of Chroma 1.14 stared with HDR imaging which required both read and write support of .exr files. Oğur course instructor recommended us the OpenEXR[[10]](#10) library for this functionality however as for all C/C++ libraries it's setup felt very complicated and tedious (except header only libraries). Given the time-constraints and the README note that says "setting up OpenEXR for VS is not for faint of hearted" let me to simpler option: tinyEXR[[11]](#11). After setting up libraries I wasted 2 days on implementing the global tone mapping operator of Reinhard et al. paper [[9]](#9). However all I ended up with was all black images so I went to forums of the course to ask about the operator. Yet some people already have asked it and they were waiting for a reply so I left it as is and went on with the advanced lighting types which I already knew some of and took more of my interest in comparison to HDR imaging.  
+As I mentioned before I have retrofitted my old Chroma Engine OpenGL Abstractions to Chroma Ray Tracer for preview renderer. Which also included spot and directional lights in addition to point lights. Yet since OpenGl uses a simpler interpretation of data flow these data structures were in the form of C++ structs. Therefore first thing made was to create proper Abstract Light Class:    
+```
+class Light
+{
+public:
+  //... preview renderer properties...
+  vec3 Intensity;
+  virtual vec3 IlliumitantionAt(...);
+}
+```  
+
+One of the key things to notice here is that terminalogy intensity here is abuse of notation however this is also very similar to how PBRT defined their Light abstract class [[5]](#5). The second thing is "IlliumitantionAt" function which calculates shading without the shadow calculation(very tightly coupled with ray tracer class). After implementing classes for all five light types I also connected them to my old forward rendering pipeline. It still produces good results in simple scenes it comes very close in many of them. **Figure 31** shows forward rendered and ray traced look for the spot light dragon scene. Unfournanetly, Environmental and area lights are insivible in forward renderer thus the do not show up or effect any preview renders for now.   
+
+<img src= "resources/spot_capture.PNG" width = "400"> <img src= "resources/dragon_spot_light_msaa.png" height = "400">  
+**Figure 31:** Forward rendered and ray traced look for the Spotlight Dragon scene.  
+
+Area Lights were particularly tricky since random number generation in C++ is not thread safe and caused many noisy outputs with comparison to reference render. **Figure 32:** shows reference image and my render with same number of sampling side by side.  
+
+<img src= "resources/cornellbox_area.png" width = "400"> <img src= "resources/cornellbox_area_ref.png" width = "400">  
+**Figure 32:** Left my render with 100 samples, right reference image with 100 samples.  
+
+After experimenting with various factors such as making mersenne twister engine of C++ static thread local, reading all the blogs, asking in the forums, and calling a C++ expert of friend of mine for help **I found no solution to my noise problem**. It is not a race condition like [Bahadır points out](https://badiba.github.io/raytracer-795/pages/Page5.html) or a safe-threadness like Serdar points out in the blogs because even the single threaded outputs are  equally noisy. I also tried perturbating the light sampling points in the direction of normals and also in the direction of light vector(-intersection_point + light_position). Yet I have increased my sampling rate to 289 samples per pixel and I got very decent results(see **Figure 33**).  
+
+<img src= "resources/cornellbox_area_289.png" width = "550">
+**Figure 33:** Cornell box area light scene with 289 samples per pixel.  
+
+After completing these I went back to HDR imaging and texturing. After reading the answers given in the forums and the paper by [[9]](#9) couple hundred times. I found some crucial mistakes I made during tone maping. Most important being in order to calculate *L_white* one needs to find the percentage of the luminance that is specified by the parameters to put the value in the eq.3. What I did initially was using Luminances calculated from bare pixels and sorting them to find *L_white*. This was obviously wrong after which made it self apparent to me when I read [Eda Nur's blog](https://eksuas.github.io/page5.html). The correct thing needs to be done is sorting the *L(x,y)* values calculated by eq.2 of the TMO by [[9]](#9).  
+
+Yet all this progress still reproduced all black images. I went down to paper and examined formulas again expecaially eq.1 since it throwed suspiciously small values. I was going to ask if there is something wrong with the formulas yet Ahmet Hocam had already found the typo and informed us that the Eq. 1 should be:  
+```
+ exp( 1/N * Sum_xy(delta + log(L_w(x,y))))
+```  
+rather than:  
+```
+ 1/N * exp(Sum_xy(delta + log(L_w(x,y))))
+```
+
+Of course knowing that Peter Shirley was among the writers. I [tweeted him about this typo](https://twitter.com/stlkr_v1/status/1264719761449123841). He [kindly replied and confirmed](https://twitter.com/Peter_shirley/status/1264726336964227072) the error. I believe he will apply for the errata procedure to fix the typo. Of course pointing this error out felt risky to me since paper was from 2002.  
+
+Here are some render fails:  
+<img src= "resources/blue_man.png" width = "400"> <img src= "resources/trippy.png" width = "400">  
+**Figure 34:** The new blue man group member(can only play wind instruments) and the LSD Tone Mapping operator.  
+
+Without further ado, here are this weeks renders:  
+
+<img src= "resources/cube_point.png" width = "400"> <img src= "resources/cube_point_hdr.png" width = "400">  
+<img src= "resources/cube_directional.png" width = "400"> <img src= "resources/dragon_spot_light_msaa.png" width = "400">  
+<img src= "resources/cornellbox_area_289.png" width = "400"> <img src= "resources/sphere_point_hdr_texture.png" width = "400">  
+<img src= "resources/head_env_light.png" width = "400"> <img src= "resources/VeachAjar.png" width = "400">  
+
+**Figure 35:** HW5 final renders. Cornellbox_area scene is swapped with 289 sampled version since it looks better. Veach Ajar scene camera position is maully adjusted*.  
+
+Note*: I do not know why but some scenes with lookAt cameras gives slightly different outputs in terms of camera location or sometimes aspect ratios. This might be due to floating point precision or diffetent Image Plane interpretations. Veach Ajar is one of those scenes where I had the advantage of having interactive editor camera to move around forward rendered scene to find the closest spot on the reference image. Basicly I had to back up a bit to make the FOV cover the procedurally generated checkerboard texture.
+
+My API is a mess right now I will be focusing on that before the next assignment hits.
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
@@ -343,4 +410,13 @@ R. L. Cook, T. Porter, and L. Carpenter, “Distributed ray tracing,” Proceedi
 K. Suffern, Ray Tracing from the Ground Up. Natick: Chapman and Hall/CRC, 2016.  
 
 <a id="8">[8]</a>
-K. Perlin, “Improving noise,” Proceedings of the 29th annual conference on Computer graphics and interactive techniques - SIGGRAPH 02, 2002.
+K. Perlin, “Improving noise,” Proceedings of the 29th annual conference on Computer graphics and interactive techniques - SIGGRAPH 02, 2002.  
+
+<a id="9">[9]</a>
+E. Reinhard, M. Stark, P. Shirley, and J. Ferwerda, “Photographic tone reproduction for digital images,” Proceedings of the 29th annual conference on Computer graphics and interactive techniques  - SIGGRAPH '02, 2002.  
+
+<a id="10">[10]</a>
+AcademySoftwareFoundation, “AcademySoftwareFoundation/openexr,” GitHub, 27-May-2020. [Online]. Available: https://github.com/AcademySoftwareFoundation/openexr. [Accessed: 28-May-2020].  
+
+<a id="11">[11]</a>
+Syoyo, “syoyo/tinyexr,” GitHub, 20-May-2020. [Online]. Available: https://github.com/syoyo/tinyexr. [Accessed: 28-May-2020].
