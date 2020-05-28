@@ -31,4 +31,10 @@ This page is dedicated for "artsy" looking render fails that are too damn specia
 <img src= "resources/mystic_prizm.png" width = "300" >  
 *I have succesfully implemented X-Ray tracing! What is next? ray-traced Mortal Kombat !?*  
 
+<img src= "resources/blue_man.png" width = "400"> <img src= "resources/bluemangroup.jpg" width = "400">  
+*The new blue man group member specializes on wind instruments*  
+
+<img src= "resources/trippy.png" width = "400">  
+*The LSD Tone Mapping operator. As colorful as 60's*  
+
 
