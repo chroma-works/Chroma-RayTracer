@@ -62,6 +62,8 @@ set (main_sources
 	src/ray-tracer/main/Light.h
 	src/ray-tracer/main/Image.h
 	src/ray-tracer/main/Image.cpp
+	src/ray-tracer/main/ProceduralTextureMap.h
+	src/ray-tracer/main/ProceduralTextureMap.cpp
 	src/ray-tracer/main/Ray.h
 	src/ray-tracer/main/RayTracer.h
 	src/ray-tracer/main/RayTracer.cpp

@@ -13,6 +13,7 @@
 #include <thirdparty/glm/glm/gtx/quaternion.hpp>
 #include <ray-tracer/main/ImageTextureMap.h>
 #include <ray-tracer/main/NoiseTextureMap.h>
+#include <ray-tracer/main/ProceduralTextureMap.h>
 
 
 namespace Chroma
@@ -252,6 +253,57 @@ namespace Chroma
 					if (noise_scale != -1)
 						tm->SetScale(noise_scale);
 					tm->SetBumpFactor(bump_f);
+					texture_maps.push_back(tm);
+				}
+				else if (type.compare("checkerboard") == 0)
+				{
+					tinyxml2::XMLNode* child_node = node->FirstChild();
+					float offset, scale;
+					Chroma::DECAL_M d_mode;
+					glm::vec3 b, w;
+
+					while (child_node)
+					{
+						if (std::string(child_node->Value()).compare(DEC_M) == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							if (data.compare("replace_kd") == 0)
+								d_mode = DECAL_M::re_kd;
+							else if (data.compare("replace_normal") == 0)
+								d_mode = DECAL_M::re_no;
+							else if (data.compare("bump_normal") == 0)
+								d_mode = DECAL_M::bump;
+							else if (data.compare("blend_kd") == 0)
+								d_mode = DECAL_M::bl_kd;
+							else if (data.compare("replace_background") == 0)
+								d_mode = DECAL_M::re_bg;
+							else if (data.compare("replace_all") == 0)
+								d_mode = DECAL_M::re_all;
+
+						}
+						else if (std::string(child_node->Value()).compare("BlackColor") == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%f %f %f", &b.r, &b.g, &b.b);
+						}
+						else if (std::string(child_node->Value()).compare("WhiteColor") == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%f %f %f", &w.r, &w.g, &w.b);
+						}
+						else if (std::string(child_node->Value()).compare("Scale") == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &scale);
+						}
+						else if (std::string(child_node->Value()).compare("Offset") == 0)
+						{
+							std::string data = child_node->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &offset);
+						}
+						child_node = child_node->NextSibling();
+					}
+					auto tm = std::make_shared<ProcedurelTextureMap>(d_mode, b, w, scale, offset);
 					texture_maps.push_back(tm);
 				}
 			}

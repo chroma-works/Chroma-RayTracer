@@ -6,7 +6,7 @@
 namespace Chroma
 {
 	enum class DECAL_M { re_kd, bl_kd, re_all, re_no, bump, re_bg };
-	enum class SOURCE_T { image, noise };
+	enum class SOURCE_T { image, noise, procedural};
 	class TextureMap
 	{
 	public:
