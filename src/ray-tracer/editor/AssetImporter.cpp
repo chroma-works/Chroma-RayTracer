@@ -567,7 +567,7 @@ namespace Chroma
 			}
 			cam_prop = cam_prop->NextSibling();
 		}
-		if (handedness && std::string(handedness->Value()).compare("left"))
+		if (handedness && std::string(handedness->Value()).compare("left")==0)
 		{
 			cam->m_left_handed = true;
 		}
