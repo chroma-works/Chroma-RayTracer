@@ -444,11 +444,8 @@ namespace Chroma
 			bool replace_all = ((isect_data.tex_map) &&
 				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
 			//Ka * Ia
-			if(!replace_all)
-			{
-				glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
-				color += ambient;
-			}
+			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
+			color += ambient;
 
 			//lighting calculation
 			for (auto it = scene.m_lights.begin(); it != scene.m_lights.end(); it++)
@@ -458,9 +455,13 @@ namespace Chroma
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
 				//glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
 
-				if (!TestShadow(scene, &isect_data, li) ||
-					replace_all)
-					color += isect_data.Shade(li, e_vec);
+				if (!TestShadow(scene, &isect_data, li))
+				{
+					if(replace_all)
+						color = isect_data.Shade(li, e_vec);
+					else
+						color += isect_data.Shade(li, e_vec);
+				}
 			}
 		}
 		return color;
