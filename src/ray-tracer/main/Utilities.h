@@ -12,6 +12,8 @@ namespace Utils
 	thread_local static std::random_device s_rd;
 	thread_local static std::mt19937_64 s_gen(s_rd());
 
+	const static double PI = glm::pi<double>();
+
 	inline glm::vec2 SampleUnitSquare()
 	{
 		/*std::random_device rd;  //Will be used to obtain a seed for the random number engine
