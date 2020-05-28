@@ -385,7 +385,10 @@ Without further ado, here are this weeks renders:
 
 **Figure 35:** HW5 final renders. Cornellbox_area scene is swapped with 289 sampled version since it looks better. Veach Ajar scene camera position is maully adjusted*.  
 
-Note*: I do not know why but some scenes with lookAt cameras gives slightly different outputs in terms of camera location or sometimes aspect ratios. This might be due to floating point precision or diffetent Image Plane interpretations. Veach Ajar is one of those scenes where I had the advantage of having interactive editor camera to move around forward rendered scene to find the closest spot on the reference image. Basicly I had to back up a bit to make the FOV cover the procedurally generated checkerboard texture.
+Note*: I do not know why but some scenes with lookAt cameras gives slightly different outputs in terms of camera location or sometimes aspect ratios. This might be due to floating point precision or diffetent Image Plane interpretations. Veach Ajar is one of those scenes where I had the advantage of having interactive editor camera to move around forward rendered scene to find the closest spot on the reference image. Basicly I had to back up a bit to make the FOV cover the procedurally generated checkerboard texture.  
+
+<img src= "resources/giphy.gif" width = "600">  
+**Figure 36:** Veach Ajar scene infinite animation.  
 
 My API is a mess right now I will be focusing on that before the next assignment hits.
 
