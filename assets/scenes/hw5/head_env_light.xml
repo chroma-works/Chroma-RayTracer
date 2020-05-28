@@ -45,7 +45,7 @@
 
     <Textures>
         <Images>
-            <Image id="1">textures/head_albedomap_flip.png</Image>
+            <Image id="1">textures/head_albedomap_flip_flop.png</Image>
             <Image id="2">textures/pisa_latlong.exr</Image>
         </Images>
 
