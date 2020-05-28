@@ -139,10 +139,10 @@ namespace Chroma
 		}
 		if (m_rendered_image->IsHDR())
 		{
-			if (m_settings.ldr_post_process == 1)
+			if (m_settings.ldr_post_process == IM_POST_PROC_T::tone_map)
 				m_rendered_image->ToneMap(cam->m_key_val, cam->m_burn_perc,
 					cam->m_saturation, cam->m_gamma);
-			else
+			else if(m_settings.ldr_post_process == IM_POST_PROC_T::clamp)
 				m_rendered_image->Clamp(0, 255);
 		}
 		//while (progress_pers != 1.0f)
