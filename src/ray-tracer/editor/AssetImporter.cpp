@@ -784,6 +784,9 @@ namespace Chroma
 						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
 						auto e_l = std::make_shared<EnvironmentLight>(textures[atoi(lig_prop->FirstChild()->Value()) - 1]);
 						scene->AddLight(lig_name, e_l);
+						scene->m_sky_texture = std::make_shared<ImageTextureMap>(
+							textures[atoi(lig_prop->FirstChild()->Value()) - 1], DECAL_M::bl_kd);
+						scene->m_map_texture_to_sphere = true;
 					}
 					child_node = child_node->NextSibling();
 				}

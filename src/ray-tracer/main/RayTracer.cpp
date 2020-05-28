@@ -330,8 +330,17 @@ namespace Chroma
 		{
 			if (scene.m_sky_texture)
 			{
-				return scene.m_sky_texture->SampleAt({ pixel_cood.x / (float)m_settings.resolution.x,
-					pixel_cood.y / (float)m_settings.resolution.y, 0 }) * 255.0f;
+				if (scene.m_map_texture_to_sphere)
+				{
+					auto dir = glm::normalize(ray.direction);
+					float u = 0.5f - atan2(dir.z, dir.x) * (0.5f / Utils::PI);
+					float v = acosf(dir.y)  / Utils::PI;
+					auto t_coord = glm::vec3(u, v, NAN);
+					return scene.m_sky_texture->SampleAt(t_coord)*255.0f;
+				}
+				else
+					return scene.m_sky_texture->SampleAt({ pixel_cood.x / (float)m_settings.resolution.x,
+						pixel_cood.y / (float)m_settings.resolution.y, 0 }) * 255.0f;
 			}
 			else
 				return scene.m_sky_color;
