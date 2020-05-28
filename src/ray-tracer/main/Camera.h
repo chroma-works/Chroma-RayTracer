@@ -112,6 +112,8 @@ namespace Chroma
 		float m_key_val = 0.18f;
 		float m_burn_perc = 1.0f;
 
+		bool m_left_handed = false;
+
 	private:
 		unsigned int m_id;
 		glm::vec3 m_pos;

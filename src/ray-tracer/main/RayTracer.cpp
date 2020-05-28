@@ -251,7 +251,8 @@ namespace Chroma
 		glm::vec3 up = glm::normalize(cam->GetUp());
 		glm::vec3 forward = glm::normalize(cam->GetGaze());
 		glm::vec3 down = -up;
-		glm::vec3 right = glm::normalize(glm::cross(forward, up));
+		glm::vec3 right = cam->m_left_handed ? -glm::normalize(glm::cross(forward, up)) : 
+			glm::normalize(glm::cross(forward, up));
 		glm::vec3 left = -right;
 
 		const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);

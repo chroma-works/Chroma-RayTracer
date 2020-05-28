@@ -377,6 +377,7 @@ namespace Chroma
 		glm::vec2 vec[2];
 
 		auto cam_type = node->ToElement()->FindAttribute("type");
+		auto handedness = node->ToElement()->FindAttribute("handedness");
 
 		while (cam_prop)//iterate over each cameras properties
 		{
@@ -500,13 +501,17 @@ namespace Chroma
 				std::string data = cam_prop->FirstChild()->Value();
 				float fovy;
 				sscanf(data.c_str(), "%f", &fovy);
-				vec[0].y = std::tan(glm::radians(fovy) * 0.5f);
+				vec[0].y = std::tan(glm::radians(fovy));
 				vec[1].y = -vec[0].y;
 				vec[0].x = vec[1].y;
 				vec[1].x = -vec[0].x;
 				cam->SetNearPlane(vec);
 			}
 			cam_prop = cam_prop->NextSibling();
+		}
+		if (handedness && std::string(handedness->Value()).compare("left"))
+		{
+			cam->m_left_handed = true;
 		}
 		if (glm::dot(cam->GetGaze(), cam->GetUp()) != 0)
 		{
