@@ -60,17 +60,27 @@ namespace Chroma
 			glm::vec3 u, v;
 			Utils::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->m_normal, u, v);
 
-			thread_local static std::random_device dev;
-			std::uniform_real_distribution<float> dist(-0.5, 0.5);
-			thread_local static std::mt19937_64 mt(dev());
-
 			glm::vec3 sample_l_pos = dynamic_cast<AreaLight*>(li.get())->m_position +
-				(dist(mt) * dynamic_cast<AreaLight*>(li.get())->m_size * u +
-				dist(mt) * dynamic_cast<AreaLight*>(li.get())->m_size * v);
+				(Utils::RandFloat(-size/2.0f, size/2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * u +
+					Utils::RandFloat(-size / 2.0f, size / 2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * v);
 
 			shadow_ray.direction = glm::normalize(sample_l_pos - isect_data->position);
 			//shadow_ray.intersect_eps = m_settings.intersection_eps;
 			distance = glm::distance(isect_data->position, sample_l_pos);
+			break;
+		case LIGHT_T::environment:
+			glm::vec3 l_vec;
+			while (true)
+			{
+				l_vec = { Utils::RandFloat(-1,1), Utils::RandFloat(-1,1), Utils::RandFloat(-1,1) };
+
+				bool valid_direction = glm::length(l_vec) <= 1.0f &&
+					glm::dot(l_vec, isect_data->normal) > 0.0f;
+				if (valid_direction)
+					break;
+			}
+			shadow_ray.direction = glm::normalize(-l_vec);
+			distance = INFINITY;
 			break;
 		/*default:
 			break;*/
