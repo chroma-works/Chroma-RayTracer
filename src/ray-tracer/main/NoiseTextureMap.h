@@ -43,8 +43,10 @@ namespace CHR
 		{
 			ImGui::Text("--Perlin Noise--");
 			ImGui::Text("-Conversion-");
-			ImGui::RadioButton("Abs. Value", (int*)&m_lin_convertion, 0); ImGui::SameLine();
-			ImGui::RadioButton("Linear", (int*)&m_lin_convertion, 1);
+			int e = m_lin_convertion ? 1 : 0;
+			ImGui::RadioButton("Abs. Value", &e, 0); ImGui::SameLine();
+			ImGui::RadioButton("Linear", &e, 1);
+			m_lin_convertion = e;
 			ImGui::Separator();
 
 			ImGui::DragFloat("Scale", &m_scale, 0.5, 0.0f);

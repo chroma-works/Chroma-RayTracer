@@ -312,6 +312,8 @@ namespace CHR
 				if (ImGui::CollapsingHeader("Normal Map"))
 					tex_map->DrawGUI();
 			}
+
+			flag = false;
 		}
 
 		void Draw(DrawMode mode);
