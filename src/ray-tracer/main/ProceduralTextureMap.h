@@ -32,5 +32,20 @@ namespace CHR
 		glm::vec3 m_white_color = { 255,255,255 };
 		float m_scale = 5;
 		float m_offset = 0;
+
+		inline void DrawGUIHelper()
+		{
+			ImGui::Text("--Procedural--");
+
+			ImGui::ColorEdit3("Dark color", &m_black_color.x, ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit3("Light color", &m_white_color.x, ImGuiColorEditFlags_Float);
+			ImGui::Separator();
+
+			ImGui::PushItemWidth(90);
+			ImGui::InputFloat("Scale", &m_scale, 0.05f, 0.0f); ImGui::SameLine();
+			ImGui::InputFloat("Offset", &m_offset, 0.05f, 0.0f);
+			ImGui::PopItemWidth();
+
+		}
 	};
 }

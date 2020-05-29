@@ -77,32 +77,44 @@ namespace CHR
 		}
 		void DrawGUI()
 		{
-			ImGui::Text("DirectionalLight");
-			ImGui::Separator();
-			ImGui::Text("Transform");
-			if (ImGui::Button("D##1"))m_direction = glm::vec3(1.0f, 0.0f, 0.0f);
-			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(m_direction.x), 0.05f, 0, 0, "%.3f");
-			m_direction = glm::normalize(m_direction);
+			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::L_FRAME);
+			ImGui::CollapsingHeader(std::string("Directional Light: " + m_name).c_str(), ImGuiTreeNodeFlags_Leaf);
+			ImGui::PopStyleColor();
 
 			ImGui::Separator();
-
-			ImGui::Text("Light");
-			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-			ImGui::ColorEdit3("Ambient Color", &m_ambient.x);
-			ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x);
-			ImGui::ColorEdit3("Specular Color", &m_specular.x);
-
-			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = m_inten;
-			if (ImGui::DragFloat3("Radiance", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			static bool flag = true;
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Transform"))
 			{
-				SetIntensity(tmp);
-				/*glm::vec3 tmp = m_scene->m_dir_lights[selected_name]->intensity / 1000.0f;
-				m_scene->m_dir_lights[selected_name]->ambient =
-					m_scene->m_dir_lights[selected_name]->diffuse =
-					m_scene->m_dir_lights[selected_name]->specular = tmp;*/
+				if (ImGui::Button("D##1"))m_direction = glm::vec3(1.0f, 0.0f, 0.0f);
+				ImGui::SameLine();
+				ImGui::DragFloat3("##4", &(m_direction.x), 0.05f, 0, 0, "%.3f");
+				m_direction = glm::normalize(m_direction);
+
+				ImGui::Separator();
 			}
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Light"))
+			{
+				ImGui::ColorEdit3("Ambient Color", &m_ambient.x);
+				ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x);
+				ImGui::ColorEdit3("Specular Color", &m_specular.x);
+
+				ImGui::Text("RT colors");
+				glm::vec3 tmp = m_inten;
+				if (ImGui::DragFloat3("Radiance", &tmp.x, 1.0f, 0.0f, 1000.0f))
+				{
+					SetIntensity(tmp);
+					/*glm::vec3 tmp = m_scene->m_dir_lights[selected_name]->intensity / 1000.0f;
+					m_scene->m_dir_lights[selected_name]->ambient =
+						m_scene->m_dir_lights[selected_name]->diffuse =
+						m_scene->m_dir_lights[selected_name]->specular = tmp;*/
+				}
+			}
+			flag = false;
+			
 		}
 
 		glm::vec3 m_direction;
@@ -158,33 +170,43 @@ namespace CHR
 
 		void DrawGUI()
 		{
-			ImGui::Text("PointLight");
-			ImGui::Separator();
-			ImGui::Text("Transform");
-			if (ImGui::Button("P##1"))m_position = glm::vec3();
-			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(m_position.x), 0.05f, 0, 0, "%.3f");
+			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::L_FRAME);
+			ImGui::CollapsingHeader(std::string("PointLight: " + m_name).c_str(), ImGuiTreeNodeFlags_Leaf);
+			ImGui::PopStyleColor();
 
 			ImGui::Separator();
-
-			ImGui::Text("Light");
-			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-
-			ImGui::ColorEdit3("Ambient Color", &m_ambient.x, ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x, ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit3("Specular Color", &m_specular.x, ImGuiColorEditFlags_Float);
-
-
-			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = m_inten;
-			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			static bool flag = true;
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Transform"))
 			{
-				SetIntensity(tmp);
-				/*glm::vec3 tmp = m_scene->m_point_lights[selected_name]->intensity / 1000.0f;
-				m_scene->m_point_lights[selected_name]->ambient =
-					m_scene->m_point_lights[selected_name]->diffuse =
-					m_scene->m_point_lights[selected_name]->specular = tmp;*/
+				if (ImGui::Button("P##1"))m_position = glm::vec3();
+				ImGui::SameLine();
+				ImGui::DragFloat3("##4", &(m_position.x), 0.05f, 0, 0, "%.3f");
+
+				ImGui::Separator();
 			}
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Light"))
+			{
+				ImGui::ColorEdit3("Ambient Color", &m_ambient.x, ImGuiColorEditFlags_Float);
+				ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x, ImGuiColorEditFlags_Float);
+				ImGui::ColorEdit3("Specular Color", &m_specular.x, ImGuiColorEditFlags_Float);
+
+
+				ImGui::Text("RT colors");
+				glm::vec3 tmp = m_inten;
+				if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+				{
+					SetIntensity(tmp);
+					/*glm::vec3 tmp = m_scene->m_point_lights[selected_name]->intensity / 1000.0f;
+					m_scene->m_point_lights[selected_name]->ambient =
+						m_scene->m_point_lights[selected_name]->diffuse =
+						m_scene->m_point_lights[selected_name]->specular = tmp;*/
+				}
+			}
+			flag = false;
 		}
 	};
 
@@ -259,44 +281,54 @@ namespace CHR
 
 		void DrawGUI()
 		{
-			ImGui::Text("SpotLight");
-			ImGui::Separator();
-			ImGui::Text("Transform");
-			if (ImGui::Button("P##1"))m_position = glm::vec3();
-			ImGui::SameLine();
-			ImGui::DragFloat3("##5", &(m_position.x), 0.05f, 0, 0, "%.3f");
-			if (ImGui::Button("D##2"))m_direction = glm::vec3(1.0f,0.0f,0.0f);
-			ImGui::SameLine();
-			ImGui::DragFloat3("##6", &(m_direction.x), 0.05f, 0, 0, "%.3f");
-			m_direction = glm::normalize(m_direction);
-
+			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::L_FRAME);
+			ImGui::CollapsingHeader(std::string("SpotLight: " + m_name).c_str(), ImGuiTreeNodeFlags_Leaf);
+			ImGui::PopStyleColor();
 			ImGui::Separator();
 
-			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-
-			ImGui::Text("Light");
-			ImGui::ColorEdit3("Ambient Color", &m_ambient.x);
-			ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x);
-			ImGui::ColorEdit3("Specular Color", &m_specular.x);
-
-			ImGui::Separator();
-
-			if (ImGui::Button("Fall-off##3"))m_fall_off = 0.1;
-			ImGui::SameLine();
-			ImGui::DragFloat("##7", &(m_fall_off), 0.05f, 0.00001, 3600, "%.3f");
-			if (ImGui::Button("Cut-off##4"))m_cut_off = 0.5;
-			ImGui::SameLine();
-			ImGui::DragFloat("##8", &(m_cut_off), 0.05f, m_fall_off, 360, "%.3f");
-
-			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = m_inten;
-			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			static bool flag = true;
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Transform"))
 			{
-				SetIntensity(tmp);
-				/*m_scene->m_spot_lights[selected_name]->ambient =
-					m_scene->m_spot_lights[selected_name]->diffuse =
-					m_scene->m_spot_lights[selected_name]->specular = tmp;*/
+				if (ImGui::Button("P##1"))m_position = glm::vec3();
+				ImGui::SameLine();
+				ImGui::DragFloat3("##5", &(m_position.x), 0.05f, 0, 0, "%.3f");
+				if (ImGui::Button("D##2"))m_direction = glm::vec3(1.0f, 0.0f, 0.0f);
+				ImGui::SameLine();
+				ImGui::DragFloat3("##6", &(m_direction.x), 0.05f, 0, 0, "%.3f");
+				m_direction = glm::normalize(m_direction);
+
+				ImGui::Separator();
 			}
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Light"))
+			{
+				ImGui::ColorEdit3("Ambient Color", &m_ambient.x);
+				ImGui::ColorEdit3("Diffuse Color", &m_diffuse.x);
+				ImGui::ColorEdit3("Specular Color", &m_specular.x);
+
+				ImGui::Separator();
+
+				if (ImGui::Button("Fall-off##3"))m_fall_off = 0.1;
+				ImGui::SameLine();
+				ImGui::DragFloat("##7", &(m_fall_off), 0.05f, 0.00001, 3600, "%.3f");
+				if (ImGui::Button("Cut-off##4"))m_cut_off = 0.5;
+				ImGui::SameLine();
+				ImGui::DragFloat("##8", &(m_cut_off), 0.05f, m_fall_off, 360, "%.3f");
+
+				ImGui::Text("RT colors");
+				glm::vec3 tmp = m_inten;
+				if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+				{
+					SetIntensity(tmp);
+					/*m_scene->m_spot_lights[selected_name]->ambient =
+						m_scene->m_spot_lights[selected_name]->diffuse =
+						m_scene->m_spot_lights[selected_name]->specular = tmp;*/
+				}
+			}
+			flag = false;
 		}
 	};
 
@@ -354,35 +386,40 @@ namespace CHR
 
 		void DrawGUI()
 		{
-			ImGui::Text("AreaLight(No preview render)");
-			ImGui::Separator();
-			ImGui::Text("Transform");
-			if (ImGui::Button("P##1"))m_position = glm::vec3();
-			ImGui::SameLine();
-			ImGui::DragFloat3("##4", &(m_position.x), 0.05f, 0, 0, "%.3f");
-			if (ImGui::Button("D##2"))m_normal = glm::vec3(1.0f, 0.0f, 0.0f);
-			ImGui::SameLine();
-			ImGui::DragFloat3("##5", &(m_normal.x), 0.05f, 0, 0, "%.3f");
-			m_normal = glm::normalize(m_normal);
-			if (ImGui::Button("S##3"))m_size = 0.0f;
-			ImGui::SameLine();
-			ImGui::DragFloat("##6", &m_size, 0.05f, 0.0001, 0, "%.3f");
+			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::L_FRAME);
+			ImGui::CollapsingHeader(std::string("AreaLight: " + m_name).c_str(), ImGuiTreeNodeFlags_Leaf);
+			ImGui::PopStyleColor();
 
-			ImGui::Separator();
-
-			ImGui::CollapsingHeader("Phong Lighting(Editor)", ImGuiTreeNodeFlags_Leaf);
-
-			ImGui::Text("Light");
-
-			ImGui::Separator();
-			ImGui::CollapsingHeader("RT colors", ImGuiTreeNodeFlags_Leaf);
-			glm::vec3 tmp = m_inten;
-			if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+			static bool flag = true;
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Transform"))
 			{
-				SetIntensity(tmp);
-				/*m_scene->m_spot_lights[selected_name]->ambient =
-					m_scene->m_spot_lights[selected_name]->diffuse =
-					m_scene->m_spot_lights[selected_name]->specular = tmp;*/
+				if (ImGui::Button("P##1"))m_position = glm::vec3();
+				ImGui::SameLine();
+				ImGui::DragFloat3("##4", &(m_position.x), 0.05f, 0, 0, "%.3f");
+				if (ImGui::Button("D##2"))m_normal = glm::vec3(1.0f, 0.0f, 0.0f);
+				ImGui::SameLine();
+				ImGui::DragFloat3("##5", &(m_normal.x), 0.05f, 0, 0, "%.3f");
+				m_normal = glm::normalize(m_normal);
+				if (ImGui::Button("S##3"))m_size = 0.0f;
+				ImGui::SameLine();
+				ImGui::DragFloat("##6", &m_size, 0.05f, 0.0001, 0, "%.3f");
+			}
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Light"))
+			{
+				ImGui::Separator();
+				ImGui::Text("RT colors");
+				glm::vec3 tmp = m_inten;
+				if (ImGui::DragFloat3("Intensity", &tmp.x, 1.0f, 0.0f, 1000.0f))
+				{
+					SetIntensity(tmp);
+					/*m_scene->m_spot_lights[selected_name]->ambient =
+						m_scene->m_spot_lights[selected_name]->diffuse =
+						m_scene->m_spot_lights[selected_name]->specular = tmp;*/
+				}
 			}
 		}
 	};
@@ -447,7 +484,10 @@ namespace CHR
 		}
 		void DrawGUI()
 		{
-			ImGui::Text("Environment Light");
+			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::L_FRAME);
+			ImGui::CollapsingHeader(std::string("EnvironmentLight: " + m_name).c_str(), ImGuiTreeNodeFlags_Leaf);
+			ImGui::PopStyleColor();
+
 			ImGui::Separator();
 			char* a = new char[m_tex->GetFilePath().size()];
 			strcpy(a, m_tex->GetFilePath().c_str());

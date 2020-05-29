@@ -60,50 +60,67 @@ namespace CHR
 
 		inline void DrawGUI()
 		{
-			ImGui::Text("Camera");
-			ImGui::Separator();
-			ImGui::Text("Transform");
+			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::C_FRAME);
+			ImGui::CollapsingHeader(std::string("Camera: " + m_name).c_str(), ImGuiTreeNodeFlags_Leaf);
+			ImGui::PopStyleColor();
 
-			if (ImGui::Button("P##1"))SetPosition(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_pos = GetPosition();
-			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
-			SetPosition(tmp_pos);
+			static bool flag = true;
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Transform"))
+			{
 
-			if (ImGui::Button("G##2"))SetGaze(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_gaze = GetGaze();
-			ImGui::DragFloat3("##5", &(tmp_gaze.x), 0.05f, 0, 0, "%.3f");
-			SetGaze(glm::normalize(tmp_gaze));
+				if (ImGui::Button("P##1"))SetPosition(glm::vec3());
+				ImGui::SameLine();
+				glm::vec3 tmp_pos = GetPosition();
+				ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
+				SetPosition(tmp_pos);
 
-			if (ImGui::Button("U##3"))SetUp(glm::vec3(0.0, 1.0, 0.0));
-			ImGui::SameLine();
-			glm::vec3 tmp_up = GetUp();
-			ImGui::DragFloat3("##6", &(tmp_up.x), 0.05f, 0, 0, "%.3f");
-			SetUp(glm::normalize(tmp_up));
-			ImGui::Separator();
-			ImGui::Text("Lens");
+				if (ImGui::Button("G##2"))SetGaze(glm::vec3());
+				ImGui::SameLine();
+				glm::vec3 tmp_gaze = GetGaze();
+				ImGui::DragFloat3("##5", &(tmp_gaze.x), 0.05f, 0, 0, "%.3f");
+				SetGaze(glm::normalize(tmp_gaze));
 
-			float tmp_f = GetFocalDistance();
-			ImGui::DragFloat("Focal Dist.", &tmp_f, 0.05f, 0.0f, INFINITY, "%.3f");
-			SetFocalDistance(tmp_f);
+				if (ImGui::Button("U##3"))SetUp(glm::vec3(0.0, 1.0, 0.0));
+				ImGui::SameLine();
+				glm::vec3 tmp_up = GetUp();
+				ImGui::DragFloat3("##6", &(tmp_up.x), 0.05f, 0, 0, "%.3f");
+				SetUp(glm::normalize(tmp_up));
+				ImGui::Separator();
+			}
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Lens"))
+			{
 
-			float tmp_a = GetApertureSize();
-			ImGui::DragFloat("Apert. Size", &tmp_a, 0.05f, 0.0f, INFINITY, "%.3f");
-			SetApertureSize(tmp_a);
+				float tmp_f = GetFocalDistance();
+				ImGui::DragFloat("Focal Dist.", &tmp_f, 0.05f, 0.0f, INFINITY, "%.3f");
+				SetFocalDistance(tmp_f);
 
-			ImGui::Separator();
-			ImGui::Text("Tone Mapping Operator");
-			ImGui::DragFloat("Key Value", &m_key_val, 0.005f, 0.0, 0.40f);
-			ImGui::DragFloat("Burn percentage", &m_burn_perc, 0.05f, 0.0, 100.0f);
-			ImGui::DragFloat("Saturation", &m_saturation, 0.05f, 0.0f, 1.0f);
-			ImGui::DragFloat("Gamma", &m_gamma, 0.05f, 1.0f, 3.0f);
+				float tmp_a = GetApertureSize();
+				ImGui::DragFloat("Apert. Size", &tmp_a, 0.05f, 0.0f, INFINITY, "%.3f");
+				SetApertureSize(tmp_a);
+				ImGui::Separator();
+			}
+
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Tone Mapping Operator"))
+			{
+				ImGui::DragFloat("Key Value", &m_key_val, 0.005f, 0.0, 0.40f);
+				ImGui::DragFloat("Burn percentage", &m_burn_perc, 0.05f, 0.0, 100.0f);
+				ImGui::DragFloat("Saturation", &m_saturation, 0.05f, 0.0f, 1.0f);
+				ImGui::DragFloat("Gamma", &m_gamma, 0.05f, 1.0f, 3.0f);
+				ImGui::Separator();
+			}
 
 
-			ImGui::Separator();
 			char* tmp_buf = strdup(GetImageName().c_str());
 			ImGui::InputText("Image Name", tmp_buf, 20, 0);
 			SetImageName(tmp_buf);
+
+			flag = false;
 		}
 
 

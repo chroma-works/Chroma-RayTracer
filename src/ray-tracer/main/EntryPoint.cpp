@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<CHR::Scene> scene;
 	CHR::Settings s;
-	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/dragon_spot_light_msaa.xml", &s)));
+	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/veach_ajar/scene.xml", &s)));
 	//init editor
 	CHR::Editor editor(&window, scene.get(), s);
 

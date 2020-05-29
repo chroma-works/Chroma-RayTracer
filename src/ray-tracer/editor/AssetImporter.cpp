@@ -689,6 +689,8 @@ namespace CHR
 					Camera* cam = ParseCamera( child_node);
 
 					scene->AddCamera(cam_name, cam);
+					scene->GetCamera(cam_name)->SetName(cam_name);
+
 					child_node = child_node->NextSibling();
 				}
 			}
@@ -730,6 +732,7 @@ namespace CHR
 							lig_prop = lig_prop->NextSibling();
 						}
 						scene->AddLight(lig_name, std::make_shared<PointLight>(p_l));
+						scene->m_lights[lig_name]->SetName(lig_name);
 
 					}
 					else if (std::string(child_node->Value()).compare(D_LIG) == 0)
@@ -758,6 +761,7 @@ namespace CHR
 							lig_prop = lig_prop->NextSibling();
 						}
 						scene->AddLight(lig_name, std::make_shared<DirectionalLight>(d_l));
+						scene->m_lights[lig_name]->SetName(lig_name);
 					}
 					else if (std::string(child_node->Value()).compare(S_LIG) == 0)
 					{
@@ -802,6 +806,7 @@ namespace CHR
 							lig_prop = lig_prop->NextSibling();
 						}
 						scene->AddLight(lig_name, std::make_shared<SpotLight>(s_l));
+						scene->m_lights[lig_name]->SetName(lig_name);
 					}
 					else if (std::string(child_node->Value()).compare(A_LIG) == 0)
 					{
@@ -840,6 +845,7 @@ namespace CHR
 							lig_prop = lig_prop->NextSibling();
 						}
 						scene->AddLight(lig_name, std::make_shared<AreaLight>(a_l));
+						scene->m_lights[lig_name]->SetName(lig_name);
 					}
 					else if (std::string(child_node->Value()).compare(E_LIG) == 0)
 					{
@@ -847,7 +853,10 @@ namespace CHR
 						lig_name = "environment_light_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						tinyxml2::XMLNode* lig_prop = child_node->FirstChild();
 						auto e_l = std::make_shared<EnvironmentLight>(textures[atoi(lig_prop->FirstChild()->Value()) - 1]);
+						e_l->SetName(lig_name);
+
 						scene->AddLight(lig_name, e_l);
+						scene->m_lights[lig_name]->SetName(lig_name);
 						scene->m_sky_texture = std::make_shared<ImageTextureMap>(
 							textures[atoi(lig_prop->FirstChild()->Value()) - 1], DECAL_M::bl_kd);
 						scene->m_map_texture_to_sphere = true;

@@ -38,5 +38,16 @@ namespace CHR
 		unsigned int P[16];
 
 		glm::vec3 GetGradient(glm::ivec3 ind) const;
+
+		inline void DrawGUIHelper()
+		{
+			ImGui::Text("--Perlin Noise--");
+			ImGui::Text("-Conversion-");
+			ImGui::RadioButton("Abs. Value", (int*)&m_lin_convertion, 0); ImGui::SameLine();
+			ImGui::RadioButton("Linear", (int*)&m_lin_convertion, 1);
+			ImGui::Separator();
+
+			ImGui::DragFloat("Scale", &m_scale, 0.5, 0.0f);
+		}
 	};
 }

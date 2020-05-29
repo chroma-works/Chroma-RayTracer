@@ -175,8 +175,8 @@ namespace CHR
 
 		inline SHAPE_T GetShapeType() { return m_shape_t; }
 
-		inline std::string GetName() const { return m_name; }
-		inline void SetName(std::string n) { m_name = n; }
+		//inline std::string GetName() const { return m_name; }
+		//inline void SetName(std::string n) { m_name = n; }
 		inline void SetMotionBlur(glm::vec3 mb) 
 		{ 
 			m_motion_blur = mb; 
@@ -186,104 +186,131 @@ namespace CHR
 
 		void DrawGUI()
 		{
-			ImGui::TextColored(CHR_COLOR::DARK_PURPLE, std::string("Scene Object " + m_name).c_str(), 0);
+			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::O_FRAME);
+			ImGui::CollapsingHeader(std::string("Scene Object: " + m_name).c_str(), ImGuiTreeNodeFlags_Leaf);
+			ImGui::PopStyleColor();
 
 			ImGui::Checkbox("RT visibility", &m_visible);
 			ImGui::Checkbox("Editor visibility", &m_visible_in_editor);
 			ImGui::Separator();
-
-			ImGui::Text("Transform");
-
-			if (ImGui::Button("P##1"))SetPosition(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_pos = GetPosition();
-			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
-			SetPosition(tmp_pos);
-
-			if (ImGui::Button("R##2"))SetRotation(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_rot = GetRotation();
-			ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.3f");
-			SetRotation(tmp_rot);
-
-			if (ImGui::Button("S##3")) SetScale(glm::vec3(1, 1, 1));
-			ImGui::SameLine();
-			glm::vec3 tmp_sca = GetScale();
-			ImGui::DragFloat3("##6", &(tmp_sca.x), 0.05f, 0, 0, "%.3f");
-			SetScale(tmp_sca);
-			ImGui::Separator();
-
-			glm::vec3 tmp_mb = GetMotionBlur();
-			ImGui::DragFloat3("Motion Blur", &(tmp_mb.x), 0.05f, 0, 0, "%.3f");
-			SetMotionBlur(tmp_mb);
-			ImGui::Separator();
-
-			Material* mat = GetMaterial().get();
-			ImGui::Text("Material");
-			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("Roughness", &(mat->m_roughness), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::Separator();
-			static std::string mat_names[] = { "Diffuse", "Mirror", "Dielectric", "Conductor" };
-			static int selected_mat_type;
-			if (ImGui::BeginCombo("Type", mat_names[static_cast<int>(mat->type)].c_str(), ImGuiComboFlags_None))
+			
+			static bool flag = true;
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Transform"))
 			{
-				for (int i = 0; i < 4; i++)
+
+				if (ImGui::Button("P##1"))SetPosition(glm::vec3());
+				ImGui::SameLine();
+				glm::vec3 tmp_pos = GetPosition();
+				ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
+				SetPosition(tmp_pos);
+
+				if (ImGui::Button("R##2"))SetRotation(glm::vec3());
+				ImGui::SameLine();
+				glm::vec3 tmp_rot = GetRotation();
+				ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.3f");
+				SetRotation(tmp_rot);
+
+				if (ImGui::Button("S##3")) SetScale(glm::vec3(1, 1, 1));
+				ImGui::SameLine();
+				glm::vec3 tmp_sca = GetScale();
+				ImGui::DragFloat3("##6", &(tmp_sca.x), 0.05f, 0, 0, "%.3f");
+				SetScale(tmp_sca);
+
+				ImGui::Separator();
+
+				glm::vec3 tmp_mb = GetMotionBlur();
+				ImGui::DragFloat3("Motion Blur", &(tmp_mb.x), 0.05f, 0, 0, "%.3f");
+				SetMotionBlur(tmp_mb);
+				ImGui::Separator();
+			}
+
+
+			if (flag)
+				ImGui::SetNextTreeNodeOpen(true);
+			if (ImGui::CollapsingHeader("Material"))
+			{
+				Material* mat = GetMaterial().get();
+				ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat("Roughness", &(mat->m_roughness), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::Separator();
+				static std::string mat_names[] = { "Diffuse", "Mirror", "Dielectric", "Conductor" };
+				static int selected_mat_type;
+				if (ImGui::BeginCombo("Type", mat_names[static_cast<int>(mat->type)].c_str(), ImGuiComboFlags_None))
 				{
-					if (ImGui::Selectable(mat_names[i].c_str(), mat->type == static_cast<MAT_TYPE>(selected_mat_type)))
+					for (int i = 0; i < 4; i++)
 					{
-						selected_mat_type = i;
-
-						std::shared_ptr<Material> mat2;
-
-						switch (static_cast<MAT_TYPE>(selected_mat_type))
+						if (ImGui::Selectable(mat_names[i].c_str(), mat->type == static_cast<MAT_TYPE>(selected_mat_type)))
 						{
-						case MAT_TYPE::conductor:
-							mat2 = std::make_shared<Conductor>(*mat);
-							static_cast<Conductor*>(mat2.get())->m_absorption_ind = 1.0f;
-							static_cast<Conductor*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
-							static_cast<Conductor*>(mat2.get())->m_refraction_ind = 1.2f;
-							break;
-						case MAT_TYPE::dielectric:
-							mat2 = std::make_shared<Dielectric>(*mat);
-							static_cast<Dielectric*>(mat2.get())->m_refraction_ind = 1.2f;
-							static_cast<Dielectric*>(mat2.get())->m_absorption_coeff = glm::vec3(0, 0, 0);
-							break;
-						case MAT_TYPE::mirror:
-							mat2 = std::make_shared <Mirror>(*mat);
-							static_cast<Mirror*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
-							break;
-						default:
-							mat2 = std::make_shared<Material>(*mat);
-							break;
+							selected_mat_type = i;
+
+							std::shared_ptr<Material> mat2;
+
+							switch (static_cast<MAT_TYPE>(selected_mat_type))
+							{
+							case MAT_TYPE::conductor:
+								mat2 = std::make_shared<Conductor>(*mat);
+								static_cast<Conductor*>(mat2.get())->m_absorption_ind = 1.0f;
+								static_cast<Conductor*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
+								static_cast<Conductor*>(mat2.get())->m_refraction_ind = 1.2f;
+								break;
+							case MAT_TYPE::dielectric:
+								mat2 = std::make_shared<Dielectric>(*mat);
+								static_cast<Dielectric*>(mat2.get())->m_refraction_ind = 1.2f;
+								static_cast<Dielectric*>(mat2.get())->m_absorption_coeff = glm::vec3(0, 0, 0);
+								break;
+							case MAT_TYPE::mirror:
+								mat2 = std::make_shared <Mirror>(*mat);
+								static_cast<Mirror*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
+								break;
+							default:
+								mat2 = std::make_shared<Material>(*mat);
+								break;
+							}
+							SetMaterial(mat2);
+							//delete mat;
+
 						}
-						SetMaterial(mat2);
-						//delete mat;
-
+						if (mat->type == static_cast<MAT_TYPE>(selected_mat_type))
+							ImGui::SetItemDefaultFocus();
 					}
-					if (mat->type == static_cast<MAT_TYPE>(selected_mat_type))
-						ImGui::SetItemDefaultFocus();
+					ImGui::EndCombo();
 				}
-				ImGui::EndCombo();
-			}
 
 
-			if (mat->type == MAT_TYPE::conductor)
-			{
-				ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
-				ImGui::DragFloat("Absorp Ind.", &(((Conductor*)mat)->m_absorption_ind), 0.002f, 0.0f, 0.0f, "%.3f");
-				ImGui::DragFloat("Refraction Ind.", &(((Conductor*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+				if (mat->type == MAT_TYPE::conductor)
+				{
+					ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("Absorp Ind.", &(((Conductor*)mat)->m_absorption_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+					ImGui::DragFloat("Refraction Ind.", &(((Conductor*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+				}
+				else if (mat->type == MAT_TYPE::dielectric)
+				{
+					ImGui::DragFloat3("Absorp Coef.", &(((Dielectric*)mat)->m_absorption_coeff.x), 0.002f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("Refraction Ind.", &(((Dielectric*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+				}
+				else if (mat->type == MAT_TYPE::mirror)
+				{
+					ImGui::DragFloat3("Mirror Ref.", &(((Mirror*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				}
 			}
-			else if (mat->type == MAT_TYPE::dielectric)
+
+			ImGui::Separator();
+			auto shape = m_mesh->m_shapes[0];
+			TextureMap* tex_map;
+			if (tex_map = shape->m_tex_maps[0].get())
 			{
-				ImGui::DragFloat3("Absorp Coef.", &(((Dielectric*)mat)->m_absorption_coeff.x), 0.002f, 0.0f, 1.0f, "%.3f");
-				ImGui::DragFloat("Refraction Ind.", &(((Dielectric*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+				if (ImGui::CollapsingHeader("Texture Map"))
+					tex_map->DrawGUI();
 			}
-			else if (mat->type == MAT_TYPE::mirror)
+			if (tex_map = shape->m_tex_maps[1].get())
 			{
-				ImGui::DragFloat3("Mirror Ref.", &(((Mirror*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				if (ImGui::CollapsingHeader("Normal Map"))
+					tex_map->DrawGUI();
 			}
 		}
 
@@ -299,8 +326,6 @@ namespace CHR
 		bool m_visible_in_editor = true;
 		bool m_visible = true;
 		bool m_pickable = true;
-
-		std::string m_name;
 
 		glm::vec3 m_position;
 		glm::vec3 m_rotation;

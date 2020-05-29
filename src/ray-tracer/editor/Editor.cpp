@@ -151,11 +151,6 @@ namespace CHR
 		ImGui::SetWindowSize(ImVec2(320, 480));//ImGui::SetWindowSize(ImVec2(240, (m_window->GetHeight() - 20) / 2));
 		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 320, 0));
 
-		if (selected_item_type != SELECTION_TYPE::none)
-		{
-			ImGui::Text("%s", selected_name.c_str());
-			ImGui::Separator();
-		}
 		if (selected_item_type == SELECTION_TYPE::obj)
 		{
 			m_scene->m_scene_objects[selected_name]->DrawGUI();
@@ -407,8 +402,12 @@ namespace CHR
 
 		ImGui::Begin("Scene", 0, flags);
 
-		ImGui::SetWindowSize(ImVec2(320, m_window->GetHeight() - 480));
-		ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 320, 480));
+		static bool flag = true;
+		if (flag)
+		{
+			ImGui::SetWindowSize(ImVec2(320, m_window->GetHeight() - 565));
+			ImGui::SetWindowPos(ImVec2(m_window->GetWidth() - 320, 480));
+		}
 
 
 		ImGui::Text("RT Ambient");
@@ -416,7 +415,6 @@ namespace CHR
 		ImGui::DragFloat3("", &m_scene->m_ambient_l.x, 1.0f, 0.0f, 1000.0f);
 
 		int i = 0;
-		static bool flag = true;
 		if(flag)
 			ImGui::SetNextTreeNodeOpen(true);
 		if (ImGui::CollapsingHeader("Objects"))
@@ -454,44 +452,6 @@ namespace CHR
 				ImGui::PopID();
 			}
 		}
-		/*if (flag)
-			ImGui::SetNextTreeNodeOpen(true);
-		if (ImGui::CollapsingHeader("Directional Lights"))
-		{
-			i = 0;
-			for (auto element : m_scene->m_dir_lights)
-			{
-				std::string name = element.first;
-				ImGui::PushID(i);
-
-				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
-				{
-					selected_item_type = SELECTION_TYPE::d_light;
-					selected_name = name;
-				}
-				i++;
-				ImGui::PopID();
-			}
-		}
-		if (flag)
-			ImGui::SetNextTreeNodeOpen(true);
-		if (ImGui::CollapsingHeader("Spot Lights"))
-		{
-			i = 0;
-			for (auto element : m_scene->m_spot_lights)
-			{
-				std::string name = element.first;
-				ImGui::PushID(i);
-
-				if (ImGui::Selectable(name.c_str(), selected_name == name.c_str()))
-				{
-					selected_item_type = SELECTION_TYPE::s_light;
-					selected_name = name;
-				}
-				i++;
-				ImGui::PopID();
-			}
-		}*/
 		if (flag)
 		{
 			ImGui::SetNextTreeNodeOpen(true);

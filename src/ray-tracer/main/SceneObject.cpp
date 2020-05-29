@@ -118,8 +118,9 @@ namespace CHR
 
 	SceneObject::SceneObject(std::shared_ptr<Mesh> mesh, std::string name, glm::vec3 pos, glm::vec3 rot, 
 		glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds)
-		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
+		: m_mesh(mesh), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
 	{
+		m_name = name;
 		m_texture = CHR::Texture("../../assets/textures/white.png");//Set texture to white to avoid black shaded objects
 		m_material = std::shared_ptr<Material>();
 
