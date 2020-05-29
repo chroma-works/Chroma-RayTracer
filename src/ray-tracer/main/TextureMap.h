@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thirdparty/glm/glm/glm.hpp>
 
-namespace Chroma
+namespace CHR
 {
 	enum class DECAL_M { re_kd, bl_kd, re_all, re_no, bump, re_bg };
 	enum class SOURCE_T { image, noise, procedural};

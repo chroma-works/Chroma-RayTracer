@@ -9,7 +9,7 @@
 #include <ray-tracer/main/Material.h>
 #include <ray-tracer/main/Ray.h>
 
-namespace Chroma
+namespace CHR
 {
 	enum class SHAPE_T { none, triangle, sphere };
 	enum class SHADING_MODE { flat, smooth };

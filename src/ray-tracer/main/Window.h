@@ -5,7 +5,7 @@
 #include <iostream>
 #include <ray-tracer/editor/Logger.h>
 
-namespace Chroma {
+namespace CHR {
 	class Editor;
 	class Window
 	{

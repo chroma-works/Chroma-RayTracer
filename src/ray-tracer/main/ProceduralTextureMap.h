@@ -4,7 +4,7 @@
 #include "Texture.h"
 
 
-namespace Chroma
+namespace CHR
 {
 	class ProcedurelTextureMap : public TextureMap
 	{

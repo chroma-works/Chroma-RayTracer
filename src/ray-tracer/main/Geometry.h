@@ -7,7 +7,7 @@
 
 #define MACHINE_EPSILON (std::numeric_limits<float>::epsilon() * 0.5)
 
-namespace Chroma
+namespace CHR
 {
 	struct Bounds3
 	{

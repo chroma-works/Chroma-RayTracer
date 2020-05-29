@@ -5,7 +5,7 @@
 #include <ray-tracer/editor/Logger.h>
 #include <thirdparty/glm/glm/glm.hpp>
 
-namespace Chroma
+namespace CHR
 {
 	enum class MAT_TYPE { none, mirror, dielectric, conductor};
 	class Material

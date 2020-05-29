@@ -5,7 +5,7 @@
 
 #include <thirdparty/tinyxml2/tinyxml2.h>
 
-namespace Chroma
+namespace CHR
 {
 
     class AssetImporter

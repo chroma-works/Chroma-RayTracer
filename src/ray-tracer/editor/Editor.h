@@ -10,7 +10,7 @@
 
 
 
-namespace Chroma
+namespace CHR
 {
 
 	class Editor

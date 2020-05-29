@@ -10,7 +10,7 @@
 #define PBRT_IS_MSVC2015
 #endif
 
-namespace Chroma
+namespace CHR
 {
 	// Memory Declarations
 #define ARENA_ALLOC(arena, Type) new ((arena).Alloc(sizeof(Type))) Type

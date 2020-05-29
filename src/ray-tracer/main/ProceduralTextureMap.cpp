@@ -1,6 +1,6 @@
 #include "ProceduralTextureMap.h"
 
-namespace Chroma
+namespace CHR
 {
 	ProcedurelTextureMap::ProcedurelTextureMap(DECAL_M d_mode, glm::vec3 b, glm::vec3 w, float s, float o)
 		: m_black_color(b), m_white_color(w), m_scale(s), m_offset(o)

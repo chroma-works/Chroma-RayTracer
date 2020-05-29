@@ -8,7 +8,7 @@
 
 #define MK_SHRD(X) std::make_shared<glm::vec3>(X)
 
-namespace Chroma
+namespace CHR
 {
 	Mesh::Mesh()
 	{
@@ -120,7 +120,7 @@ namespace Chroma
 		glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds)
 		: m_mesh(mesh), m_name(name), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
 	{
-		m_texture = Chroma::Texture("../../assets/textures/white.png");//Set texture to white to avoid black shaded objects
+		m_texture = CHR::Texture("../../assets/textures/white.png");//Set texture to white to avoid black shaded objects
 		m_material = std::shared_ptr<Material>();
 
 		if(m_shape_t != SHAPE_T::sphere)
@@ -278,40 +278,40 @@ namespace Chroma
 		for (int i = 0; i<m_mesh->m_vertex_texcoords.size(); i++)
 			uvs[i] = *m_mesh->m_vertex_texcoords[i];
 
-		std::shared_ptr<Chroma::OpenGLVertexBuffer> position_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)positions.data(),
+		std::shared_ptr<CHR::OpenGLVertexBuffer> position_buffer = std::make_shared<CHR::OpenGLVertexBuffer>((void*)positions.data(),
 			m_mesh->m_vertex_positions.size() * sizeof(GLfloat) * 3);
 
-		Chroma::VertexAttribute layout_attribute("in_Position", Chroma::Shader::POS_LAY, Chroma::ShaderDataType::Float3, GL_FALSE);
-		Chroma::VertexBufferLayout vertex_buffer_layout;
+		CHR::VertexAttribute layout_attribute("in_Position", CHR::Shader::POS_LAY, CHR::ShaderDataType::Float3, GL_FALSE);
+		CHR::VertexBufferLayout vertex_buffer_layout;
 		vertex_buffer_layout.PushAttribute(layout_attribute);
 		position_buffer->SetBufferLayout(vertex_buffer_layout);
 
 		m_vertex_buffers.push_back(position_buffer);
 
 		//Vertex normals buffer
-		std::shared_ptr<Chroma::OpenGLVertexBuffer> normal_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)normals.data(),
+		std::shared_ptr<CHR::OpenGLVertexBuffer> normal_buffer = std::make_shared<CHR::OpenGLVertexBuffer>((void*)normals.data(),
 			m_mesh->m_vertex_normals.size() * sizeof(GLfloat) * 3);
 
-		Chroma::VertexAttribute layout_attribute2("in_Normal", Chroma::Shader::NORM_LAY, Chroma::ShaderDataType::Float3, GL_FALSE);
-		Chroma::VertexBufferLayout vertex_buffer_layout2;
+		CHR::VertexAttribute layout_attribute2("in_Normal", CHR::Shader::NORM_LAY, CHR::ShaderDataType::Float3, GL_FALSE);
+		CHR::VertexBufferLayout vertex_buffer_layout2;
 		vertex_buffer_layout2.PushAttribute(layout_attribute2);
 		normal_buffer->SetBufferLayout(vertex_buffer_layout2);
 
 		m_vertex_buffers.push_back(normal_buffer);
 
 		//Vertex texture coords buffer
-		std::shared_ptr<Chroma::OpenGLVertexBuffer> tex_coord_buffer = std::make_shared<Chroma::OpenGLVertexBuffer>((void*)uvs.data(),
+		std::shared_ptr<CHR::OpenGLVertexBuffer> tex_coord_buffer = std::make_shared<CHR::OpenGLVertexBuffer>((void*)uvs.data(),
 			m_mesh->m_vertex_texcoords.size() * sizeof(GLfloat) * 2);
 
-		Chroma::VertexAttribute layout_attribute3("in_TexCoord", Chroma::Shader::TEXC_LAY, Chroma::ShaderDataType::Float2, GL_FALSE);
-		Chroma::VertexBufferLayout vertex_buffer_layout3;
+		CHR::VertexAttribute layout_attribute3("in_TexCoord", CHR::Shader::TEXC_LAY, CHR::ShaderDataType::Float2, GL_FALSE);
+		CHR::VertexBufferLayout vertex_buffer_layout3;
 		vertex_buffer_layout3.PushAttribute(layout_attribute3);
 		tex_coord_buffer->SetBufferLayout(vertex_buffer_layout3);
 
 		m_vertex_buffers.push_back(tex_coord_buffer);
 
 		//index buffer
-		std::shared_ptr<Chroma::OpenGLIndexBuffer> index_buffer = std::make_shared<Chroma::OpenGLIndexBuffer>(m_mesh->m_indices.data(), m_mesh->m_indices.size());
+		std::shared_ptr<CHR::OpenGLIndexBuffer> index_buffer = std::make_shared<CHR::OpenGLIndexBuffer>(m_mesh->m_indices.data(), m_mesh->m_indices.size());
 		m_index_buffer = index_buffer;
 
 		//vertex array object

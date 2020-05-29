@@ -1,7 +1,7 @@
 #include <thirdparty/glad/include/glad/glad.h>
 #include "OpenGLVertexArrayObject.h"
 
-namespace Chroma
+namespace CHR
 {
     OpenGLVertexArrayObject::OpenGLVertexArrayObject()
     {
@@ -58,17 +58,17 @@ namespace Chroma
     {
         switch (type)
         {
-        case Chroma::ShaderDataType::Float:    return GL_FLOAT;
-        case Chroma::ShaderDataType::Float2:   return GL_FLOAT;
-        case Chroma::ShaderDataType::Float3:   return GL_FLOAT;
-        case Chroma::ShaderDataType::Float4:   return GL_FLOAT;
-        case Chroma::ShaderDataType::Mat3:     return GL_FLOAT;
-        case Chroma::ShaderDataType::Mat4:     return GL_FLOAT;
-        case Chroma::ShaderDataType::Int:      return GL_INT;
-        case Chroma::ShaderDataType::Int2:     return GL_INT;
-        case Chroma::ShaderDataType::Int3:     return GL_INT;
-        case Chroma::ShaderDataType::Int4:     return GL_INT;
-        case Chroma::ShaderDataType::Bool:     return GL_BOOL;
+        case CHR::ShaderDataType::Float:    return GL_FLOAT;
+        case CHR::ShaderDataType::Float2:   return GL_FLOAT;
+        case CHR::ShaderDataType::Float3:   return GL_FLOAT;
+        case CHR::ShaderDataType::Float4:   return GL_FLOAT;
+        case CHR::ShaderDataType::Mat3:     return GL_FLOAT;
+        case CHR::ShaderDataType::Mat4:     return GL_FLOAT;
+        case CHR::ShaderDataType::Int:      return GL_INT;
+        case CHR::ShaderDataType::Int2:     return GL_INT;
+        case CHR::ShaderDataType::Int3:     return GL_INT;
+        case CHR::ShaderDataType::Int4:     return GL_INT;
+        case CHR::ShaderDataType::Bool:     return GL_BOOL;
         }
 
         CH_ASSERT(false, "Unknown ShaderDataType!");

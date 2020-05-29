@@ -1,7 +1,7 @@
 #pragma once
 #include <ray-tracer/main/Ray.h>
 
-namespace Chroma
+namespace CHR
 {
 	class AccelerationStructure
 	{

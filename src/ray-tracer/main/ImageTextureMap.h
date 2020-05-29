@@ -3,7 +3,7 @@
 #include "Texture.h"
 
 
-namespace Chroma
+namespace CHR
 {
 	class ImageTextureMap : public TextureMap
 	{

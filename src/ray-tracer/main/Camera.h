@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace Chroma
+namespace CHR
 {
 	class Camera : public ImGuiDrawable
 	{
@@ -58,7 +58,7 @@ namespace Chroma
 		inline void SetFocalDistance(float focal_dist) { m_focal_dist = focal_dist; }
 		inline void SetApertureSize(float aperture_size) { m_aperture_size = aperture_size; }
 
-		inline void DrawUI()
+		inline void DrawGUI()
 		{
 			ImGui::Text("Camera");
 			ImGui::Separator();

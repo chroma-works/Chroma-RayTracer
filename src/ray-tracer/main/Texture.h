@@ -3,7 +3,7 @@
 #include <string>
 #include "thirdparty/glm/glm/glm.hpp"
 
-namespace Chroma
+namespace CHR
 {
     class Texture
     {

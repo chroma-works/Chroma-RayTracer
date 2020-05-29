@@ -7,7 +7,7 @@
 #include <thirdparty/stb_image/stb_image.h>
 #include <ray-tracer\editor\Logger.h>
 
-namespace Chroma
+namespace CHR
 {
     Texture::Texture()
     {}

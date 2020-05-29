@@ -1,7 +1,7 @@
 #pragma once
 #include <ray-tracer/openGL/OpenGLBuffer.h>
 
-namespace Chroma
+namespace CHR
 {
     class OpenGLVertexArrayObject
     {

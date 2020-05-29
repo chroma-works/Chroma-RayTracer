@@ -15,7 +15,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <thirdparty/stb_image/stb_image_write.h>
 
-namespace Chroma
+namespace CHR
 {
 	float luminosity(glm::vec3 color)
 	{

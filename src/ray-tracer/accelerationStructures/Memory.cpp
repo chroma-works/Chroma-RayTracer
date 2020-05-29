@@ -2,7 +2,7 @@
 
 #define HAVE_ALIGNED_MALLOC
 
-namespace Chroma
+namespace CHR
 {
 	void* AllocAligned(size_t size)
 	{

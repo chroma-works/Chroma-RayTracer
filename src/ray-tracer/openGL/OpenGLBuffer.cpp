@@ -1,7 +1,7 @@
 #include "OpenGLBuffer.h"
 #include <thirdparty/glad/include/glad/glad.h>
 
-namespace Chroma
+namespace CHR
 {
     OpenGLVertexBuffer::OpenGLVertexBuffer()
     {

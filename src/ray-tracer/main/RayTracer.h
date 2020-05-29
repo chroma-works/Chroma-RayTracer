@@ -5,7 +5,7 @@
 #include <ray-tracer/main/Scene.h>
 #include <ray-tracer/editor/Settings.h>
 
-namespace Chroma
+namespace CHR
 {
 	enum RT_MODE{ray_cast=0, recursive_trace, size};
 	class RayTracer

@@ -16,7 +16,7 @@
 
 //src:https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
 
-namespace Chroma
+namespace CHR
 {
 	struct BVHPrimitiveInfo {
 		BVHPrimitiveInfo() {}

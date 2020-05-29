@@ -2,7 +2,7 @@
 #include <string>
 #include <thirdparty/glm/glm/glm.hpp>
 
-namespace Chroma
+namespace CHR
 {
 	enum IM_POST_PROC_T{none=0, clamp = 1, tone_map=2 };//none means already ldr
 	struct Settings

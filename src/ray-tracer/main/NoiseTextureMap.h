@@ -4,7 +4,7 @@
 #include "TextureMap.h"
 
 
-namespace Chroma
+namespace CHR
 {
 	const glm::vec3 G[] = {
 		{1,1,0}, {-1,1,0}, {1,-1,0}, {-1,-1,0},

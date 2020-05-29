@@ -8,7 +8,7 @@
 #include <thirdparty\glm\glm\gtx\component_wise.hpp>
 #include <iostream>
 
-namespace Chroma
+namespace CHR
 {
 	std::atomic<float> progress_pers;
 	bool done = false;
@@ -58,11 +58,11 @@ namespace Chroma
 			break;
 		case LIGHT_T::area:
 			glm::vec3 u, v;
-			Utils::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->m_normal, u, v);
+			CHR_UTILS::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->m_normal, u, v);
 
 			glm::vec3 sample_l_pos = dynamic_cast<AreaLight*>(li.get())->m_position +
-				(Utils::RandFloat(-size/2.0f, size/2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * u +
-					Utils::RandFloat(-size / 2.0f, size / 2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * v);
+				(CHR_UTILS::RandFloat(-size/2.0f, size/2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * u +
+					CHR_UTILS::RandFloat(-size / 2.0f, size / 2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * v);
 
 			shadow_ray.direction = glm::normalize(sample_l_pos - isect_data->position);
 			//shadow_ray.intersect_eps = m_settings.intersection_eps;
@@ -72,7 +72,7 @@ namespace Chroma
 			glm::vec3 l_vec;
 			while (true)
 			{
-				l_vec = { Utils::RandFloat(-1,1), Utils::RandFloat(-1,1), Utils::RandFloat(-1,1) };
+				l_vec = { CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1) };
 
 				bool valid_direction = glm::length(l_vec) <= 1.0f &&
 					glm::dot(l_vec, isect_data->normal) > 0.0f;
@@ -295,8 +295,8 @@ namespace Chroma
 					glm::vec3 color = scene.m_sky_color;
 					for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 					{
-						auto offset = Utils::SampleUnitSquare();
-						auto lens_offset = Utils::SampleUnitDisk();
+						auto offset = CHR_UTILS::SampleUnitSquare();
+						auto lens_offset = CHR_UTILS::SampleUnitDisk();
 						//DoF Lens calculation
 						glm::vec3 lens_point = cam_pos +
 							cam->GetApertureSize() * (lens_offset.x * right + lens_offset.y * up);
@@ -309,7 +309,7 @@ namespace Chroma
 
 						primary_ray.origin = lens_point;
 						primary_ray.direction = glm::normalize(focal_point - primary_ray.origin);
-						primary_ray.jitter_t = Utils::RandFloat();
+						primary_ray.jitter_t = CHR_UTILS::RandFloat();
 
 						if(cam->GetNumberOfSamples() ==1)
 							primary_ray.direction = glm::normalize(top_left_w + right_step * (i + 0.5f) + down_step * (j + 0.5f) - primary_ray.origin);
@@ -344,8 +344,8 @@ namespace Chroma
 				if (scene.m_map_texture_to_sphere)
 				{
 					auto dir = glm::normalize(ray.direction);
-					float u = 0.5f - atan2(dir.z, dir.x) * (0.5f / Utils::PI);
-					float v = acosf(dir.y)  / Utils::PI;
+					float u = 0.5f - atan2(dir.z, dir.x) * (0.5f / CHR_UTILS::PI);
+					float v = acosf(dir.y)  / CHR_UTILS::PI;
 					auto t_coord = glm::vec3(u, v, NAN);
 					return scene.m_sky_texture->SampleAt(t_coord)*255.0f;
 				}
@@ -365,11 +365,11 @@ namespace Chroma
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			glm::vec3 u, v;
-			Utils::CreateOrthonormBasis(r, u, v);
+			CHR_UTILS::CreateOrthonormBasis(r, u, v);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
-				(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
+				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
-			reflection_ray.jitter_t = Utils::RandFloat();
+			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
 			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
@@ -382,12 +382,12 @@ namespace Chroma
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			glm::vec3 u, v;
-			Utils::CreateOrthonormBasis(r, u, v);
+			CHR_UTILS::CreateOrthonormBasis(r, u, v);
 
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-				(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
+				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
-			reflection_ray.jitter_t = Utils::RandFloat();
+			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
 
@@ -418,12 +418,12 @@ namespace Chroma
 				//For glossy objects
 				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 				glm::vec3 u, v;
-				Utils::CreateOrthonormBasis(r, u, v);
+				CHR_UTILS::CreateOrthonormBasis(r, u, v);
 
 				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-					(Utils::RandFloat(-0.5, 0.5) * u + Utils::RandFloat(-0.5, 0.5) * v));
+					(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
 				reflection_ray.intersect_eps = m_settings.intersection_eps;
-				reflection_ray.jitter_t = Utils::RandFloat();
+				reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
 				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
 			}
@@ -435,7 +435,7 @@ namespace Chroma
 				Ray refraction_ray(isect_data.position - proper_normal * m_settings.shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
 				refraction_ray.intersect_eps = m_settings.intersection_eps;
-				refraction_ray.jitter_t = Utils::RandFloat();
+				refraction_ray.jitter_t = CHR_UTILS::RandFloat();
 
 				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
 			}
@@ -496,13 +496,13 @@ namespace Chroma
 	{
 		switch (mode)
 		{
-		case Chroma::ray_cast:
+		case CHR::ray_cast:
 			m_rt_worker = &RayTracer::RayCastWorker;
 			break;
-		case Chroma::recursive_trace:
+		case CHR::recursive_trace:
 			m_rt_worker = &RayTracer::RecursiveTraceWorker;
 			break;
-		case Chroma::size:
+		case CHR::size:
 			break;
 		default:
 			break;

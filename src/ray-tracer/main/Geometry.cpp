@@ -1,6 +1,6 @@
 #include "Geometry.h"
 
-namespace Chroma
+namespace CHR
 {
 
 	glm::vec3 Bounds3::Diagonal() const

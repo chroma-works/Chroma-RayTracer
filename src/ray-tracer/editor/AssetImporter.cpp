@@ -16,7 +16,7 @@
 #include <ray-tracer/main/ProceduralTextureMap.h>
 
 
-namespace Chroma
+namespace CHR
 {
 	const std::string ABS_COEF = "AbsorptionCoefficient";
 	const std::string ABS_IND = "AbsorptionIndex";
@@ -152,7 +152,7 @@ namespace Chroma
 					tinyxml2::XMLNode* child_node = node->FirstChild();
 					int tex_ind = -1;
 					bool interp = false;
-					Chroma::DECAL_M d_mode;
+					CHR::DECAL_M d_mode;
 					int normalizer = -1;
 					float bump_f = 1.0f;
 
@@ -209,7 +209,7 @@ namespace Chroma
 				{
 					tinyxml2::XMLNode* child_node = node->FirstChild();
 					bool linear_conv = false;
-					Chroma::DECAL_M d_mode;
+					CHR::DECAL_M d_mode;
 					int noise_scale = -1;
 					float bump_f = 1.0f;
 
@@ -259,7 +259,7 @@ namespace Chroma
 				{
 					tinyxml2::XMLNode* child_node = node->FirstChild();
 					float offset, scale;
-					Chroma::DECAL_M d_mode;
+					CHR::DECAL_M d_mode;
 					glm::vec3 b, w;
 
 					while (child_node)

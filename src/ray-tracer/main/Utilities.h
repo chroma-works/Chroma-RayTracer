@@ -7,7 +7,7 @@
 #include <thirdparty\glm\glm\gtx\component_wise.hpp>
 
 
-namespace Utils
+namespace CHR_UTILS
 {
 	thread_local static std::random_device s_rd;
 	thread_local static std::mt19937_64 s_gen(s_rd());
@@ -53,7 +53,7 @@ namespace Utils
 	{
 		//create orthonormal basis
 		glm::vec3 r = glm::normalize(_r);
-		glm::vec3 r_prime = Utils::CalculateNonColinearTo(r);
+		glm::vec3 r_prime = CHR_UTILS::CalculateNonColinearTo(r);
 
 		u = glm::normalize(glm::cross(r, r_prime));
 		v = glm::normalize(glm::cross(r, u));

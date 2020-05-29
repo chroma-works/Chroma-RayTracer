@@ -4,7 +4,7 @@
 #include "TextureMap.h"
 #include "Light.h"
 
-namespace Chroma
+namespace CHR
 {
 
 	struct Ray

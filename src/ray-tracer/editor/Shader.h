@@ -10,7 +10,7 @@
 #include <sstream>
 #include <vector>
 
-namespace Chroma
+namespace CHR
 {
 #define MAX_NUM_LIGHTS 15
 	class Shader

@@ -10,15 +10,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	wheel_y_offset += yoffset * 0.05;
 }
 
-namespace Chroma
+namespace CHR
 {
-	const ImVec4 DARK_ORANGE = ImVec4(0.65f, 0.33f, 0.13f, 1.0f);
-	const ImVec4 LIGHT_BLUE = ImVec4(0.5f, 0.7f, 0.7f, 1.00f) * 1.2;
-	const ImVec4 DARK_CYAN = ImVec4(0.1f, 0.2f, 0.2f, 1.00f);
-	const ImVec4 DARKER_PURPLE = ImVec4(0.16f, 0.13f, 0.18f, 1.00f);
-	const ImVec4 DARK_PURPLE = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
-
-	Chroma::Editor* s_instance = 0;
+	CHR::Editor* s_instance = 0;
 	Editor::Editor(Window* win, Scene* scene, Settings s)
 		: m_settings(s)
 	{
@@ -40,7 +34,7 @@ namespace Chroma
 			glfwSetScrollCallback(m_window->m_window_handle, scroll_callback);
 			InitSkin();
 
-			ray_tracer = new Chroma::RayTracer();
+			ray_tracer = new CHR::RayTracer();
 
 			if (!ray_tracer)
 				CH_ERROR("Failed to create Chrom Ray Tracer");
@@ -103,31 +97,31 @@ namespace Chroma
 		style.FrameBorderSize = 0.02;
 
 
-		style.Colors[ImGuiCol_Text] = LIGHT_BLUE;
-		style.Colors[ImGuiCol_TextDisabled] = LIGHT_BLUE * 0.7f;
-		style.Colors[ImGuiCol_WindowBg] = DARK_CYAN;
-		style.Colors[ImGuiCol_ChildWindowBg] = DARK_CYAN * 1.2f;
-		style.Colors[ImGuiCol_PopupBg] = DARK_CYAN * 1.2f;
-		style.Colors[ImGuiCol_Border] = DARKER_PURPLE;
-		style.Colors[ImGuiCol_BorderShadow] = DARK_ORANGE;//DARK_PURPLE * 0.5;
-		style.Colors[ImGuiCol_FrameBg] = DARK_PURPLE * 0.35f;
-		style.Colors[ImGuiCol_FrameBgHovered] = DARK_PURPLE * 0.38f;
-		style.Colors[ImGuiCol_FrameBgActive] = DARK_PURPLE * 0.4f;
-		style.Colors[ImGuiCol_TitleBg] = DARK_PURPLE;
-		style.Colors[ImGuiCol_TitleBgCollapsed] = DARK_PURPLE * 0.6;
-		style.Colors[ImGuiCol_TitleBgActive] = DARK_PURPLE * 1.1;
-		style.Colors[ImGuiCol_MenuBarBg] = DARK_PURPLE;
-		style.Colors[ImGuiCol_ScrollbarBg] = DARK_PURPLE * 0.35f;
-		style.Colors[ImGuiCol_ScrollbarGrab] = DARK_ORANGE;
-		style.Colors[ImGuiCol_ScrollbarGrabHovered] = DARK_ORANGE * 1.1f;
-		style.Colors[ImGuiCol_ScrollbarGrabActive] = DARK_ORANGE * 1.2f;
+		style.Colors[ImGuiCol_Text] = CHR_COLOR::LIGHT_BLUE;
+		style.Colors[ImGuiCol_TextDisabled] = CHR_COLOR::LIGHT_BLUE * 0.7f;
+		style.Colors[ImGuiCol_WindowBg] = CHR_COLOR::DARK_CYAN;
+		style.Colors[ImGuiCol_ChildWindowBg] = CHR_COLOR::DARK_CYAN * 1.2f;
+		style.Colors[ImGuiCol_PopupBg] = CHR_COLOR::DARK_CYAN * 1.2f;
+		style.Colors[ImGuiCol_Border] = CHR_COLOR::DARKER_PURPLE;
+		style.Colors[ImGuiCol_BorderShadow] = CHR_COLOR::DARK_ORANGE;//DARK_PURPLE * 0.5;
+		style.Colors[ImGuiCol_FrameBg] = CHR_COLOR::DARK_PURPLE * 0.35f;
+		style.Colors[ImGuiCol_FrameBgHovered] = CHR_COLOR::DARK_PURPLE * 0.38f;
+		style.Colors[ImGuiCol_FrameBgActive] = CHR_COLOR::DARK_PURPLE * 0.4f;
+		style.Colors[ImGuiCol_TitleBg] = CHR_COLOR::DARK_PURPLE;
+		style.Colors[ImGuiCol_TitleBgCollapsed] = CHR_COLOR::DARK_PURPLE * 0.6;
+		style.Colors[ImGuiCol_TitleBgActive] = CHR_COLOR::DARK_PURPLE * 1.1;
+		style.Colors[ImGuiCol_MenuBarBg] = CHR_COLOR::DARK_PURPLE;
+		style.Colors[ImGuiCol_ScrollbarBg] = CHR_COLOR::DARK_PURPLE * 0.35f;
+		style.Colors[ImGuiCol_ScrollbarGrab] = CHR_COLOR::DARK_ORANGE;
+		style.Colors[ImGuiCol_ScrollbarGrabHovered] = CHR_COLOR::DARK_ORANGE * 1.1f;
+		style.Colors[ImGuiCol_ScrollbarGrabActive] = CHR_COLOR::DARK_ORANGE * 1.2f;
 		//style.Colors[ImGuiCol_PopupBg] = ImVec4(0.3f, 0.3f, 0.3f, 0.99f);
-		style.Colors[ImGuiCol_CheckMark] = DARK_ORANGE;
-		style.Colors[ImGuiCol_SliderGrab] = DARK_ORANGE;
-		style.Colors[ImGuiCol_SliderGrabActive] = DARK_ORANGE * 1.1f;
-		style.Colors[ImGuiCol_Button] = DARK_ORANGE;
-		style.Colors[ImGuiCol_ButtonHovered] = DARK_ORANGE * 1.1;
-		style.Colors[ImGuiCol_ButtonActive] = DARK_ORANGE * 1.2;
+		style.Colors[ImGuiCol_CheckMark] = CHR_COLOR::DARK_ORANGE;
+		style.Colors[ImGuiCol_SliderGrab] = CHR_COLOR::DARK_ORANGE;
+		style.Colors[ImGuiCol_SliderGrabActive] = CHR_COLOR::DARK_ORANGE * 1.1f;
+		style.Colors[ImGuiCol_Button] = CHR_COLOR::DARK_ORANGE;
+		style.Colors[ImGuiCol_ButtonHovered] = CHR_COLOR::DARK_ORANGE * 1.1;
+		style.Colors[ImGuiCol_ButtonActive] = CHR_COLOR::DARK_ORANGE * 1.2;
 
 		style.Colors[ImGuiCol_Header] = ImVec4(0.2f, 0.3f, 0.3f, 1.0f);
 		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.25f, 0.35f, 0.35f, 1.0f);
@@ -144,7 +138,7 @@ namespace Chroma
 		style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
 		style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
 		style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-		style.Colors[ImGuiCol_TextSelectedBg] = DARK_ORANGE;
+		style.Colors[ImGuiCol_TextSelectedBg] = CHR_COLOR::DARK_ORANGE;
 		style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 	}
 
@@ -164,113 +158,11 @@ namespace Chroma
 		}
 		if (selected_item_type == SELECTION_TYPE::obj)
 		{
-			bool tmp = m_scene->m_scene_objects[selected_name]->IsVisibleInEditor();
-			ImGui::Checkbox("Editor visibility", &tmp);
-			m_scene->m_scene_objects[selected_name]->HideInEditor(tmp);
-
-			bool tmp2 = m_scene->m_scene_objects[selected_name]->IsVisible();
-			ImGui::Checkbox("RT visibility", &tmp2);
-			m_scene->m_scene_objects[selected_name]->SetVisible(tmp2);
-			ImGui::Separator();
-			ImGui::Text("Transform");
-
-			if (ImGui::Button("P##1"))m_scene->m_scene_objects[selected_name]->SetPosition(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_pos = m_scene->m_scene_objects[selected_name]->GetPosition();
-			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_scene_objects[selected_name]->SetPosition(tmp_pos);
-
-			if (ImGui::Button("R##2"))m_scene->m_scene_objects[selected_name]->SetRotation(glm::vec3());
-			ImGui::SameLine();
-			glm::vec3 tmp_rot = m_scene->m_scene_objects[selected_name]->GetRotation();
-			ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.3f");
-			m_scene->m_scene_objects[selected_name]->SetRotation(tmp_rot);
-
-			if (ImGui::Button("S##3")) m_scene->m_scene_objects[selected_name]->SetScale(glm::vec3(1, 1, 1));
-			ImGui::SameLine();
-			glm::vec3 tmp_sca = m_scene->m_scene_objects[selected_name]->GetScale();
-			ImGui::DragFloat3("##6", &(tmp_sca.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_scene_objects[selected_name]->SetScale(tmp_sca);
-			ImGui::Separator();
-
-			glm::vec3 tmp_mb = m_scene->m_scene_objects[selected_name]->GetMotionBlur();
-			ImGui::DragFloat3("Motion Blur", &(tmp_mb.x), 0.05f, 0, 0, "%.3f");
-			m_scene->m_scene_objects[selected_name]->SetMotionBlur(tmp_mb);
-			ImGui::Separator();
-
-			Material* mat = m_scene->m_scene_objects[selected_name]->GetMaterial().get();
-			ImGui::Text("Material");
-			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("Roughness", &(mat->m_roughness), 0.002f, 0.0f, 1.0f, "%.3f");
-			ImGui::Separator();
-			static std::string mat_names []= { "Diffuse", "Mirror", "Dielectric", "Conductor" };
-			static int selected_mat_type;
-			if (ImGui::BeginCombo("Type", mat_names[static_cast<int>(mat->type)].c_str(), ImGuiComboFlags_None))
-			{
-				for (int i = 0; i < 4; i++)
-				{
-					if (ImGui::Selectable(mat_names[i].c_str(), mat->type == static_cast<MAT_TYPE>(selected_mat_type)))
-					{
-						selected_mat_type = i;
-
-						std::shared_ptr<Material> mat2;
-
-						switch (static_cast<MAT_TYPE>(selected_mat_type))
-						{
-						case MAT_TYPE::conductor:
-							mat2 = std::make_shared<Conductor>(*mat);
-							static_cast<Conductor*>(mat2.get())->m_absorption_ind = 1.0f;
-							static_cast<Conductor*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
-							static_cast<Conductor*>(mat2.get())->m_refraction_ind = 1.2f;
-							break;
-						case MAT_TYPE::dielectric:
-							mat2 = std::make_shared<Dielectric>(*mat);
-							static_cast<Dielectric*>(mat2.get())->m_refraction_ind = 1.2f;
-							static_cast<Dielectric*>(mat2.get())->m_absorption_coeff = glm::vec3(0, 0, 0);
-							break;
-						case MAT_TYPE::mirror:
-							mat2 =std::make_shared <Mirror>(*mat);
-							static_cast<Mirror*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
-							break;
-						default:
-							mat2 = std::make_shared<Material>(*mat);
-							break;
-						}
-
-						m_scene->m_scene_objects[selected_name]->SetMaterial(mat2);
-						//delete mat;
-						
-					}
-					if (mat->type == static_cast<MAT_TYPE>(selected_mat_type))
-						ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-
-
-			if (mat->type == MAT_TYPE::conductor)
-			{
-				ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
-				ImGui::DragFloat("Absorp Ind.", &(((Conductor*)mat)->m_absorption_ind), 0.002f, 0.0f, 0.0f, "%.3f");
-				ImGui::DragFloat("Refraction Ind.", &(((Conductor*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
-			}
-			else if (mat->type == MAT_TYPE::dielectric)
-			{
-				ImGui::DragFloat3("Absorp Coef.", &(((Dielectric*)mat)->m_absorption_coeff.x), 0.002f, 0.0f, 1.0f, "%.3f");
-				ImGui::DragFloat("Refraction Ind.", &(((Dielectric*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
-			}
-			else if (mat->type == MAT_TYPE::mirror)
-			{
-				ImGui::DragFloat3("Mirror Ref.", &(((Mirror*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
-			}
-
+			m_scene->m_scene_objects[selected_name]->DrawGUI();
 		}
 		else if (selected_item_type == SELECTION_TYPE::cam)
 		{
-			m_scene->m_cameras[selected_name]->DrawUI();
+			m_scene->m_cameras[selected_name]->DrawGUI();
 			ImGui::Separator();
 			bool tmp = m_settings.act_editor_cam_name.compare(selected_name) == 0;
 			ImGui::Checkbox("Editor Camera", &tmp);
@@ -279,7 +171,7 @@ namespace Chroma
 		}
 		else if (selected_item_type == SELECTION_TYPE::light)
 		{
-			m_scene->m_lights[selected_name]->DrawUI();
+			m_scene->m_lights[selected_name]->DrawGUI();
 		}
 
 
@@ -398,7 +290,7 @@ namespace Chroma
 		if (m_render)
 		{
 			chng_color = true;
-			ImGui::PushStyleColor(ImGuiCol_Button, DARK_PURPLE);
+			ImGui::PushStyleColor(ImGuiCol_Button, CHR_COLOR::DARK_PURPLE);
 		}
 		if (ImGui::Button("Toggle Render"))
 		{

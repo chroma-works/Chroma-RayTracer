@@ -2,7 +2,7 @@
 
 #include <ray-tracer/editor/Logger.h>
 
-namespace Chroma
+namespace CHR
 {
 
     //From:https://github.com/TheCherno/Hazel/blob/master/Hazel/src/Hazel/Renderer/Buffer.h

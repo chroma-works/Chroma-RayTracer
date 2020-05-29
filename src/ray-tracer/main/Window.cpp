@@ -2,7 +2,7 @@
 #include <thirdparty/glfw-3.3/include/GLFW/glfw3.h>
 
 
-namespace Chroma {
+namespace CHR {
 	static bool s_GLFW_init = false;
 
 	Window::Window(int width, int height, std::string title)

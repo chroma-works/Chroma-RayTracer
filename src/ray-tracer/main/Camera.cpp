@@ -3,7 +3,7 @@
 
 static int last_id = 1;
 
-namespace Chroma
+namespace CHR
 {
 	Camera::Camera(float width, float height, float near_clip, float far_clip, float fov)
 	{

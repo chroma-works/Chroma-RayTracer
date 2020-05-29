@@ -3,7 +3,7 @@
 #include <random>
 #include <time.h>
 
-namespace Chroma
+namespace CHR
 {
 
 	float Weight(float x)

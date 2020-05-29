@@ -20,21 +20,21 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	Chroma::Logger::Init("1.14.5");
+	CHR::Logger::Init("1.14.5");
 
-	Chroma::Window window = Chroma::Window(-1, -1, "Chroma Ray Tracer");
+	CHR::Window window = CHR::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
 
 	// build and compile our shader program
 	// ------------------------------------
 	// Create and compile our GLSL program from the shaders
-	Chroma::Shader* shader = Chroma::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
+	CHR::Shader* shader = CHR::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
-	std::shared_ptr<Chroma::Scene> scene;
-	Chroma::Settings s;
-	scene = std::make_shared<Chroma::Scene>(*(Chroma::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/veach_ajar/scene.xml", &s)));
+	std::shared_ptr<CHR::Scene> scene;
+	CHR::Settings s;
+	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/dragon_spot_light_msaa.xml", &s)));
 	//init editor
-	Chroma::Editor editor(&window, scene.get(), s);
+	CHR::Editor editor(&window, scene.get(), s);
 
 	//editor.TogglePreviewRender(false);
 

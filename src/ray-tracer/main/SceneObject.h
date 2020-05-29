@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ray-tracer/main/ImageTextureMap.h>
 #include <ray-tracer/main/Material.h>
 #include <ray-tracer/main/Shape.h>
 #include <ray-tracer/main/Ray.h>
@@ -17,10 +18,9 @@
 #include <thirdparty/glm/glm/gtx/matrix_decompose.hpp>
 #include <thirdparty/glm/glm/gtc/quaternion.hpp>
 #include <thirdparty/glm/glm/gtx/euler_angles.hpp>
-#include <ray-tracer\main\ImageTextureMap.h>
 
 
-namespace Chroma
+namespace CHR
 {
 #define VECTOR_FIELD_METHODS(VAR, NAME_S, NAME_P, TYPE) std::vector<TYPE> Get##NAME_P() const { return VAR; }\
                                                     void Set##NAME_P(std::vector<TYPE> NAME) { VAR = NAME;}\
@@ -77,7 +77,7 @@ namespace Chroma
 		TRI_FAN = 0x0006, LIN = 0x1B01, LIN_LOOP = 0x0002, LIN_STRIP = 0x0003
 	};
 
-	class SceneObject
+	class SceneObject : public ImGuiDrawable
 	{
 	public:
 		SceneObject(std::shared_ptr<Mesh> mesh, std::string name,
@@ -184,6 +184,109 @@ namespace Chroma
 				shape->m_motion_blur = mb;
 		}
 
+		void DrawGUI()
+		{
+			ImGui::TextColored(CHR_COLOR::DARK_PURPLE, std::string("Scene Object " + m_name).c_str(), 0);
+
+			ImGui::Checkbox("RT visibility", &m_visible);
+			ImGui::Checkbox("Editor visibility", &m_visible_in_editor);
+			ImGui::Separator();
+
+			ImGui::Text("Transform");
+
+			if (ImGui::Button("P##1"))SetPosition(glm::vec3());
+			ImGui::SameLine();
+			glm::vec3 tmp_pos = GetPosition();
+			ImGui::DragFloat3("##4", &(tmp_pos.x), 0.05f, 0, 0, "%.3f");
+			SetPosition(tmp_pos);
+
+			if (ImGui::Button("R##2"))SetRotation(glm::vec3());
+			ImGui::SameLine();
+			glm::vec3 tmp_rot = GetRotation();
+			ImGui::DragFloat3("##5", &(tmp_rot.x), 0.25f, 0, 0, "%.3f");
+			SetRotation(tmp_rot);
+
+			if (ImGui::Button("S##3")) SetScale(glm::vec3(1, 1, 1));
+			ImGui::SameLine();
+			glm::vec3 tmp_sca = GetScale();
+			ImGui::DragFloat3("##6", &(tmp_sca.x), 0.05f, 0, 0, "%.3f");
+			SetScale(tmp_sca);
+			ImGui::Separator();
+
+			glm::vec3 tmp_mb = GetMotionBlur();
+			ImGui::DragFloat3("Motion Blur", &(tmp_mb.x), 0.05f, 0, 0, "%.3f");
+			SetMotionBlur(tmp_mb);
+			ImGui::Separator();
+
+			Material* mat = GetMaterial().get();
+			ImGui::Text("Material");
+			ImGui::DragFloat3("Ambient Ref.", &(mat->m_ambient.x), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::DragFloat3("Diffuse Ref.", &(mat->m_diffuse.x), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::DragFloat3("Specular Ref.", &(mat->m_specular.x), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::DragFloat("Phong Exp.", &(mat->m_shininess), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::DragFloat("Roughness", &(mat->m_roughness), 0.002f, 0.0f, 1.0f, "%.3f");
+			ImGui::Separator();
+			static std::string mat_names[] = { "Diffuse", "Mirror", "Dielectric", "Conductor" };
+			static int selected_mat_type;
+			if (ImGui::BeginCombo("Type", mat_names[static_cast<int>(mat->type)].c_str(), ImGuiComboFlags_None))
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					if (ImGui::Selectable(mat_names[i].c_str(), mat->type == static_cast<MAT_TYPE>(selected_mat_type)))
+					{
+						selected_mat_type = i;
+
+						std::shared_ptr<Material> mat2;
+
+						switch (static_cast<MAT_TYPE>(selected_mat_type))
+						{
+						case MAT_TYPE::conductor:
+							mat2 = std::make_shared<Conductor>(*mat);
+							static_cast<Conductor*>(mat2.get())->m_absorption_ind = 1.0f;
+							static_cast<Conductor*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
+							static_cast<Conductor*>(mat2.get())->m_refraction_ind = 1.2f;
+							break;
+						case MAT_TYPE::dielectric:
+							mat2 = std::make_shared<Dielectric>(*mat);
+							static_cast<Dielectric*>(mat2.get())->m_refraction_ind = 1.2f;
+							static_cast<Dielectric*>(mat2.get())->m_absorption_coeff = glm::vec3(0, 0, 0);
+							break;
+						case MAT_TYPE::mirror:
+							mat2 = std::make_shared <Mirror>(*mat);
+							static_cast<Mirror*>(mat2.get())->m_mirror_reflec = glm::vec3(1, 1, 1);
+							break;
+						default:
+							mat2 = std::make_shared<Material>(*mat);
+							break;
+						}
+						SetMaterial(mat2);
+						//delete mat;
+
+					}
+					if (mat->type == static_cast<MAT_TYPE>(selected_mat_type))
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+
+			if (mat->type == MAT_TYPE::conductor)
+			{
+				ImGui::DragFloat3("Mirror Ref.", &(((Conductor*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat("Absorp Ind.", &(((Conductor*)mat)->m_absorption_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+				ImGui::DragFloat("Refraction Ind.", &(((Conductor*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+			}
+			else if (mat->type == MAT_TYPE::dielectric)
+			{
+				ImGui::DragFloat3("Absorp Coef.", &(((Dielectric*)mat)->m_absorption_coeff.x), 0.002f, 0.0f, 1.0f, "%.3f");
+				ImGui::DragFloat("Refraction Ind.", &(((Dielectric*)mat)->m_refraction_ind), 0.002f, 0.0f, 0.0f, "%.3f");
+			}
+			else if (mat->type == MAT_TYPE::mirror)
+			{
+				ImGui::DragFloat3("Mirror Ref.", &(((Mirror*)mat)->m_mirror_reflec.x), 0.002f, 0.0f, 1.0f, "%.3f");
+			}
+		}
+
 		void Draw(DrawMode mode);
 
 		//float m_radius;
@@ -208,14 +311,14 @@ namespace Chroma
 		glm::mat4* m_tranform_matrix = new glm::mat4(1.0);
 		glm::mat4* m_inverse_tranform_matrix = new glm::mat4(1.0);
 
-		Chroma::Texture m_texture;
+		CHR::Texture m_texture;
 		std::shared_ptr<Material> m_material;
 
 		SHAPE_T m_shape_t;
 
-		Chroma::OpenGLVertexArrayObject m_vao;
-		std::vector<std::shared_ptr<Chroma::VertexBuffer>> m_vertex_buffers;
-		std::shared_ptr<Chroma::IndexBuffer> m_index_buffer;
+		CHR::OpenGLVertexArrayObject m_vao;
+		std::vector<std::shared_ptr<CHR::VertexBuffer>> m_vertex_buffers;
+		std::shared_ptr<CHR::IndexBuffer> m_index_buffer;
 	};
 }
 

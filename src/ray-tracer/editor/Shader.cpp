@@ -5,7 +5,7 @@
 #include <fstream>
 #include <thirdparty/glm/glm/glm.hpp>
 
-namespace Chroma
+namespace CHR
 {
 	const std::string Shader::MODEL_SH = "u_Model";
 	const std::string Shader::VIEW_SH = "u_View";
@@ -92,7 +92,7 @@ namespace Chroma
 		AddUniform(uniform);
 	}
 
-	void Shader::CreateUniform(Chroma::Material* mat)
+	void Shader::CreateUniform(CHR::Material* mat)
 	{
 		Uniform ambient(mat->shader_var_name + ".ambient", ShaderDataType::Float3);
 		ambient.data = (void*)&mat->m_ambient;

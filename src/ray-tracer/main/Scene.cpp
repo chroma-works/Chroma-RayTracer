@@ -1,7 +1,7 @@
 #include "Scene.h"
 #include <ray-tracer/accelerationStructures/BVH.h>
 
-namespace Chroma
+namespace CHR
 {
 	Scene::Scene(std::string name, Shader* shader)
 		: m_name(name)

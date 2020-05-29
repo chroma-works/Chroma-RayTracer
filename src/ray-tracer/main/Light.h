@@ -11,11 +11,10 @@
 #include "Texture.h"
 #include "Material.h"
 #include "Utilities.h"
-//#include <ray-tracer\main\ImageTextureMap.h>
 
 #define SET_INTENSITY(a,d,s, intensity) void SetIntensity(glm::vec3 inten){intensity = inten; a=s=d=(glm::clamp(inten/1000.0f, 0.0f, 1.0f));}
 
-namespace Chroma
+namespace CHR
 {
 	enum class LIGHT_T {point, directional, spot, environment, area};
 	class Light : public ImGuiDrawable
@@ -76,7 +75,7 @@ namespace Chroma
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess);
 			return specular + diffuse;
 		}
-		void DrawUI()
+		void DrawGUI()
 		{
 			ImGui::Text("DirectionalLight");
 			ImGui::Separator();
@@ -157,7 +156,7 @@ namespace Chroma
 			return specular + diffuse;
 		}
 
-		void DrawUI()
+		void DrawGUI()
 		{
 			ImGui::Text("PointLight");
 			ImGui::Separator();
@@ -258,7 +257,7 @@ namespace Chroma
 			return specular + diffuse;
 		}
 
-		void DrawUI()
+		void DrawGUI()
 		{
 			ImGui::Text("SpotLight");
 			ImGui::Separator();
@@ -335,9 +334,9 @@ namespace Chroma
 			const glm::vec3 e_vec, const Material* material) const
 		{
 			glm::vec3 u, v;
-			Utils::CreateOrthonormBasis(m_normal, u, v);
-			glm::vec3 sample_pos = m_position + (Utils::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
-				Utils::RandFloat(-m_size/2.0f, m_size/2.0f) * v);
+			CHR_UTILS::CreateOrthonormBasis(m_normal, u, v);
+			glm::vec3 sample_pos = m_position + (CHR_UTILS::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
+				CHR_UTILS::RandFloat(-m_size/2.0f, m_size/2.0f) * v);
  
 			glm::vec3 l_vec = glm::normalize(sample_pos - isect_position);
 			float d = glm::distance(isect_position, sample_pos);
@@ -353,7 +352,7 @@ namespace Chroma
 			return (specular + diffuse) * cos_t * m_size *m_size ;
 		}
 
-		void DrawUI()
+		void DrawGUI()
 		{
 			ImGui::Text("AreaLight(No preview render)");
 			ImGui::Separator();
@@ -420,7 +419,7 @@ namespace Chroma
 			glm::vec3 direction;
 			while (true)
 			{
-				direction = { Utils::RandFloat(-1,1), Utils::RandFloat(-1,1), Utils::RandFloat(-1,1) };
+				direction = { CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1) };
 
 				bool valid_direction = glm::dot(direction, direction) <= 1.0f &&
 					glm::dot(direction, isect_normal) > 0.0f;
@@ -430,8 +429,8 @@ namespace Chroma
 
 			float u, v;
 			direction = glm::normalize(direction);
-			u = 0.5f - atan2f(direction.z, direction.x) * (0.5f / Utils::PI);
-			v = acosf(direction.y)/ Utils::PI;
+			u = 0.5f - atan2f(direction.z, direction.x) * (0.5f / CHR_UTILS::PI);
+			v = acosf(direction.y)/ CHR_UTILS::PI;
 			auto t_coord = glm::vec3(u, v, NAN);
 			glm::vec3 radiance = m_tex->SampleAt(t_coord);
 			radiance =  glm::vec3({ radiance.b, radiance.g, radiance.r });
@@ -444,9 +443,9 @@ namespace Chroma
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 			glm::vec3 specular = material->m_specular *
 				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess);
-			return (specular + diffuse) * radiance * 2.0f * (float)Utils::PI;
+			return (specular + diffuse) * radiance * 2.0f * (float)CHR_UTILS::PI;
 		}
-		void DrawUI()
+		void DrawGUI()
 		{
 			ImGui::Text("Environment Light");
 			ImGui::Separator();

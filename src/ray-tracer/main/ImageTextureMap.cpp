@@ -3,7 +3,7 @@
 #include <thirdparty/glm/glm/gtx/component_wise.hpp>
 
 
-namespace Chroma
+namespace CHR
 {
 	ImageTextureMap::ImageTextureMap(std::shared_ptr<Texture> tex, DECAL_M d_mode, bool bilinear_interp)
 		: m_texture(tex), m_interpolated(bilinear_interp)                                    

@@ -2,7 +2,7 @@
 
 #include <ray-tracer/editor/Buffer.h>
 
-namespace Chroma
+namespace CHR
 {
     class OpenGLVertexBuffer : public VertexBuffer
     {

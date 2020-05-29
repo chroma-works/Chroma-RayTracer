@@ -9,7 +9,7 @@
 #include <vector>
 
 
-namespace Chroma
+namespace CHR
 {
 	class Scene
 	{

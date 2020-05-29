@@ -12,7 +12,7 @@
 //src:https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.h
 
 
-namespace Chroma
+namespace CHR
 {
 	class Scene;
 
