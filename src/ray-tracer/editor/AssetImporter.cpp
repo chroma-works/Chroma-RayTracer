@@ -383,14 +383,24 @@ namespace CHR
 
 		happly::PLYData ply_in(ply_path);
 		std::vector<std::array<double, 3>> v_pos = ply_in.getVertexPositions();
-		std::vector<double> us = ply_in.getElement("vertex").getProperty<double>("u");
-		std::vector<double> vs = ply_in.getElement("vertex").getProperty<double>("v");
+		std::vector<double> us;
+		std::vector<double> vs;
+		if (ply_in.hasElement("vertex") && 
+			ply_in.getElement("vertex").hasProperty("u") &&
+			ply_in.getElement("vertex").hasProperty("v"))
+		{
+			us = ply_in.getElement("vertex").getProperty<double>("u");
+			vs = ply_in.getElement("vertex").getProperty<double>("v");
+
+		}
 		std::vector<std::vector<size_t>> f_ind = ply_in.getFaceIndices<size_t>();
 
 		for (int i = 0; i < v_pos.size(); i++)
 		{
 			mesh_verts.push_back(std::make_shared<glm::vec3>(v_pos[i][0], v_pos[i][1], v_pos[i][2]));
-			if(us.size() >= i)
+			if(ply_in.hasElement("vertex") &&
+				ply_in.getElement("vertex").hasProperty("u") &&
+				ply_in.getElement("vertex").hasProperty("v"))
 				mesh_uvs.push_back(std::make_shared<glm::vec2>(us[i], vs[i]));
 			/*mesh_verts.push_back({ v_pos[i+1][0], v_pos[i+1][1], v_pos[i+1][2] });
 			mesh_verts.push_back({ v_pos[i+2][0], v_pos[i+2][1], v_pos[i+2][2] });*/
