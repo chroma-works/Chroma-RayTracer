@@ -37,55 +37,39 @@ namespace CHR
 		}
 	}
 
-	bool RayTracer::TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> li)
+	bool RayTracer::TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> li, const Ray shadow_ray)
 	{
-		Ray shadow_ray(isect_data->position + isect_data->normal * m_settings.shadow_eps);
 		//shadow_ray.jitter_t = ray.jitter_t; // Uncomment if problems occur
 		float distance = 0.0f;
+		float prod1, prod2, prod3;
 		switch (li->m_type)
 		{
 		case LIGHT_T::point:
-			shadow_ray.direction = glm::normalize(dynamic_cast<PointLight*>(li.get())->m_position - isect_data->position);
 			distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->m_position);
 			break;
 		case LIGHT_T::directional:
-			shadow_ray.direction = -glm::normalize(dynamic_cast<DirectionalLight*>(li.get())->m_direction);
 			distance = INFINITY;
 			break;
 		case LIGHT_T::spot:
-			shadow_ray.direction = glm::normalize(dynamic_cast<SpotLight*>(li.get())->m_position - isect_data->position);
 			distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->m_position);
 			break;
 		case LIGHT_T::area:
-			glm::vec3 u, v;
-			CHR_UTILS::CreateOrthonormBasis(dynamic_cast<AreaLight*>(li.get())->m_normal, u, v);
+			//recalculate light sample position from light vector
+			glm::vec3 difference = isect_data->position - dynamic_cast<AreaLight*>(li.get())->m_position;
+			prod1 = glm::dot(difference, dynamic_cast<AreaLight*>(li.get())->m_normal);
+			prod2 = glm::dot(shadow_ray.direction, dynamic_cast<AreaLight*>(li.get())->m_normal);
+			prod3 = prod1 / prod2;
 
-			glm::vec3 sample_l_pos = dynamic_cast<AreaLight*>(li.get())->m_position +
-				(CHR_UTILS::RandFloat(-size/2.0f, size/2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * u +
-					CHR_UTILS::RandFloat(-size / 2.0f, size / 2.0f) * dynamic_cast<AreaLight*>(li.get())->m_size * v);
+			glm::vec3 sample_l_point = isect_data->position - shadow_ray.direction * prod3;
 
-			shadow_ray.direction = glm::normalize(sample_l_pos - isect_data->position);
-			//shadow_ray.intersect_eps = m_settings.intersection_eps;
-			distance = glm::distance(isect_data->position, sample_l_pos);
+			distance = glm::distance(isect_data->position, sample_l_point);
 			break;
 		case LIGHT_T::environment:
-			glm::vec3 l_vec;
-			while (true)
-			{
-				l_vec = { CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1) };
-
-				bool valid_direction = glm::length(l_vec) <= 1.0f &&
-					glm::dot(l_vec, isect_data->normal) > 0.0f;
-				if (valid_direction)
-					break;
-			}
-			shadow_ray.direction = glm::normalize(-l_vec);
 			distance = INFINITY;
 			break;
 		/*default:
 			break;*/
 		}
-
 		IntersectionData shadow_data;
 		bool shadowed = m_settings.calc_shadows &&
 			(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
@@ -460,17 +444,21 @@ namespace CHR
 			//lighting calculation
 			for (auto it = scene.m_lights.begin(); it != scene.m_lights.end(); it++)
 			{
-				IntersectionData shadow_data;
 				std::shared_ptr<Light> li = it->second;
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
-				//glm::vec3 l_vec = glm::normalize(pl->position - isect_data.position);
 
-				if (!TestShadow(scene, &isect_data, li))
+				glm::vec3 param = li->m_type != LIGHT_T::environment ? 
+					isect_data.position : glm::normalize(isect_data.normal);
+				glm::vec3 l_vec = li->SampleLightDirection(param);
+				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
+				shadow_ray.direction = l_vec;
+
+				if (!TestShadow(scene, &isect_data, li, shadow_ray))
 				{
 					if(replace_all)
-						color = isect_data.Shade(li, e_vec);
+						color = isect_data.Shade(li, e_vec, l_vec);
 					else
-						color += isect_data.Shade(li, e_vec);
+						color += isect_data.Shade(li, e_vec, l_vec);
 				}
 			}
 		}

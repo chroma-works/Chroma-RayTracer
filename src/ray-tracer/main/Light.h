@@ -23,8 +23,8 @@ namespace CHR
 
 		SET_INTENSITY(m_ambient, m_diffuse, m_specular, m_inten)
 
-		virtual glm::vec3 IlluminationAt(const glm::vec3 isect_pos, const glm::vec3 isect_normal,
-			const glm::vec3 e_vec, const Material* material) const = 0;
+		virtual glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const = 0;				//Samples a point over the light. USE ISEC. NORMAL FOR ENV. LIGHT
+		virtual glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const = 0;	// Calculates radiance at given point
 
 		std::string m_shader_var_name;
 		glm::vec3 m_ambient;
@@ -62,19 +62,15 @@ namespace CHR
 			m_type = LIGHT_T::directional;
 		}
 
-		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
-			const glm::vec3 e_vec, const Material* material) const
+		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
-			glm::vec3 l_vec = glm::normalize(-m_direction);
-			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * m_inten *
-				glm::max(glm::dot(isect_normal, l_vec), 0.0f);
-			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * m_inten *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess);
-			return specular + diffuse;
+			return glm::normalize(-m_direction);
 		}
+		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
+		{
+			return m_inten;
+		}
+
 		void DrawGUI()
 		{
 			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::L_FRAME);
@@ -153,19 +149,14 @@ namespace CHR
 			m_type = LIGHT_T::point;
 		}
 
-		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
-			const glm::vec3 e_vec, const Material* material) const
+		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
-			glm::vec3 l_vec = glm::normalize(m_position - isect_position);
-			float d = glm::distance(m_position, isect_position);
-			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * m_inten *
-				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
-			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * m_inten *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
-			return specular + diffuse;
+			return glm::normalize(m_position - isect_pos);
+		}
+		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
+		{
+			float d = glm::distance(m_position, isect_pos);
+			return m_inten / (d*d);
 		}
 
 		void DrawGUI()
@@ -259,24 +250,19 @@ namespace CHR
 			m_type = LIGHT_T::spot;
 		}
 
-		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
-			const glm::vec3 e_vec, const Material* material) const
+		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
+			return glm::normalize(m_position - isect_pos);
+		}
+		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
+		{
+			float d = glm::distance(m_position, isect_pos);
 			glm::vec3 intensity = m_inten;
-			glm::vec3 l_vec = glm::normalize(m_position - isect_position);
 			float theta = acos(glm::dot(l_vec, normalize(-m_direction)));
-			// spotlight intensity
-			float epsilon = m_fall_off/2 - m_cut_off/2;
-			intensity *= pow(glm::clamp((theta - m_cut_off/2) / epsilon, 0.0f, 1.0f), 4);
-			float d = glm::distance(m_position, isect_position);
-			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * intensity *
-				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
-			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * intensity *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
-			return specular + diffuse;
+			float epsilon = m_fall_off / 2 - m_cut_off / 2;
+			intensity *= pow(glm::clamp((theta - m_cut_off / 2) / epsilon, 0.0f, 1.0f), 4);
+
+			return intensity / (d * d);
 		}
 
 		void DrawGUI()
@@ -362,26 +348,29 @@ namespace CHR
 			m_type = LIGHT_T::area;
 		}
 
-		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
-			const glm::vec3 e_vec, const Material* material) const
+		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
 			glm::vec3 u, v;
 			CHR_UTILS::CreateOrthonormBasis(m_normal, u, v);
 			glm::vec3 sample_pos = m_position + (CHR_UTILS::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
-				CHR_UTILS::RandFloat(-m_size/2.0f, m_size/2.0f) * v);
- 
-			glm::vec3 l_vec = glm::normalize(sample_pos - isect_position);
-			float d = glm::distance(isect_position, sample_pos);
-			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse * m_inten *
-				glm::max(glm::dot(isect_normal, l_vec), 0.0f) / (d * d);
-			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular * m_inten *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess) / (d * d);
+				CHR_UTILS::RandFloat(-m_size / 2.0f, m_size / 2.0f) * v);
 
-			float cos_t = abs(glm::dot(l_vec,glm::normalize(m_normal)));
-			return (specular + diffuse) * cos_t * m_size *m_size ;
+			return glm::normalize(sample_pos - isect_pos);
+		}
+		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
+		{
+			//recalculate light sample position from light vector
+			glm::vec3 difference = isect_pos - m_position;
+			float prod1 = glm::dot(difference, m_normal);
+			float prod2 = glm::dot(l_vec, m_normal);
+			float prod3 = prod1/prod2;
+
+			glm::vec3 sample_l_point = isect_pos - l_vec * prod3;
+
+			float cos_t = abs(glm::dot(l_vec, glm::normalize(m_normal)));
+
+			float d = glm::distance(sample_l_point, isect_pos);
+			return m_inten *cos_t * m_size * m_size / (d * d);
 		}
 
 		void DrawGUI()
@@ -449,8 +438,7 @@ namespace CHR
 			m_type = LIGHT_T::environment;
 		}
 
-		glm::vec3 IlluminationAt(const glm::vec3 isect_position, const glm::vec3 isect_normal,
-			const glm::vec3 e_vec, const Material* material) const
+		glm::vec3 SampleLightDirection(const glm::vec3 isect_normal) const // NOT POSITION. NORMAL!!!
 		{
 			//Randomly sample a direction. Random rejection sampling
 			glm::vec3 direction;
@@ -463,25 +451,20 @@ namespace CHR
 				if (valid_direction)
 					break;
 			}
-
+			return glm::normalize(direction);
+		}
+		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
+		{
 			float u, v;
-			direction = glm::normalize(direction);
-			u = 0.5f - atan2f(direction.z, direction.x) * (0.5f / CHR_UTILS::PI);
-			v = acosf(direction.y)/ CHR_UTILS::PI;
+			u = 0.5f - atan2f(l_vec.z, l_vec.x) * (0.5f / CHR_UTILS::PI);
+			v = acosf(l_vec.y) / CHR_UTILS::PI;
 			auto t_coord = glm::vec3(u, v, NAN);
 			glm::vec3 radiance = m_tex->SampleAt(t_coord);
-			radiance =  glm::vec3({ radiance.b, radiance.g, radiance.r });
+			radiance = glm::vec3({ radiance.b, radiance.g, radiance.r });
 
-			glm::vec3 l_vec = direction;
-			//Kd * I * cos(theta) /d^2 
-			glm::vec3 diffuse = material->m_diffuse *
-				glm::abs(glm::dot(isect_normal, l_vec));
-			//Ks* I * max(0, h . n)^s / d^2
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 specular = material->m_specular *
-				glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(isect_normal))), material->m_shininess);
-			return (specular + diffuse) * radiance * 2.0f * (float)CHR_UTILS::PI;
+			return radiance * 2.0f * (float)CHR_UTILS::PI;
 		}
+
 		void DrawGUI()
 		{
 			ImGui::PushStyleColor(ImGuiCol_Header, CHR_COLOR::L_FRAME);
