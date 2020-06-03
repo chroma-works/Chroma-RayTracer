@@ -101,7 +101,7 @@ namespace CHR
 		Uniform specular(mat->shader_var_name + ".specular", ShaderDataType::Float3);
 		specular.data = (void*)&mat->m_specular;
 		Uniform shininess(mat->shader_var_name + ".shininess", ShaderDataType::Float);
-		shininess.data = (void*)&mat->m_shininess;
+		shininess.data = (void*)&mat->m_brdf->m_exponent;
 
 		AddUniform(ambient);
 		AddUniform(diffuse);

@@ -77,14 +77,7 @@ namespace CHR
 				glm::vec3 param = light->m_type != LIGHT_T::environment ? position : glm::normalize(normal);
 				glm::vec3 radiance = light->RadianceAt(param, l_vec);
 
-				//Kd * I * cos(theta) /d^2 
-				glm::vec3 diffuse = material->m_diffuse * radiance *
-					glm::max(glm::dot(normal, l_vec), 0.0f);
-				//Ks* I * max(0, h . n)^s / d^2
-				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-				glm::vec3 specular = material->m_specular * radiance *
-					glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), material->m_shininess);
-				return specular + diffuse;
+				return mat.Shade(l_vec, e_vec, radiance, normal);
 			}
 			else
 				return tex_map->SampleAt(glm::vec3(uv, NAN));
