@@ -3,6 +3,7 @@
 #include <string>
 #include<algorithm> 
 #include <ray-tracer/editor/Logger.h>
+#include <ray-tracer/main/BRDF.h>
 #include <thirdparty/glm/glm/glm.hpp>
 
 namespace CHR
@@ -12,23 +13,27 @@ namespace CHR
 	{
 	public:
 
-		Material(std::string name, glm::vec3 ambi, glm::vec3 diff, glm::vec3 spec, float shin, MAT_TYPE t = MAT_TYPE::none)
-			:shader_var_name(name), m_ambient(ambi), m_diffuse(diff), m_specular(spec), m_shininess(shin), type(t) 
-		{}
+		Material(std::string name, glm::vec3 ambi, glm::vec3 diff, glm::vec3 spec, float exp, MAT_TYPE t = MAT_TYPE::none)
+			:shader_var_name(name), m_ambient(ambi), m_diffuse(diff), m_specular(spec), m_p_exp(exp), type(t) 
+		{
+		}
 
 		Material()
 			:shader_var_name("u_Material"), m_ambient(glm::vec3(1.0f, 1.0f, 1.0f)),
-			m_diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), m_specular(glm::vec3(1.0f)), m_shininess(60.0f), type(MAT_TYPE::none)
-		{}
+			m_diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), m_specular(glm::vec3(1.0f)), type(MAT_TYPE::none)
+		{
+			m_p_exp = 60.f;
+		}
 
 		Material(const Material& mat)
 			: shader_var_name(mat.shader_var_name),
 			m_ambient(mat.m_ambient),
 			m_diffuse(mat.m_diffuse),
 			m_specular(mat.m_specular),
-			m_shininess(mat.m_shininess),
+			m_p_exp(mat.m_p_exp),
 			m_roughness(mat.m_roughness)
 		{
+			m_brdf = mat.m_brdf;
 			type = MAT_TYPE::none;
 		}
 
@@ -60,13 +65,19 @@ namespace CHR
 		glm::vec3 m_ambient;
 		glm::vec3 m_diffuse;
 		glm::vec3 m_specular;
-		float m_shininess;
+		float m_p_exp;
 		float m_roughness = 0.0f;
+		std::shared_ptr<BRDF> m_brdf = std::make_shared<BlinnPhong>();
+		
 		MAT_TYPE type = MAT_TYPE::none;
 
 		inline float GetFr(float cos_i)
 		{
 			return NAN;
+		}
+		inline glm::vec3 Shade(const glm::vec3 l_vec, const glm::vec3 e_vec, const glm::vec3 radiance, const glm::vec3 normal) const
+		{
+			return m_brdf->Shade(l_vec, e_vec, radiance, normal, m_diffuse, m_specular);
 		}
 	};
 
