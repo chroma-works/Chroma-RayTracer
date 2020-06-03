@@ -20,7 +20,7 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	CHR::Logger::Init("1.15.2");
+	CHR::Logger::Init("1.16.2");
 
 	CHR::Window window = CHR::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<CHR::Scene> scene;
 	CHR::Settings s;
-	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw5/veach_ajar/scene.xml", &s)));
+	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw6/brdf_phong_original.xml", &s)));
 	//init editor
 	CHR::Editor editor(&window, scene.get(), s);
 
