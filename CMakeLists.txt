@@ -52,6 +52,7 @@ source_group ("thirdparty\\" FILES
 )
 
 set (main_sources
+	src/ray-tracer/main/BRDF.h
 	src/ray-tracer/main/Camera.h
 	src/ray-tracer/main/Camera.cpp
 	src/ray-tracer/main/EntryPoint.cpp
