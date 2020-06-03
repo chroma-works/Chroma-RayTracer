@@ -26,6 +26,7 @@ namespace CHR
 	const std::string A_LIG = "AreaLight";
 	const std::string BCK_COLOR = "BackgroundColor";
 	const std::string BUMP_F = "BumpFactor";
+	const std::string BRDFS = "BRDFs";
 	const std::string CAMS = "Cameras";
 	const std::string COMP = "Composite";
 	const std::string CNTR = "Center";
@@ -53,6 +54,8 @@ namespace CHR
 	const std::string MESH_INS = "MeshInstance";
 	const std::string MIRROR_REF = "MirrorReflectance";
 	const std::string MOTION_B = "MotionBlur";
+	const std::string MOD_BLPH = "ModifiedBlinnPhong";
+	const std::string MOD_PH = "ModifiedPhong";
 	const std::string N_DIST = "NearDistance";
 	const std::string NOISE_CONV = "NoiseConversion";
 	const std::string NOISE_S = "NoiseScale";
@@ -60,6 +63,8 @@ namespace CHR
 	const std::string N_PLANE = "NearPlane";
 	const std::string NUM_SAMP = "NumSamples";
 	const std::string OBJ = "Objects";
+	const std::string OG_BLPH= "OriginalBlinnPhong";
+	const std::string OG_PH = "OriginalPhong";
 	const std::string UP = "Up";
 	const std::string P_LIG = "PointLight";
 	const std::string PHONG_EX = "PhongExponent";
@@ -569,7 +574,7 @@ namespace CHR
 				std::string data = cam_prop->FirstChild()->Value();
 				float fovy;
 				sscanf(data.c_str(), "%f", &fovy);
-				vec[0].y = std::tan(glm::radians(fovy));
+				vec[0].y = std::tan(glm::radians(fovy/2));
 				vec[1].y = -vec[0].y;
 				vec[0].x = vec[1].y;
 				vec[1].x = -vec[0].x;
@@ -656,6 +661,7 @@ namespace CHR
 
 		tinyxml2::XMLDocument doc;
 		doc.LoadFile(file_path.c_str());
+		std::vector<std::shared_ptr<BRDF>> brdfs;
 		std::vector<std::shared_ptr<Material>> materials;
 		std::vector<std::shared_ptr<TextureMap>> texturemaps;
 		std::vector<std::shared_ptr<Texture>> textures;		//just incase of a env. light
@@ -922,6 +928,41 @@ namespace CHR
 					child_node = child_node->NextSibling();
 				}
 			}
+			else if (std::string(node->Value()).compare(BRDFS) == 0)
+			{
+			tinyxml2::XMLNode* child_node = node->FirstChild();
+				while (child_node)//iterate over BRDFS
+				{
+					std::string data = child_node->FirstChild()->FirstChild()->Value();
+					float exp = 50.0f;
+					sscanf(data.c_str(), "%f", &exp);
+
+					bool normalized = false;
+					if (child_node->ToElement()->FindAttribute("normalized"))
+						normalized = child_node->ToElement()->FindAttribute("normalized")->BoolValue();
+					if (std::string(child_node->Value()).compare(OG_BLPH) == 0)
+					{
+						auto brdf = std::make_shared<BlinnPhong>(exp, normalized);
+						brdfs.push_back(brdf);
+					}
+					else if (std::string(child_node->Value()).compare(OG_PH) == 0)
+					{
+						auto brdf = std::make_shared<Phong>(exp, normalized);
+						brdfs.push_back(brdf);
+					}
+					/*else if (std::string(child_node->Value()).compare(MOD_BLPH) == 0)
+					{
+						auto brdf = std::make_shared<ModifiedBlinnPhong>(exp, normalized);
+						brdfs.push_back(brdf);
+					}
+					else if (std::string(child_node->Value()).compare(MOD_PH) == 0)
+					{
+						auto brdf = std::make_shared<ModifiedBlinnPhong>(exp, normalized);
+						brdfs.push_back(brdf);
+					}*/
+					child_node = child_node->NextSibling();
+				}
+			}
 			else if (std::string(node->Value()).compare(MATS) == 0)
 			{
 				tinyxml2::XMLNode* child_node = node->FirstChild();
@@ -1025,7 +1066,7 @@ namespace CHR
 						else if (std::string(material_prop->Value()).compare(PHONG_EX) == 0)
 						{
 							std::string data = material_prop->FirstChild()->Value();
-							sscanf(data.c_str(), "%f", &mat->m_shininess);
+							sscanf(data.c_str(), "%f", &mat->m_p_exp);
 						}
 						else if (std::string(material_prop->Value()).compare(ROUGH) == 0)
 						{
@@ -1036,6 +1077,8 @@ namespace CHR
 						material_prop = material_prop->NextSibling();
 					}
 
+					if (child_node->ToElement()->FindAttribute("BRDF"))
+						mat->m_brdf = brdfs[child_node->ToElement()->FindAttribute("BRDF")->IntValue()-1];
 					child_node = child_node->NextSibling();
 					if(degamma)
 						mat->Degamma();
