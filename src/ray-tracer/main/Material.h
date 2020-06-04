@@ -68,14 +68,15 @@ namespace CHR
 		
 		MAT_TYPE type = MAT_TYPE::none;
 
-		inline float GetFr(float cos_i)
+		inline float GetFr(float cos_i) const
 		{
 			return NAN;
 		}
 		inline glm::vec3 Shade(const glm::vec3 l_vec, const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			return m_brdf->CalculateDiffuse(l_vec, e_vec, normal) * m_diffuse + 
-				m_brdf->CalculateSpecular(l_vec, e_vec, normal) * m_specular;
+			glm::vec3 specular = m_brdf->CalculateSpecular(l_vec, e_vec, normal) * m_specular;
+			glm::vec3 diffuse = m_brdf->CalculateDiffuse(l_vec, e_vec, normal) * m_diffuse;
+			return specular + diffuse;
 		}
 	};
 
@@ -107,7 +108,7 @@ namespace CHR
 			type = MAT_TYPE::conductor;
 		}
 
-		float GetFr(float cos_i)
+		float GetFr(float cos_i) const
 		{
 			float rs = ((m_refraction_ind * m_refraction_ind +
 				m_absorption_ind * m_absorption_ind) - 2.0f *
@@ -158,7 +159,7 @@ namespace CHR
 			type = MAT_TYPE::dielectric;
 		}
 
-		float GetFr(float cos_i)
+		float GetFr(float cos_i) const
 		{
 			float ni = 1.0f;
 			float nt = m_refraction_ind;
@@ -205,7 +206,7 @@ namespace CHR
 			type = MAT_TYPE::mirror;
 		}
 
-		float GetFr(float cos_i)
+		float GetFr(float cos_i) const
 		{
 			return 1.0f;
 		}
