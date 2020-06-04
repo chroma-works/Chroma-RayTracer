@@ -950,16 +950,16 @@ namespace CHR
 						auto brdf = std::make_shared<Phong>(exp, normalized);
 						brdfs.push_back(brdf);
 					}
-					/*else if (std::string(child_node->Value()).compare(MOD_BLPH) == 0)
+					else if (std::string(child_node->Value()).compare(MOD_BLPH) == 0)
 					{
 						auto brdf = std::make_shared<ModifiedBlinnPhong>(exp, normalized);
 						brdfs.push_back(brdf);
 					}
 					else if (std::string(child_node->Value()).compare(MOD_PH) == 0)
 					{
-						auto brdf = std::make_shared<ModifiedBlinnPhong>(exp, normalized);
+						auto brdf = std::make_shared<ModifiedPhong>(exp, normalized);
 						brdfs.push_back(brdf);
-					}*/
+					}
 					child_node = child_node->NextSibling();
 				}
 			}
@@ -1066,7 +1066,7 @@ namespace CHR
 						else if (std::string(material_prop->Value()).compare(PHONG_EX) == 0)
 						{
 							std::string data = material_prop->FirstChild()->Value();
-							sscanf(data.c_str(), "%f", &mat->m_p_exp);
+							sscanf(data.c_str(), "%f", &mat->m_brdf->m_exponent);
 						}
 						else if (std::string(material_prop->Value()).compare(ROUGH) == 0)
 						{

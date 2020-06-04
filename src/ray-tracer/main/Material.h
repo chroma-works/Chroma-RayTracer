@@ -14,7 +14,7 @@ namespace CHR
 	public:
 
 		Material(std::string name, glm::vec3 ambi, glm::vec3 diff, glm::vec3 spec, float exp, MAT_TYPE t = MAT_TYPE::none)
-			:shader_var_name(name), m_ambient(ambi), m_diffuse(diff), m_specular(spec), m_p_exp(exp), type(t) 
+			:shader_var_name(name), m_ambient(ambi), m_diffuse(diff), m_specular(spec), type(t) 
 		{
 		}
 
@@ -22,7 +22,6 @@ namespace CHR
 			:shader_var_name("u_Material"), m_ambient(glm::vec3(1.0f, 1.0f, 1.0f)),
 			m_diffuse(glm::vec3(1.0f, 1.0f, 1.0f)), m_specular(glm::vec3(1.0f)), type(MAT_TYPE::none)
 		{
-			m_p_exp = 60.f;
 		}
 
 		Material(const Material& mat)
@@ -30,7 +29,6 @@ namespace CHR
 			m_ambient(mat.m_ambient),
 			m_diffuse(mat.m_diffuse),
 			m_specular(mat.m_specular),
-			m_p_exp(mat.m_p_exp),
 			m_roughness(mat.m_roughness)
 		{
 			m_brdf = mat.m_brdf;
@@ -65,7 +63,6 @@ namespace CHR
 		glm::vec3 m_ambient;
 		glm::vec3 m_diffuse;
 		glm::vec3 m_specular;
-		float m_p_exp;
 		float m_roughness = 0.0f;
 		std::shared_ptr<BRDF> m_brdf = std::make_shared<BlinnPhong>();
 		
