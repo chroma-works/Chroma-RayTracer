@@ -137,31 +137,69 @@ namespace CHR
 		}
 	};
 
-	/*class TorranceSparrow : public BRDF
+	class TorranceSparrow : public BRDF
 	{
 	public:
-		TorranceSparrow(float exp = 1.0f, bool norm = false)
-			:BRDF(exp, norm)
-		{}
-
-		inline glm::vec3 Shade(const glm::vec3 l_vec, const glm::vec3 e_vec,
-			const glm::vec3 radiance, const glm::vec3 normal,
-			const glm::vec3 kd, const glm::vec3 ks) const
+		TorranceSparrow(bool kd_fresnel, float exp = 1.0f, bool norm = false)
+			:kd_fresnel(kd_fresnel), BRDF(exp, norm)
+		{
+			m_type = BRDF_T::tor_spa;
+		}
+		void SetFresnelCoeffs(float ts_ref_ind, float ts_abs_ind)
+		{
+			m_refraction_ind = ts_ref_ind;
+			m_absorption_ind = ts_abs_ind;
+		}
+	protected:
+		float CalculateDiffuse(const glm::vec3 l_vec,
+			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
 			//Kd * cos(theta) / pi
-			glm::vec3 diffuse = kd * radiance *
-				glm::max(glm::dot(normal, l_vec), 0.0f);
-			diffuse *= 1.0f / CHR_UTILS::PI;
+			if (kd_fresnel)
+			{
+				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+				return glm::max(glm::dot(normal, l_vec), 0.0f) * (1.0f-CalculateFresnell(glm::dot(h, e_vec))) / CHR_UTILS::PI;
+			}
+			else
+				return glm::max(glm::dot(normal, l_vec), 0.0f) / CHR_UTILS::PI;
+		}
 
+		float CalculateSpecular(const glm::vec3 l_vec,
+			const glm::vec3 e_vec, const glm::vec3 normal) const
+		{
 			//specular
 			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			glm::vec3 w0 = glm::reflect(-l_vec, h);
-			glm::vec3 specular = ks * radiance;
-			float g_term = glm::min(1.0f,
-				glm::min(2.0f * (glm::dot(normal, h) * glm::dot(normal, w0) / (glm::dot(w0, h))), 
-					2.0f * (glm::dot(normal, h) * glm::dot(-l_vec, normal)/(glm::dot(l_vec, h))) ));
 
-			return specular + diffuse;
+			float g_term = glm::min(1.0f,
+				glm::min(2.0f * (glm::dot(normal, h) * glm::dot(normal, e_vec) / (glm::dot(e_vec, h))),
+					2.0f * (glm::dot(normal, h) * glm::dot(l_vec, normal) / (glm::dot(l_vec, h)))));
+			float d_term = (m_exponent + 2.0f) / (CHR_UTILS::PI) * 
+				glm::max(glm::pow(glm::dot(h, normal),m_exponent),0.0f);
+			float f_term = CalculateFresnell(glm::dot(h, e_vec));
+			return g_term * d_term * f_term / (4.0f * glm::dot(e_vec, normal) * glm::dot(l_vec, normal));
 		}
-	};*/
+
+		float CalculateFresnell(float cos_i) const
+		{
+			float rs = ((m_refraction_ind * m_refraction_ind +
+				m_absorption_ind * m_absorption_ind) - 2.0f *
+				m_refraction_ind * cos_i - cos_i * cos_i) /
+				((m_refraction_ind * m_refraction_ind +
+					m_absorption_ind * m_absorption_ind) + 2.0f *
+					m_refraction_ind * cos_i - cos_i * cos_i);
+			float rp = ((m_refraction_ind * m_refraction_ind +
+				m_absorption_ind * m_absorption_ind) *
+				cos_i * cos_i - 2.0f *
+				m_refraction_ind * cos_i + 1) /
+				((m_refraction_ind * m_refraction_ind +
+					m_absorption_ind * m_absorption_ind) *
+					cos_i * cos_i + 2.0f *
+					m_refraction_ind * cos_i + 1);
+			return (rs + rp) * 0.5f;
+		}
+		float m_refraction_ind;
+		float m_absorption_ind;
+		bool kd_fresnel = false;
+	};
+
 }
