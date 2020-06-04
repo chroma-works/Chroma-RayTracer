@@ -86,6 +86,7 @@ namespace CHR
 	const std::string TEX = "Textures";
 	const std::string TEX_DATA = "TexCoordData";
 	const std::string TEX_MAP = "TextureMap";
+	const std::string TOR_SPA = "TorranceSparrow";
 	const std::string SCA = "Scaling";
 	const std::string VRTX_DATA = "VertexData";
 
@@ -960,6 +961,12 @@ namespace CHR
 						auto brdf = std::make_shared<ModifiedPhong>(exp, normalized);
 						brdfs.push_back(brdf);
 					}
+					else if (std::string(child_node->Value()).compare(TOR_SPA) == 0)
+					{
+						bool kd_f = child_node->ToElement()->FindAttribute("kdfresnel")->BoolValue();
+						auto brdf = std::make_shared<TorranceSparrow>(kd_f, exp, normalized);
+						brdfs.push_back(brdf);
+					}
 					child_node = child_node->NextSibling();
 				}
 			}
@@ -970,6 +977,11 @@ namespace CHR
 				{
 					std::shared_ptr<Material> mat;
 					MAT_TYPE type = MAT_TYPE::none;
+
+					//torrance sparrow indices
+					float ts_ref_ind = NAN;
+					float ts_abs_ind = NAN;
+
 					bool flag = true;
 					auto nn = child_node->ToElement()->FindAttribute("degamma");
 					bool degamma = false;
@@ -1073,12 +1085,29 @@ namespace CHR
 							std::string data = material_prop->FirstChild()->Value();
 							sscanf(data.c_str(), "%f", &mat->m_roughness);
 						}
+						else if (std::string(material_prop->Value()).compare(REF_IND) == 0)//Torrance Sparrow BRDF
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &ts_ref_ind);
+						}
+						else if (std::string(material_prop->Value()).compare(ABS_IND) == 0)//Torrance Sparrow BRDF
+						{
+							std::string data = material_prop->FirstChild()->Value();
+							sscanf(data.c_str(), "%f", &ts_abs_ind);
+						}
 
 						material_prop = material_prop->NextSibling();
 					}
 
 					if (child_node->ToElement()->FindAttribute("BRDF"))
+					{
 						mat->m_brdf = brdfs[child_node->ToElement()->FindAttribute("BRDF")->IntValue()-1];
+						if (mat->m_brdf->m_type == BRDF_T::tor_spa)
+						{
+							auto ptr = std::dynamic_pointer_cast<TorranceSparrow>(mat->m_brdf);
+							ptr->SetFresnelCoeffs(ts_ref_ind, ts_abs_ind);
+						}
+					}
 					child_node = child_node->NextSibling();
 					if(degamma)
 						mat->Degamma();
