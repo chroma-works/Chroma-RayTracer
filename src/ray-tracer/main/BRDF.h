@@ -4,7 +4,7 @@
 namespace CHR
 {
 
-	//class CHR::Material;
+	enum class BRDF_T { bl_ph, mod_bl_ph, ph, mod_ph, tor_spa };
 	class BRDF
 	{
 	public:
@@ -13,8 +13,9 @@ namespace CHR
 		{}
 		float m_exponent;
 		bool m_normalized;
+		BRDF_T m_type;
 
-	private:
+	protected:
 		friend class Material;
 
 		virtual float CalculateDiffuse(const glm::vec3 l_vec, 
@@ -29,8 +30,10 @@ namespace CHR
 	public:
 		BlinnPhong(float exp = 1.0f, bool norm = false)
 			:BRDF(exp, norm)
-		{}
-
+		{
+			m_type = BRDF_T::bl_ph;
+		}
+	protected:
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
@@ -52,8 +55,10 @@ namespace CHR
 	public:
 		Phong(float exp = 1.0f, bool norm = false)
 			:BRDF(exp, norm)
-		{}
-
+		{
+			m_type = BRDF_T::ph;
+		}
+	protected:
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
@@ -75,8 +80,10 @@ namespace CHR
 	public:
 		ModifiedBlinnPhong(float exp = 1.0f, bool norm = false)
 			:BRDF(exp, norm)
-		{}
-
+		{
+			m_type = BRDF_T::mod_bl_ph;
+		}
+	protected:
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
@@ -104,8 +111,10 @@ namespace CHR
 	public:
 		ModifiedPhong(float exp = 1.0f, bool norm = false)
 			:BRDF(exp, norm)
-		{}
-
+		{
+			m_type = BRDF_T::mod_ph;
+		}
+	protected:
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
