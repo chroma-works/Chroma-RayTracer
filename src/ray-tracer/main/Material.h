@@ -72,9 +72,10 @@ namespace CHR
 		{
 			return NAN;
 		}
-		inline glm::vec3 Shade(const glm::vec3 l_vec, const glm::vec3 e_vec, const glm::vec3 radiance, const glm::vec3 normal) const
+		inline glm::vec3 Shade(const glm::vec3 l_vec, const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			return m_brdf->Shade(l_vec, e_vec, radiance, normal, m_diffuse, m_specular);
+			return m_brdf->CalculateDiffuse(l_vec, e_vec, normal) * m_diffuse + 
+				m_brdf->CalculateSpecular(l_vec, e_vec, normal) * m_specular;
 		}
 	};
 
