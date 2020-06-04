@@ -248,7 +248,7 @@ namespace CHR
 			for (auto it = m_scene->m_cameras.begin(); it != m_scene->m_cameras.end(); it++)
 			{
 				bool is_selected = (m_settings.act_rt_cam_name.compare(it->first) == 0);
-				if (ImGui::Selectable(m_settings.act_rt_cam_name.c_str(), is_selected))
+				if (ImGui::Selectable(it->first.c_str(), is_selected))
 					m_settings.act_rt_cam_name = it->first;
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
