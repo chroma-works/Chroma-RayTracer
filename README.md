@@ -381,7 +381,7 @@ Without further ado, here are this weeks renders:
 <img src= "resources/cube_point.png" width = "400"> <img src= "resources/cube_point_hdr.png" width = "400">  
 <img src= "resources/cube_directional.png" width = "400"> <img src= "resources/dragon_spot_light_msaa.png" width = "400">  
 <img src= "resources/cornellbox_area_289.png" width = "400"> <img src= "resources/sphere_point_hdr_texture.png" width = "400">  
-<img src= "resources/head_env_light.png" width = "400"> <img src= "resources/VeachAjar.png" width = "400">  
+<img src= "resources/head_env_light.png" width = "400"> <img src= "resources/VeachAjar.png" width = "400">   
 
 **Figure 35:** HW5 final renders. Cornellbox_area scene is swapped with 289 sampled version since it looks better. Veach Ajar scene camera position is maully adjusted*.  
 
@@ -390,7 +390,30 @@ Note*: I do not know why but some scenes with lookAt cameras gives slightly diff
 <img src= "resources/giphy.gif" width = "600">  
 **Figure 36:** Veach Ajar scene infinite animation.  
 
-My API is a mess right now I will be focusing on that before the next assignment hits.
+My API is a mess right now I will be focusing on that before the next assignment hits.  
+
+## Weeks 15 & 16  
+This week was focused on bidirectional reflectance distribution function(BRDF) materials. The implementations included:  
+* Phong  
+* Blinn-Phong(default)  
+* Modified Phong  
+* Modified Blinn-Phong  
+* Torrance-Sparrow[[12]](#12)  
+
+The Phong and Blinn phong was fairly easy to implement(since I have previously written GLSL shaders for them). Modified versions included energy conservation/normalization factors. Understanding the derivations was the difficult part for those BRDFS. But the trickiest among them all was Torrance-Sparrow approach. Since it is essentially a micro-faced based approach some complications were present.  
+The most significant problem faced during implementation was the architecture. My implementation of BRDF was implemented as a Material field. A pointer to the abstract class BRDF is present and that class holds the exponent value for the shading(this value was previously present as a field in the Material class). Since Fresnell calculation was required for Torrance-Sparrow BRDF the GetFr() function for the materials were implemented inside the Material class this caused some problems. Yet solution was apperant after close inspection of the XML scene files. It seems like our instructor came up with the smart idea to put the properties needed for fresnel value calculation to regular(typless) material fields for such BRDFs. These properties are usually present when the material is not a typeless material but a Conductor/Mirror/Dielectric. Existance of these fields allowed my architecture to have those values in TorranceSparrow class as fields. Thus giving me the this weeks renders in **Figure 36**.  
+
+<img src= "resources/brdf_phong_original.png" width = "300"> <img src= "resources/brdf_phong_modified.png" width = "300"> <img src= "resources/brdf_phong_modified_normalized.png" width = "300">  
+<img src= "resources/brdf_blinnphong_original.png" width = "300"> <img src= "resources/brdf_blinnphong_modified.png" width = "300"> <img src= "resources/brdf_blinnphong_modified_normalized.png" width = "300">  
+<img src= "resources/brdf_torrancesparrow.png" width = "400">  
+<img src= "resources/killeroo_blinnphong.png" width = "400"> <img src= "resources/killeroo_blinnphong_closeup.png" width = "400">  
+<img src= "resources/killeroo_torrancesparrow.png" width = "400"> <img src= "resources/killeroo_torrancesparrow_closeup.png" width = "400">  
+
+Left with some spare time I made some adjusments to better my architecture in terms of both maintainability and efficientcy. Firstly I changed Light abstract class to have two functions instead of one giant *CalculateIllumination*. Those functions are *SampleLightDirection* and *CalculateRadiance*. By doing so I made the shading code a bit dity and removed redundant parameter copying operations between IntersectionData, Material, Light classes. BRDF abstract class has two virtual functions namely they are *CalculateDiffuse* and *CalculateSpecular* these private functions are called from the **friend class** Material's *Shade* function then this shaded value is returned to IntersectionData class *Shade* function where it multiplies the float value with light radiance after handling the texturing business.  
+
+I was also able to beautify the Editor Code by writing an virtual ImGuiDrawable class which is implemented by all scene components that can be adjusted by the interactive inspector(cameras, sceneobjects, lights). This class has one virtual method *DrawGui*. Which specifies how their parameters can be ineracted by the Editor GUI. I also made some color codings and simple UI changes to make somewhat a uniform looking GUI. I also selected new colors for the UI headers of the some inspectable scene components.  
+
+
 
 ## References
 <a id="1">[1]</a>
@@ -422,4 +445,7 @@ E. Reinhard, M. Stark, P. Shirley, and J. Ferwerda, “Photographic tone reprodu
 AcademySoftwareFoundation, “AcademySoftwareFoundation/openexr,” GitHub, 27-May-2020. [Online]. Available: https://github.com/AcademySoftwareFoundation/openexr. [Accessed: 28-May-2020].  
 
 <a id="11">[11]</a>
-Syoyo, “syoyo/tinyexr,” GitHub, 20-May-2020. [Online]. Available: https://github.com/syoyo/tinyexr. [Accessed: 28-May-2020].
+Syoyo, “syoyo/tinyexr,” GitHub, 20-May-2020. [Online]. Available: https://github.com/syoyo/tinyexr. [Accessed: 28-May-2020].  
+
+<a id="12">[12]</a>
+K. E. Torrance and E. M. Sparrow, “Theory for Off-Specular Reflection From Roughened Surfaces*,” Journal of the Optical Society of America, vol. 57, no. 9, p. 1105, 1967.
