@@ -28,7 +28,7 @@ namespace CHR_UTILS
 		std::uniform_real_distribution<double> dis(0.0, 1.0f);
 		const double pi2 = 2.0f * glm::pi<double>();
 		double theta = pi2 * dis(s_gen);
-		double r = dis(s_gen);
+		double r = sqrt(dis(s_gen));
 
 		return { r * cos(theta), r * sin(theta) };
 	}
