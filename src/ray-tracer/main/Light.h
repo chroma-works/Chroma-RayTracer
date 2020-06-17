@@ -450,15 +450,6 @@ namespace CHR
 			lw = sqrt(1 - rand2 * rand2) * sin(2 * CHR_UTILS::PI * rand1);
 
 			direction = lu * isect_normal + lv * v + lw * w;
-			/*while (true)
-			{
-				direction = { CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1), CHR_UTILS::RandFloat(-1,1) };
-
-				bool valid_direction = glm::dot(direction, direction) <= 1.0f &&
-					glm::dot(direction, isect_normal) > 0.0f;
-				if (valid_direction)
-					break;
-			}*/
 			return glm::normalize(direction);
 		}
 		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
