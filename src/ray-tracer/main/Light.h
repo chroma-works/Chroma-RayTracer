@@ -441,25 +441,25 @@ namespace CHR
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_normal) const // NOT POSITION. NORMAL!!!
 		{
 			//Randomly sample a direction. Random rejection sampling
-			glm::vec3 direction, v, w;
+			glm::vec3 direction, u, w;
 			float rand1 = CHR_UTILS::RandFloat(), rand2 = CHR_UTILS::RandFloat();
-			CHR_UTILS::CreateOrthonormBasis(isect_normal, v, w);
+			CHR_UTILS::CreateOrthonormBasis(isect_normal, u, w);
 			float lu, lv, lw;
 			lu = sqrt(1 - rand2 * rand2) * cos(2 * CHR_UTILS::PI * rand1);
 			lv = rand2;
 			lw = sqrt(1 - rand2 * rand2) * sin(2 * CHR_UTILS::PI * rand1);
 
-			direction = lu * isect_normal + lv * v + lw * w;
+			direction = lu * u + lv * isect_normal + lw * w;
 			return glm::normalize(direction);
 		}
 		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
 		{
 			float u, v;
-			u = 0.5f - atan2f(l_vec.z, l_vec.x) * (0.5f / CHR_UTILS::PI);
-			v = acosf(l_vec.y) / CHR_UTILS::PI;
+			u = (0.5f - atan2f(l_vec.z, l_vec.x) * (0.5f / CHR_UTILS::PI))* m_tex->GetWidth();
+			v = acosf(l_vec.y) / CHR_UTILS::PI * m_tex->GetHeigth();
 			auto t_coord = glm::vec3(u, v, NAN);
-			glm::vec3 radiance = m_tex->SampleAt(t_coord);
-			radiance = glm::vec3({ radiance.b, radiance.g, radiance.r });
+			glm::vec3 radiance = m_tex->SampleAt(t_coord) ;
+			//radiance = glm::vec3({ radiance.b, radiance.g, radiance.r });
 
 			return radiance * 2.0f * (float)CHR_UTILS::PI;
 		}
