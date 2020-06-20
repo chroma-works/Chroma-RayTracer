@@ -413,7 +413,52 @@ Left with some spare time I made some adjusments to better my architecture in te
 
 I was also able to beautify the Editor Code by writing an virtual ImGuiDrawable class which is implemented by all scene components that can be adjusted by the interactive inspector(cameras, sceneobjects, lights). This class has one virtual method *DrawGui*. Which specifies how their parameters can be ineracted by the Editor GUI. I also made some color codings and simple UI changes to make somewhat a uniform looking GUI. I also selected new colors for the UI headers of the some inspectable scene components.  
 
+## Brief Project Discussion: Fast Tetrahedral Mesh Traversal for Ray Tracing  
+In this section is dedicated to a brief discussion on my research at Bilkent University which is correlated with the course topic. 
 
+So we know about BVH, kd-tree, Octree... as acceleration structures. Tetrehedral Meshes can also be used as spacially subdividing acceleration struture. The idea is simply filling the empty space in the scenes with tetrahedrons then tracing the rays through the tetrahedrons using ray connectivity and neighbourhood information of tetrahedrons. **Figure 37** demonstrates how mesh is set up and rays are traced[[13]](#13).  
+
+<img src= "resources/lagea_1.PNG">  
+**Figure 37:** Accelerating ray tracing using constrained tetrahedralizations. (left to right) A scene consisting of the Armadillo model; A tetrahedralization of space that respects the geometry of the scene; A ray is traced through the tetrahedralization; A constrained face is hit[[13]](#13).  
+
+Our research at Bilkent focuses on the compaction and efficiency aspect. My work specificly is on GPU kernels and efficiency on CUDA cores.  
+Some pros and cons of this approach:  
+* Can support limited deformation without reconstruction.  
+* Instead of full reconstruction partial reconstruction for mesh deformation and Level-of-detail(LoD) meshes can be applied.  
+* Very similar to grid data structure it self is highly localized so better suited for GPU application where as BVH or Kd-tree appoaches require a tree and a stack to maintain the parallelization.  
+* If quality Delenuay Tetrahedralization is applied Teapot-in-a-stadium problem does not occur.
+* Takes more memory than any other approach.  
+* Takes too long to construct.  
+* Does not handle intersection geomtery well.  
+
+I made detailed [video](https://youtu.be/LLZ8syqNtmc) about my research and the method which gives more in depth information about the Tetmesh acceleration structure.  
+
+The data structure assumes 3 arrays:  
+* Vertex list of tetrahedral mesh  
+* Tetrahedron list  
+* Mesh/scene object list  
+
+Each tetrahedron struct is 32 bytes long:  
+* 3 vertex indices  
+* xor sum of vertex indices to find the unshared vertex during traversal.  
+* 4 neigbour tetrahedron pointers.  
+
+Keep in mind that this representation can be further compacted down to 20 and 16 bytes. We call them TetMesh32, TetMesh20 and TetMesh16 respectfully [[14]](#14). Although I wont be able to share too much of our "latest results" I have provided TetMesh32's performance comparison with respect to kd-tree and BVH in **Figure 38**  
+
+<img src= "resources/table_1.PNG">  
+**Figure 38:** Construction and render times for different methods [[14]](#14).  
+
+**NOTE:** In the video I mistakenly say render times are microseconds. They are actually seconds.  
+
+In my video I also talk about the benefits of Hilbert sorting tetrahedra in memory to achive better results. One can look at **Figure 39** for effects of sorting for the scenes provided in **Figure 38**.  
+
+<img src= "resources/figure_1.PNG">  
+**Figure 39:** Render time comparison for unsorted vs. sorted tet-mesh data.  
+
+I can finally demonstrate some preliminary results concerning render times for various tet-mesh compaction schemes namely TetMesh32, TetMesh20, TetMesh16 and TetMeshScTP(original method described by Lagae et al. [[13]](#13)). As it turns out in general TetMesh20 is faster in the CPU where as TetMesh16 is faster in the GPU. This is due to extra operations required to unpack TetMesh16 during traversal(see **Figure 40**). With enough number of cores GPU can handle this operation in bulks where as in CPU very limited number of cores creates an instruction level bottle neck for TetMesh16 rather than a memory bottleneck.  Keep in mind that the figures provided measures render times. This includes ray initialization(in CPU), traversal and draw times for **CPU**;  ray initialization(in GPU), traversal, intersection data copy time and draw times for **GPU**
+
+<img src= "resources/render_t_types_CPU.png" width = "400"> <img src= "resources/render_t_types_GPU.png" width = "400">  
+**Figure 40:** (Left) CPU render times; (Right) GPU render times for various TetMesh sizes over various scenes(increasing in complexity).  
 
 ## References
 <a id="1">[1]</a>
@@ -448,4 +493,11 @@ AcademySoftwareFoundation, “AcademySoftwareFoundation/openexr,” GitHub, 27-M
 Syoyo, “syoyo/tinyexr,” GitHub, 20-May-2020. [Online]. Available: https://github.com/syoyo/tinyexr. [Accessed: 28-May-2020].  
 
 <a id="12">[12]</a>
-K. E. Torrance and E. M. Sparrow, “Theory for Off-Specular Reflection From Roughened Surfaces*,” Journal of the Optical Society of America, vol. 57, no. 9, p. 1105, 1967.
+K. E. Torrance and E. M. Sparrow, “Theory for Off-Specular Reflection From Roughened Surfaces*,” Journal of the Optical Society of America, vol. 57, no. 9, p. 1105, 1967.  
+
+<a id="13">[13]</a>
+A. Lagae and P. Dutre. “Accelerating ray tracing using constrained tetrahedralizations”. In 2008 IEEE Symposium on Interactive Ray Tracing, pages 184–184, Aug 2008.  
+
+<a id="14">[14]</a>  
+A. Aman and U. Güdükbay. “Fast Tetrahedral Mesh Traversal for Ray Tracing”. In 2017 High-Performance Graphics Conference, July 2017.  
+
