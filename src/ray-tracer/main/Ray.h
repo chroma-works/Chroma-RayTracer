@@ -74,7 +74,7 @@ namespace CHR
 				Material mat(*material);
 				mat.m_diffuse = kd;
 
-				glm::vec3 param = light->m_type != LIGHT_T::environment ? position : glm::normalize(normal);
+				glm::vec3 param = light->m_li_type != LIGHT_T::environment ? position : glm::normalize(normal);
 				glm::vec3 radiance = light->RadianceAt(param, l_vec);
 
 				return mat.Shade(l_vec, e_vec, normal) * radiance;

@@ -235,7 +235,7 @@ namespace CHR
 
 		for (auto shape : m_mesh->m_shapes)
 		{
-			if (shape->m_type == SHAPE_T::triangle)
+			if (shape->m_shape_type == SHAPE_T::triangle)
 			{
 				((Triangle*)shape.get())->m_shading_mode = SHADING_MODE::smooth;
 			}

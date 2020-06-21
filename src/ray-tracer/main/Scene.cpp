@@ -36,7 +36,7 @@ namespace CHR
 	void Scene::AddLight(std::string name, std::shared_ptr<Light> li)
 	{
 		m_lights[name] = li;
-		switch (li->m_type)
+		switch (li->m_li_type)
 		{
 		case LIGHT_T::point:
 			m_scene_data->m_shader->AddLight(std::static_pointer_cast<PointLight>(li));
