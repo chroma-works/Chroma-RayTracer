@@ -78,6 +78,7 @@ set (main_sources
 	src/ray-tracer/main/ImageTextureMap.cpp
 	src/ray-tracer/main/NoiseTextureMap.h
 	src/ray-tracer/main/NoiseTextureMap.cpp
+	src/ray-tracer/main/ObjectLight.h
 	src/ray-tracer/main/SceneObject.h
 	src/ray-tracer/main/SceneObject.cpp
 	src/ray-tracer/main/Window.h

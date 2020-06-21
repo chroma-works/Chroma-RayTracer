@@ -55,8 +55,8 @@ namespace CHR
 
 	};
 
-	class LightTriangle : public Light, public Triangle
+	/*class LightTriangle : public Light, public Triangle
 	{
 
-	};
+	};*/
 }
