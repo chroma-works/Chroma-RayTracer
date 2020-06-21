@@ -15,7 +15,7 @@ namespace CHR
 			m_li_type = LIGHT_T::mesh;
 		}
 
-		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos)
+		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
 			//Transform intersenction position to object space
 			glm::vec3 obj_isect_pos = *m_inv_transform * glm::vec4(isect_pos, 1.0f);
@@ -35,7 +35,7 @@ namespace CHR
 			return glm::normalize(isect_data.position - isect_pos);
 		}
 
-		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec)
+		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
 		{
 			//Transform intersenction position to object space
 			glm::vec3 obj_isect_pos = *m_inv_transform * glm::vec4(isect_pos, 1.0f);
