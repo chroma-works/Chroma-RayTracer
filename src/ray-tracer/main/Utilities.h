@@ -49,7 +49,7 @@ namespace CHR_UTILS
 		return r_prime;
 	}
 
-	inline void CreateOrthonormBasis(const glm::vec3 _r, glm::vec3& u, glm::vec3& v)
+	inline void GenerateONB(const glm::vec3 _r, glm::vec3& u, glm::vec3& v)
 	{
 		//create orthonormal basis
 		glm::vec3 r = glm::normalize(_r);

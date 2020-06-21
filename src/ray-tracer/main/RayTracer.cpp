@@ -42,7 +42,7 @@ namespace CHR
 		//shadow_ray.jitter_t = ray.jitter_t; // Uncomment if problems occur
 		float distance = 0.0f;
 		float prod1, prod2, prod3;
-		switch (li->m_type)
+		switch (li->m_li_type)
 		{
 		case LIGHT_T::point:
 			distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->m_position);
@@ -349,7 +349,7 @@ namespace CHR
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			glm::vec3 u, v;
-			CHR_UTILS::CreateOrthonormBasis(r, u, v);
+			CHR_UTILS::GenerateONB(r, u, v);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
 				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
 			reflection_ray.intersect_eps = m_settings.intersection_eps;
@@ -366,7 +366,7 @@ namespace CHR
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			glm::vec3 u, v;
-			CHR_UTILS::CreateOrthonormBasis(r, u, v);
+			CHR_UTILS::GenerateONB(r, u, v);
 
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
@@ -402,7 +402,7 @@ namespace CHR
 				//For glossy objects
 				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 				glm::vec3 u, v;
-				CHR_UTILS::CreateOrthonormBasis(r, u, v);
+				CHR_UTILS::GenerateONB(r, u, v);
 
 				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 					(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
@@ -447,7 +447,7 @@ namespace CHR
 				std::shared_ptr<Light> li = it->second;
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
 
-				glm::vec3 param = li->m_type != LIGHT_T::environment ? 
+				glm::vec3 param = li->m_li_type != LIGHT_T::environment ? 
 					isect_data.position : glm::normalize(isect_data.normal);
 				glm::vec3 l_vec = li->SampleLightDirection(param);
 				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);

@@ -351,7 +351,7 @@ namespace CHR
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
 			glm::vec3 u, v;
-			CHR_UTILS::CreateOrthonormBasis(m_normal, u, v);
+			CHR_UTILS::GenerateONB(m_normal, u, v);
 			glm::vec3 sample_pos = m_position + (CHR_UTILS::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
 				CHR_UTILS::RandFloat(-m_size / 2.0f, m_size / 2.0f) * v);
 
@@ -443,7 +443,7 @@ namespace CHR
 			//Randomly sample a direction. Random rejection sampling
 			glm::vec3 direction, u, w;
 			float rand1 = CHR_UTILS::RandFloat(), rand2 = CHR_UTILS::RandFloat();
-			CHR_UTILS::CreateOrthonormBasis(isect_normal, u, w);
+			CHR_UTILS::GenerateONB(isect_normal, u, w);
 			float lu, lv, lw;
 			lu = sqrt(1 - rand2 * rand2) * cos(2 * CHR_UTILS::PI * rand1);
 			lv = rand2;
