@@ -16,7 +16,7 @@
 
 namespace CHR
 {
-	enum class LIGHT_T {point, directional, spot, environment, area};
+	enum class LIGHT_T {point, directional, spot, environment, area, mesh};
 	class Light : public ImGuiDrawable
 	{
 	public:
@@ -27,13 +27,13 @@ namespace CHR
 		virtual glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const = 0;	// Calculates radiance at given point
 
 		std::string m_shader_var_name;
-		glm::vec3 m_ambient;
-		glm::vec3 m_diffuse;
-		glm::vec3 m_specular;
+		glm::vec3 m_ambient = {0,0,0};
+		glm::vec3 m_diffuse = { 0,0,0 };
+		glm::vec3 m_specular = { 0,0,0 };
 
 		glm::vec3 m_inten;
 
-		LIGHT_T m_type;
+		LIGHT_T m_li_type;
 	};
 
 	class DirectionalLight : public Light {
@@ -48,7 +48,7 @@ namespace CHR
 			m_specular = spec;
 			m_shader_var_name = name;
 			m_inten = { 0,0,0 };
-			m_type = LIGHT_T::directional;
+			m_li_type = LIGHT_T::directional;
 		}
 
 		DirectionalLight(const DirectionalLight& other)
@@ -59,7 +59,7 @@ namespace CHR
 			m_specular = other.m_specular;
 			m_shader_var_name = other.m_shader_var_name;
 			m_inten = other.m_inten;
-			m_type = LIGHT_T::directional;
+			m_li_type = LIGHT_T::directional;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
@@ -134,7 +134,7 @@ namespace CHR
 			m_specular = spec;
 			m_shader_var_name = name;
 			m_inten = { 0,0,0 };
-			m_type = LIGHT_T::point;
+			m_li_type = LIGHT_T::point;
 		}
 
 		PointLight(const PointLight& other)
@@ -146,7 +146,7 @@ namespace CHR
 			m_specular = other.m_specular;
 			m_shader_var_name = other.m_shader_var_name;
 			m_inten = other.m_inten;
-			m_type = LIGHT_T::point;
+			m_li_type = LIGHT_T::point;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
@@ -233,7 +233,7 @@ namespace CHR
 			m_specular = spec;
 			m_shader_var_name = name;
 			m_inten = { 0,0,0 };
-			m_type = LIGHT_T::spot;
+			m_li_type = LIGHT_T::spot;
 		}
 
 		SpotLight(const SpotLight& other)
@@ -247,7 +247,7 @@ namespace CHR
 			m_specular = other.m_specular;
 			m_shader_var_name = other.m_shader_var_name;
 			m_inten = other.m_inten;
-			m_type = LIGHT_T::spot;
+			m_li_type = LIGHT_T::spot;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
@@ -334,7 +334,7 @@ namespace CHR
 			m_specular = { 0,0,0 };
 			m_shader_var_name = name;
 			m_inten = { 0,0,0 };
-			m_type = LIGHT_T::area;
+			m_li_type = LIGHT_T::area;
 		}
 
 		AreaLight(const AreaLight& other)
@@ -345,7 +345,7 @@ namespace CHR
 			m_specular = other.m_specular;
 			m_shader_var_name = other.m_shader_var_name;
 			m_inten = other.m_inten;
-			m_type = LIGHT_T::area;
+			m_li_type = LIGHT_T::area;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
@@ -424,7 +424,7 @@ namespace CHR
 			m_specular = { 0,0,0 };
 			m_shader_var_name = name;
 			m_inten = { 0,0,0 };
-			m_type = LIGHT_T::environment;
+			m_li_type = LIGHT_T::environment;
 		}
 
 		EnvironmentLight(const EnvironmentLight& other)
@@ -435,7 +435,7 @@ namespace CHR
 			m_specular = other.m_specular;
 			m_shader_var_name = other.m_shader_var_name;
 			m_inten = other.m_inten;
-			m_type = LIGHT_T::environment;
+			m_li_type = LIGHT_T::environment;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_normal) const // NOT POSITION. NORMAL!!!
@@ -486,5 +486,4 @@ namespace CHR
 
 		std::shared_ptr<Texture> m_tex;
 	};
-
 }

@@ -42,7 +42,7 @@ namespace CHR
 		bool m_visible = true;
 		std::shared_ptr<Material> m_material = nullptr;
 		std::shared_ptr<TextureMap> m_tex_maps[2] = {nullptr, nullptr};		//0 = shading, 1 = normal perturbation
-		SHAPE_T m_type = SHAPE_T::none;
+		SHAPE_T m_shape_type = SHAPE_T::none;
 		glm::vec3 m_motion_blur = { 0,0,0 };
 	protected:
 		friend class Instance;
@@ -55,7 +55,7 @@ namespace CHR
 		Triangle(std::shared_ptr<Material> mat, bool visible = true)
 			:Shape(mat, visible)
 		{
-			m_type = SHAPE_T::triangle;
+			m_shape_type = SHAPE_T::triangle;
 		}
 		Triangle(std::vector<std::shared_ptr<glm::vec3>>verts,
 			std::vector<std::shared_ptr<glm::vec3>> norms,
@@ -63,7 +63,7 @@ namespace CHR
 			std::shared_ptr<Material> mat, bool visible = true)
 			: Shape(mat, visible)
 		{
-			m_type = SHAPE_T::triangle;
+			m_shape_type = SHAPE_T::triangle;
 			if (verts.size() != 3)
 				CH_WARN("Non-Triangle object passed to Triangle class");
 			if (verts.size() >= 3)
@@ -236,7 +236,7 @@ namespace CHR
 		Sphere(std::shared_ptr<Material> mat, bool visible = true)
 			:Shape(mat, visible)
 		{
-			m_type = SHAPE_T::sphere;
+			m_shape_type = SHAPE_T::sphere;
 		}
 
 		Bounds3 GetWorldBounds() const
