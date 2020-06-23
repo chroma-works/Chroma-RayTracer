@@ -7,6 +7,7 @@
 #include <ray-tracer/editor/Logger.h>
 #include <ray-tracer/main/Shape.h>
 #include <ray-tracer/main/Material.h>
+#include <ray-tracer/main/ObjectLight.h>
 
 #include <thirdparty/hapPLY/happly.h>
 #include <thirdparty/OBJ_loader/OBJ_Loader.h>
@@ -47,6 +48,7 @@ namespace CHR
 	const std::string INTERP = "Interpolation";
 	const std::string INTEN = "Intensity";
 	const std::string LIGS = "Lights";
+	const std::string L_SPHR = "LightSphere";
 	const std::string MAT = "Material";
 	const std::string MATS = "Materials";
 	const std::string MAX_RECUR = "MaxRecursionDepth";
@@ -1353,7 +1355,7 @@ namespace CHR
 					{
 						std:: string name = "sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
 						glm::mat4 transform = glm::mat4(1.0f);
-						Sphere s(NULL, true);
+						auto s = std::make_shared<Sphere>(nullptr, true);
 
 						glm::vec3 m_b = { 0,0,0 };
 						glm::vec3 center = { 0,0,0 };
@@ -1370,7 +1372,7 @@ namespace CHR
 								int ind;
 								sscanf(data.c_str(), "%d", &ind);
 								ind = ind - 1;
-								s.m_material = materials[ind];
+								s->m_material = materials[ind];
 							}
 							else if (std::string(object_prop->Value()).compare(TEX) == 0)
 							{
@@ -1468,6 +1470,80 @@ namespace CHR
 						if (tex_map_ind_2 > -1)
 							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
+					}
+					else if (std::string(child_node->Value()).compare(L_SPHR) == 0)
+					{
+						std::string name = "light_sphere_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						glm::mat4 transform = glm::mat4(1.0f);
+						auto s = std::make_shared<LightSphere>(glm::vec3(0,0,0), nullptr, true);
+
+						glm::vec3 m_b = { 0,0,0 };
+						glm::vec3 center = { 0,0,0 };
+						glm::vec3 rad_scale = { 1,1,1 };
+
+						int tex_map_ind_1 = -1, tex_map_ind_2 = -1;
+
+						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						while (object_prop)
+						{
+							if (std::string(object_prop->Value()).compare(MAT) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								int ind;
+								sscanf(data.c_str(), "%d", &ind);
+								ind = ind - 1;
+								s->m_material = materials[ind];
+							}
+							else if (std::string(object_prop->Value()).compare(TEX) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d %d", &tex_map_ind_1, &tex_map_ind_2);
+								tex_map_ind_1--;
+								tex_map_ind_2--;
+							}
+							else if (std::string(object_prop->Value()).compare("Radiance") == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								glm::vec3 rad;
+								sscanf(data.c_str(), "%f %f %f", &rad.x, &rad.y, &rad.z);
+								s->m_inten = rad;
+							}
+							else if (std::string(object_prop->Value()).compare("Center") == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								int ind;
+								sscanf(data.c_str(), "%d", &ind);
+								ind = ind - 1;
+								center = *vertices[ind];
+							}
+							else if (std::string(object_prop->Value()).compare(RAD) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								float r;
+								sscanf(data.c_str(), "%f", &r);
+								rad_scale = r * rad_scale;
+							}
+							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
+							{
+								transform = CalculateTransforms(translations, rotations, scalings, composites, object_prop);
+							}
+							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &m_b.x, &m_b.y, &m_b.z);
+							}
+							object_prop = object_prop->NextSibling();
+						}
+						transform *= glm::scale(glm::translate(glm::mat4(1.0f), center), rad_scale);
+						auto scene_obj = std::shared_ptr<SceneObject>(SceneObject::CreateSphere(name, s, glm::vec3(), glm::vec3(), glm::vec3()));
+						scene_obj->SetTransforms(transform);
+						scene_obj->SetMotionBlur(m_b);
+						if (tex_map_ind_1 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_1]);
+						if (tex_map_ind_2 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
+						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
+						scene->AddLight(name, s);
 					}
 					child_node = child_node->NextSibling();
 				}
