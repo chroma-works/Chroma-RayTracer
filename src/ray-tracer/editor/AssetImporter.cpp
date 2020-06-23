@@ -463,6 +463,13 @@ namespace CHR
 				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
 				cam->SetPosition(vec);
 			}
+			else if (std::string(cam_prop->Value()).compare(GAZE) == 0)
+			{
+				std::string data = cam_prop->FirstChild()->Value();
+				glm::vec3 vec({ 0,0,0 });
+				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
+				cam->SetGaze(vec);
+			}
 			else if (std::string(cam_prop->Value()).compare(UP) == 0)
 			{
 				std::string data = cam_prop->FirstChild()->Value();
@@ -544,14 +551,6 @@ namespace CHR
 				sscanf(data.c_str(), "%f %f %f %f", &vec[0].x, &vec[1].x, &vec[1].y, &vec[0].y);
 				cam->SetNearPlane(vec);
 			}
-			else if (!cam_type &&
-				std::string(cam_prop->Value()).compare(GAZE) == 0)
-			{
-				std::string data = cam_prop->FirstChild()->Value();
-				glm::vec3 vec({ 0,0,0 });
-				sscanf(data.c_str(), "%f %f %f", &vec.x, &vec.y, &vec.z);
-				cam->SetGaze(vec);
-			}
 			//----------------Look at cam------------------
 			else if ((std::string(cam_type->Value()).compare("lookAt") == 0) &&
 				std::string(cam_prop->Value()).compare(POS) == 0)
@@ -575,7 +574,7 @@ namespace CHR
 				std::string data = cam_prop->FirstChild()->Value();
 				float fovy;
 				sscanf(data.c_str(), "%f", &fovy);
-				vec[0].y = std::tan(glm::radians(fovy/2));
+				vec[0].y = tanf(glm::radians(fovy* 0.5f));
 				vec[1].y = -vec[0].y;
 				vec[0].x = vec[1].y;
 				vec[1].x = -vec[0].x;
@@ -589,7 +588,7 @@ namespace CHR
 		}
 		if (glm::dot(cam->GetGaze(), cam->GetUp()) != 0)
 		{
-			CH_INFO("Camera Up and gaze are not orthogonal. Recalculating up...");
+			CH_TRACE("Camera Up and gaze are not orthogonal. Recalculating up...");
 			glm::vec3 u = glm::cross(cam->GetGaze(), cam->GetUp());
 			glm::vec3 v_prime = glm::cross(-cam->GetGaze(), u);
 			cam->SetUp(v_prime);
