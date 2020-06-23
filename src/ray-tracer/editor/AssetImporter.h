@@ -20,7 +20,7 @@ namespace CHR
 
 		static Mesh* LoadMeshFromPly(std::string ply_path);
 
-		static Scene* LoadSceneFromXML(Shader* shader, const std::string& file_name, Settings* setting);
+		static Scene* LoadSceneFromXML(Shader* shader, const std::string& file_name);
 
     private:
     };

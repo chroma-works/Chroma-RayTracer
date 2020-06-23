@@ -31,10 +31,10 @@ int main()
 	CHR::Shader* shader = CHR::Shader::ReadAndBuildShaderFromFile("../../assets/shaders/phong.vert", "../../assets/shaders/phong.frag");
 
 	std::shared_ptr<CHR::Scene> scene;
-	CHR::Settings s;
-	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw7/directLighting/cornellbox_jaroslav_glossy_area_sphere.xml", &s)));
+	auto s = CHR::Settings::GetInstance();
+	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw7/directLighting/cornellbox_jaroslav_diffuse.xml")));
 	//init editor
-	CHR::Editor editor(&window, scene.get(), s);
+	CHR::Editor editor(&window, scene.get());
 
 	//editor.TogglePreviewRender(false);
 

@@ -652,8 +652,10 @@ namespace CHR
 
 	//========================================================================================================================//
 
-	Scene* AssetImporter::LoadSceneFromXML(Shader* shader, const std::string& file_path, Settings* settings)
+	Scene* AssetImporter::LoadSceneFromXML(Shader* shader, const std::string& file_path)
 	{
+		//Get Settings pointer
+		auto settings = Settings::GetInstance();
 		//Scene name from file name
 		size_t found = file_path.find_last_of("/\\");
 		size_t found2 = file_path.find_last_of(".");
@@ -681,7 +683,7 @@ namespace CHR
 			if (std::string(node->Value()).compare(MAX_RECUR) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				sscanf(data.c_str(), "%d", &settings->recur_depth);
+				sscanf(data.c_str(), "%d", &settings->m_recur_depth);
 			}
 			else if (std::string(node->Value()).compare(BCK_COLOR) == 0)
 			{
@@ -691,12 +693,12 @@ namespace CHR
 			else if (std::string(node->Value()).compare(S_RAY_EPS) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				sscanf(data.c_str(), "%f", &settings->shadow_eps);
+				sscanf(data.c_str(), "%f", &settings->m_shadow_eps);
 			}
 			else if (std::string(node->Value()).compare(I_TEST_EPS) == 0)
 			{
 				std::string data = node->FirstChild()->Value();
-				sscanf(data.c_str(), "%f", &settings->intersection_eps);
+				sscanf(data.c_str(), "%f", &settings->m_intersection_eps);
 			}
 			else if (std::string(node->Value()).compare(CAMS) == 0)
 			{
