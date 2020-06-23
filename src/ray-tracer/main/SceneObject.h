@@ -92,7 +92,7 @@ namespace CHR
 			SHAPE_T t = SHAPE_T::triangle, std::vector<unsigned int> tex_inds = std::vector<unsigned int>());
 		//~SceneObject();
 
-		static SceneObject* CreateSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
+		static SceneObject* CreateSphere(std::string name, std::shared_ptr<Sphere> s, glm::vec3 pos, glm::vec3 rot,
 			glm::vec3 scale);
 		static SceneObject* CreateInstance(std::string name, std::shared_ptr<SceneObject> base, bool reset_transforms = false);
 

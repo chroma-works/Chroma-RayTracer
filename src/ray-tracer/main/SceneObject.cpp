@@ -181,7 +181,7 @@ namespace CHR
 		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t);
 	}
 
-	SceneObject* SceneObject::CreateSphere(std::string name, Sphere s, glm::vec3 pos, glm::vec3 rot,
+	SceneObject* SceneObject::CreateSphere(std::string name, std::shared_ptr<Sphere> s, glm::vec3 pos, glm::vec3 rot,
 		glm::vec3 scale)
 	{
 		auto mesh = std::make_shared<Mesh>(*AssetImporter::LoadMeshFromOBJ("../../assets/models/sphere.obj"));
@@ -190,11 +190,11 @@ namespace CHR
 			CH_WARN("Using sphere.obj file in preview-render");
 		}
 		SceneObject* obj = new SceneObject(mesh, name, pos, rot, scale, SHAPE_T::sphere);
-		obj->m_material = s.m_material;
-		s.m_visible = obj->IsVisible();
-		s.SetTransform(obj->m_tranform_matrix, obj->m_inverse_tranform_matrix);
+		obj->m_material = s->m_material;
+		s->m_visible = obj->IsVisible();
+		s->SetTransform(obj->m_tranform_matrix, obj->m_inverse_tranform_matrix);
 
-		obj->m_mesh->m_shapes.push_back(std::make_shared<Sphere>(s));
+		obj->m_mesh->m_shapes.push_back(s);
 		obj->m_mesh->m_shapes.shrink_to_fit();
 		//For editor preview render
 		obj->InitOpenGLBuffers();
