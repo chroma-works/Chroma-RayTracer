@@ -16,8 +16,8 @@ namespace CHR
 	class Editor
 	{
 	public:
-		Editor(Window* window, Scene* scene, Settings s);
-		static Editor* getInstance();
+		Editor(Window* window, Scene* scene);
+		static Editor* GetInstance();
 		~Editor();
 
 		Editor(Editor const&) = delete;
@@ -41,7 +41,7 @@ namespace CHR
 		bool m_preview_render = true;
 		Scene* m_scene;
 
-		Settings m_settings;
+		Settings* m_settings;
 
 		unsigned int rendered_frame_texture_id;
 

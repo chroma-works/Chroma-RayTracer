@@ -13,8 +13,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 namespace CHR
 {
 	CHR::Editor* s_instance = 0;
-	Editor::Editor(Window* win, Scene* scene, Settings s)
-		: m_settings(s)
+	Editor::Editor(Window* win, Scene* scene)
+		: m_settings(Settings::GetInstance())
 	{
 		if (!s_instance)
 		{
@@ -24,8 +24,9 @@ namespace CHR
 			m_scene = scene;
 			m_render = false;
 
-			m_settings.act_editor_cam_name = m_scene->m_cameras.begin()->first;
-			m_settings.act_rt_cam_name = m_settings.act_editor_cam_name;
+			m_settings->m_act_editor_cam_name = m_scene->m_cameras.begin()->first;
+			m_settings->m_act_rt_cam_name = m_settings->m_act_editor_cam_name;
+			m_settings->Attach(m_scene->GetCamera(m_settings->m_act_rt_cam_name));
 
 			ImGui::CreateContext();
 			ImGui_ImplGlfw_InitForOpenGL(m_window->m_window_handle, true);
@@ -34,7 +35,9 @@ namespace CHR
 			glfwSetScrollCallback(m_window->m_window_handle, scroll_callback);
 			InitSkin();
 
-			ray_tracer = new CHR::RayTracer();
+			ray_tracer = new RayTracer();
+
+			m_settings->Attach((Observer*)ray_tracer);
 
 			if (!ray_tracer)
 				CH_ERROR("Failed to create Chrom Ray Tracer");
@@ -44,7 +47,7 @@ namespace CHR
 			CH_ERROR("Failed to create an instance of Editor");
 	}
 
-	Editor* Editor::getInstance()
+	Editor* Editor::GetInstance()
 	{
 		if (s_instance != 0)
 		{
@@ -67,7 +70,7 @@ namespace CHR
 		m_window->OnUpdate();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		if(m_preview_render)
-			m_scene->Render(m_scene->GetCamera(m_settings.act_editor_cam_name));
+			m_scene->Render(m_scene->GetCamera(m_settings->m_act_editor_cam_name));
 	}
 
 	void Editor::OnDraw()
@@ -159,9 +162,9 @@ namespace CHR
 		{
 			m_scene->m_cameras[selected_name]->DrawGUI();
 			ImGui::Separator();
-			bool tmp = m_settings.act_editor_cam_name.compare(selected_name) == 0;
+			bool tmp = m_settings->m_act_editor_cam_name.compare(selected_name) == 0;
 			ImGui::Checkbox("Editor Camera", &tmp);
-			m_settings.act_editor_cam_name = tmp ? selected_name : m_settings.act_editor_cam_name;
+			m_settings->m_act_editor_cam_name = tmp ? selected_name : m_settings->m_act_editor_cam_name;
 
 		}
 		else if (selected_item_type == SELECTION_TYPE::light)
@@ -183,34 +186,27 @@ namespace CHR
 	void Editor::DrawRayTracedFrame()
 	{
 		static bool flag = true;
-		m_settings.resolution = m_scene->GetCamera(m_settings.act_rt_cam_name)->GetResolution();
 		if (flag)
 		{
-			//m_settings.recur_depth = m_scene->m_recur_dept;
-			ray_tracer->m_settings.resolution = { -1.0f, -1.0f };
 			flag = false;
+			//m_settings->m_recur_depth = m_scene->m_recur_dept;
+			//ray_tracer->m_settings->m_resolution = { -1.0f, -1.0f };
 			ImGui::SetNextWindowSize(ImVec2(820, 480));
-			glGenTextures(1, &rendered_frame_texture_id);
-		}
-
-		if (m_settings.resolution != ray_tracer->m_settings.resolution)
-		{
-			ray_tracer->SetResoultion(m_settings.resolution);
+			ray_tracer->ResetImage();
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_settings.resolution.x, m_settings.resolution.y, 0, 
-				GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_settings->GetResolution().x, m_settings->GetResolution().y,
+				0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 		if (m_render)
 		{
-			//m_scene->m_cameras[m_settings.act_rt_cam_name]->SetFocalDistance(m_scene->m_cameras[m_settings.act_rt_cam_name]->GetFocalDistance() + 1.0f);
-			ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name],  *m_scene, false);
+			ray_tracer->Render(m_scene->m_cameras[m_settings->m_act_rt_cam_name],  *m_scene, false);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings.resolution.x, m_settings.resolution.y,
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings->GetResolution().x, m_settings->GetResolution().y,
 				GL_RGB, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 		}
 
@@ -219,7 +215,7 @@ namespace CHR
 		float cw = ImGui::GetContentRegionAvailWidth() * 0.65f;
 
 		ImGui::Image((ImTextureID)(intptr_t)rendered_frame_texture_id, 
-			ImVec2(cw, cw * m_settings.resolution.y / m_settings.resolution.x));
+			ImVec2(cw, cw * m_settings->GetResolution().y / m_settings->GetResolution().x));
 		ImGui::SameLine();
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
@@ -243,13 +239,17 @@ namespace CHR
 			ImGui::EndCombo();
 		}
 
-		if (ImGui::BeginCombo("RT Camera", m_settings.act_rt_cam_name.c_str(), ImGuiComboFlags_None))
+		if (ImGui::BeginCombo("RT Camera", m_settings->m_act_rt_cam_name.c_str(), ImGuiComboFlags_None))
 		{
 			for (auto it = m_scene->m_cameras.begin(); it != m_scene->m_cameras.end(); it++)
 			{
-				bool is_selected = (m_settings.act_rt_cam_name.compare(it->first) == 0);
+				bool is_selected = (m_settings->m_act_rt_cam_name.compare(it->first) == 0);
 				if (ImGui::Selectable(it->first.c_str(), is_selected))
-					m_settings.act_rt_cam_name = it->first;
+				{
+					m_settings->Detach(m_scene->GetCamera(m_settings->m_act_rt_cam_name));
+					m_settings->m_act_rt_cam_name = it->first;
+					m_settings->Attach(m_scene->GetCamera(m_settings->m_act_rt_cam_name));
+				}
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
 			}
@@ -258,26 +258,27 @@ namespace CHR
 
 		ImGui::Separator();
 
-		if (ImGui::InputInt2("Resolution", (int*)&m_settings.resolution.x))
+		glm::ivec2 tmp_res = m_settings->GetResolution();
+		if (ImGui::InputInt2("Resolution", (int*)&tmp_res.x))
 		{
-			m_scene->GetCamera(m_settings.act_rt_cam_name)->SetResolution(m_settings.resolution);
-			ray_tracer->SetResoultion(m_settings.resolution);
+			m_settings->SetResolution(tmp_res);
+
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_settings.resolution.x, m_settings.resolution.y,
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tmp_res.x, tmp_res.y,
 				0, GL_BGR, GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
 
 		ImGui::PushItemWidth(100);
-		ImGui::InputInt("Recursion Depth", &m_settings.recur_depth);
-		int n_sample = m_scene->GetCamera(m_settings.act_rt_cam_name)->GetNumberOfSamples();
+		ImGui::InputInt("Recursion Depth", &m_settings->m_recur_depth);
+		int n_sample = m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetNumberOfSamples();
 		ImGui::InputInt("# of Samples ", &n_sample, 1 ,100);
-		m_scene->GetCamera(m_settings.act_rt_cam_name)->SetNumberOfSamples(n_sample);
+		m_scene->GetCamera(m_settings->m_act_rt_cam_name)->SetNumberOfSamples(n_sample);
 
-		ImGui::InputInt("Thread Count", &m_settings.thread_count);
+		ImGui::InputInt("Thread Count", &m_settings->m_thread_count);
 		ImGui::PopItemWidth();
 		ImGui::Separator();
 
@@ -305,11 +306,11 @@ namespace CHR
 		{
 			if (m_scene->m_accel_structure)
 			{
-				ray_tracer->Render(m_scene->m_cameras[m_settings.act_rt_cam_name], *m_scene);
-				std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
+				ray_tracer->Render(m_scene->m_cameras[m_settings->m_act_rt_cam_name], *m_scene);
+				std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetImageName();
 				ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
 				glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ray_tracer->m_settings.resolution.x, ray_tracer->m_settings.resolution.y, GL_RGB,
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings->GetResolution().x, m_settings->GetResolution().y, GL_RGB,
 					GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
 			}
 			else
@@ -317,17 +318,17 @@ namespace CHR
 		}
 		if (ImGui::Button("Save Frame"))
 		{
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings.act_rt_cam_name)->GetImageName();
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetImageName();
 			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
 		}
-		static bool save_exr = m_settings.ldr_post_process;
-		static int e = m_settings.ldr_post_process;
+		static bool save_exr = m_settings->m_ldr_post_process;
+		static int e = m_settings->m_ldr_post_process;
 		if (ImGui::Checkbox("Save HDR Image(.exr)", &save_exr))
 		{
-			//e = m_settings.ldr_post_process;
-			//m_settings.ldr_post_process = save_exr;
+			//e = m_settings->m_ldr_post_process;
+			//m_settings->m_ldr_post_process = save_exr;
 			delete ray_tracer->m_rendered_image;
-			ray_tracer->m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, save_exr);
+			ray_tracer->m_rendered_image = new Image(m_settings->GetResolution().x, m_settings->GetResolution().y, save_exr);
 		}
 		if (save_exr)
 		{
@@ -340,7 +341,7 @@ namespace CHR
 			ImGui::Text("-LDR Image Options-");
 			ImGui::RadioButton("Clamp pixels", &e, 1); ImGui::SameLine();
 			ImGui::RadioButton("Tone Map", &e, 2);
-			m_settings.ldr_post_process = (IM_POST_PROC_T)e;
+			m_settings->m_ldr_post_process = (IM_POST_PROC_T)e;
 		}
 
 		ImGui::Separator();
@@ -375,17 +376,17 @@ namespace CHR
 		ImGui::Separator();
 
 		ImGui::PushItemWidth(120);
-		ImGui::DragFloat("Pertub. Bias", &m_settings.shadow_eps, 0.00001f, 0.0f, 0.8, "%.6f");
+		ImGui::DragFloat("Pertub. Bias", &m_settings->m_shadow_eps, 0.00001f, 0.0f, 0.8, "%.6f");
 		ImGui::PopItemWidth();
 
-		ImGui::Checkbox("Shadows", &m_settings.calc_shadows);
+		ImGui::Checkbox("Shadows", &m_settings->m_calc_shadows);
 		ImGui::SameLine();
 
 		if (selected_rt_method != RT_MODE::ray_cast)
 		{
-			ImGui::Checkbox("Reflections", &m_settings.calc_reflections);
+			ImGui::Checkbox("Reflections", &m_settings->m_calc_reflections);
 			ImGui::SameLine();
-			ImGui::Checkbox("Refractions", &m_settings.calc_refractions);
+			ImGui::Checkbox("Refractions", &m_settings->m_calc_refractions);
 		}
 
 		ImGui::Separator();
@@ -393,8 +394,8 @@ namespace CHR
 		ImGui::EndChild();
 		ImGui::End();
 
-		ray_tracer->SetResoultion(m_settings.resolution);
-		ray_tracer->m_settings = m_settings;
+		//ray_tracer->SetResoultion(m_settings->GetResolution());
+		//ray_tracer->m_settings = m_settings;
 	}
 	void Editor::DrawSceneInfo()
 	{
@@ -483,9 +484,9 @@ namespace CHR
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings;
 		ImGui::Begin("Editor Info", 0, flags);
 		ImGui::SetWindowPos(ImVec2(5, 5));
-		ImGui::Text("Camera Movement Speed: %f", m_settings.camera_move_speed);
+		ImGui::Text("Camera Movement Speed: %f", m_settings->m_camera_move_speed);
 		ImGui::SetWindowPos(ImVec2(5, 10));
-		ImGui::Text("Camera Rotation Speed: %f", m_settings.camera_rotate_speed);
+		ImGui::Text("Camera Rotation Speed: %f", m_settings->m_camera_rotate_speed);
 		ImGui::Checkbox("Preview Render", &m_preview_render);
 		ImGui::End();
 	}
@@ -493,42 +494,42 @@ namespace CHR
 	float pitch = 0.0f;
 	void Editor::HandleKeyBoardNavigation()
 	{
-		auto cam = m_scene->m_cameras[m_settings.act_editor_cam_name];
+		auto cam = m_scene->m_cameras[m_settings->m_act_editor_cam_name];
 		glm::vec3 forward = glm::normalize(cam->GetGaze());
 		glm::vec3 right = glm::cross(forward, glm::normalize(cam->GetUp()));
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_W])
 		{
-			cam->SetPosition(cam->GetPosition() + forward * m_settings.camera_move_speed);
+			cam->SetPosition(cam->GetPosition() + forward * m_settings->m_camera_move_speed);
 			cam->SetGaze( forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_S])
 		{
-			cam->SetPosition(cam->GetPosition() - forward * m_settings.camera_move_speed);
+			cam->SetPosition(cam->GetPosition() - forward * m_settings->m_camera_move_speed);
 			cam->SetGaze(forward);
 		}
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_A])
 		{
-			cam->SetPosition(cam->GetPosition() - glm::normalize(right) * m_settings.camera_move_speed);
+			cam->SetPosition(cam->GetPosition() - glm::normalize(right) * m_settings->m_camera_move_speed);
 			cam->SetGaze( forward);
 		}
 
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_D])
 		{
-			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_settings.camera_move_speed);
+			cam->SetPosition(cam->GetPosition() + glm::normalize(right) * m_settings->m_camera_move_speed);
 			cam->SetGaze(forward);
 		}
 
 		if (ImGui::GetIO().KeysDown[GLFW_KEY_SPACE] && ImGui::GetIO().KeyAlt)
 		{
-			cam->SetPosition(cam->GetPosition() - glm::normalize(cam->GetUp()) * m_settings.camera_move_speed);
+			cam->SetPosition(cam->GetPosition() - glm::normalize(cam->GetUp()) * m_settings->m_camera_move_speed);
 			//cam->SetGaze(forward);
 		}
 		else if (ImGui::GetIO().KeysDown[GLFW_KEY_SPACE])
 		{
-			cam->SetPosition(cam->GetPosition() + glm::normalize(cam->GetUp()) * m_settings.camera_move_speed);
+			cam->SetPosition(cam->GetPosition() + glm::normalize(cam->GetUp()) * m_settings->m_camera_move_speed);
 			//cam->SetGaze(forward);
 		}
 
@@ -541,7 +542,7 @@ namespace CHR
 			float xoffset = ImGui::GetMouseDragDelta(0, 1.0).x; 
 			float yoffset = ImGui::GetMouseDragDelta(0, 1.0).y; 
 
-			float sensitivity = m_settings.camera_rotate_speed*0.05;
+			float sensitivity = m_settings->m_camera_rotate_speed*0.05;
 			xoffset *= sensitivity;
 			yoffset *= sensitivity;
 
@@ -558,9 +559,9 @@ namespace CHR
 		}
 
 		if(ImGui::GetIO().KeyAlt)
-			m_settings.camera_rotate_speed = glm::max(0.0f, m_settings.camera_rotate_speed + wheel_y_offset * 0.1f);
+			m_settings->m_camera_rotate_speed = glm::max(0.0f, m_settings->m_camera_rotate_speed + wheel_y_offset * 0.1f);
 		else
-			m_settings.camera_move_speed = glm::max(0.0f, m_settings.camera_move_speed + wheel_y_offset);
+			m_settings->m_camera_move_speed = glm::max(0.0f, m_settings->m_camera_move_speed + wheel_y_offset);
 		wheel_y_offset = 0.0f;
 	}
 }
