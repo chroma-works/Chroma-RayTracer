@@ -9,7 +9,7 @@
             <Gaze>0.00688625 0.998505 -0.0542161</Gaze>
             <Up>3.73896e-4 0.0542148 0.998529</Up>
             <FovY>45</FovY>
-            <NearDistance>0.1</NearDistance>
+            <NearDistance>1</NearDistance>
             <ImageResolution>512 512</ImageResolution>
             <NumSamples>100</NumSamples>
             <ImageName>cornellbox_jaroslav_glossy_area.exr</ImageName>
