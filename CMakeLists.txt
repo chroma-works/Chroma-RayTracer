@@ -108,6 +108,7 @@ set (editor_sources
 	src/ray-tracer/editor/ImGuiDrawable.h
 	src/ray-tracer/editor/Logger.h
 	src/ray-tracer/editor/Logger.cpp
+	src/ray-tracer/editor/Observer.h
 	src/ray-tracer/editor/Settings.h
 	src/ray-tracer/editor/Shader.h
 	src/ray-tracer/editor/Shader.cpp
