@@ -27,6 +27,8 @@ namespace CHR
 		void AddLight(std::string name, std::shared_ptr<Light> li);
 
 		void InitBVH(int maxPrimsInNode = 1, SplitMethod splitMethod = (SplitMethod)0);
+		inline bool IsAccelerationReady() { return m_accel_structure != NULL; }
+		bool Intersect(const Ray ray, IntersectionData* isect_data) const;
 
 		inline std::shared_ptr<Light> GetLight(std::string name) { return m_lights[name]; } //TODO: add null check
 
@@ -41,8 +43,8 @@ namespace CHR
 		std::map<std::string, std::shared_ptr<SceneObject>> m_scene_objects;
 		std::map<std::string, std::shared_ptr<Light>> m_lights;
 
-		AccelerationStructure* m_accel_structure = nullptr;
 	private:
+		AccelerationStructure* m_accel_structure = nullptr;
 		friend class Editor;
 		std::string m_name;
 

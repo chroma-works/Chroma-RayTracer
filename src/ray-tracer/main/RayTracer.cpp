@@ -81,7 +81,7 @@ namespace CHR
 		}
 		IntersectionData shadow_data;
 		bool shadowed = m_settings.calc_shadows &&
-			(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
+			(scene.Intersect(shadow_ray, &shadow_data) &&
 			(glm::distance(isect_data->position, shadow_data.position) - distance < -0.1f));
 		return shadowed;
 	}
@@ -98,7 +98,7 @@ namespace CHR
 
 	void RayTracer::Render(Camera* cam, Scene& scene, bool print_progress)
 	{
-		if (!scene.m_accel_structure)
+		if (!scene.IsAccelerationReady())
 		{
 			return;
 		}
@@ -323,7 +323,7 @@ namespace CHR
 	glm::vec3 RayTracer::RecursiveTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood)
 	{
 		IntersectionData isect_data;
-		scene.m_accel_structure->Intersect(ray, &isect_data);
+		scene.Intersect(ray, &isect_data);
 
 		glm::vec3 color = { 0,0,0 };
 		bool inside = false;

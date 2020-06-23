@@ -59,6 +59,11 @@ namespace CHR
 		m_accel_structure = new BVH(*this, maxPrimsInNode, splitMethod);
 	}
 
+	bool Scene::Intersect(const Ray ray, IntersectionData* isect_data) const
+	{
+		return m_accel_structure->Intersect(ray, isect_data);
+	}
+
 
 	void Scene::Render(Camera* cam, DrawMode mode)
 	{
