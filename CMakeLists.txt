@@ -110,6 +110,7 @@ set (editor_sources
 	src/ray-tracer/editor/Logger.cpp
 	src/ray-tracer/editor/Observer.h
 	src/ray-tracer/editor/Settings.h
+	src/ray-tracer/editor/Settings.cpp
 	src/ray-tracer/editor/Shader.h
 	src/ray-tracer/editor/Shader.cpp
 )
