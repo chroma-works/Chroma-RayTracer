@@ -80,7 +80,7 @@ namespace CHR
 			break;*/
 		}
 		IntersectionData shadow_data;
-		bool shadowed = m_settings.calc_shadows &&
+		bool shadowed = m_settings->m_calc_shadows &&
 			(scene.Intersect(shadow_ray, &shadow_data) &&
 			(glm::distance(isect_data->position, shadow_data.position) - distance < -0.1f));
 		return shadowed;
@@ -88,11 +88,17 @@ namespace CHR
 
 	RayTracer::RayTracer()
 	{
-		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.ldr_post_process);
-		for (int i = 0; i < m_settings.resolution.x; i++)
-			for (int j = 0; j < m_settings.resolution.y; j++)
+		m_settings = Settings::GetInstance();
+		m_rendered_image = new Image(m_settings->GetResolution().x, m_settings->GetResolution().y, m_settings->m_ldr_post_process);
+		for (int i = 0; i < m_settings->GetResolution().x; i++)
+			for (int j = 0; j < m_settings->GetResolution().y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
 		m_rt_worker = &RayTracer::RecursiveTraceWorker;
+	}
+
+	void RayTracer::GetNotified()
+	{
+		ResetImage();
 	}
 
 
@@ -109,14 +115,14 @@ namespace CHR
 		run_bar = print_progress;
 		auto future_function = async(std::launch::async, PrintProgressBar, "Rendering");
 
-		std::thread** threads = new std::thread * [m_settings.thread_count];
+		std::thread** threads = new std::thread * [m_settings->m_thread_count];
 
 		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-		for (int i = 0; i < m_settings.thread_count; i++)
+		for (int i = 0; i < m_settings->m_thread_count; i++)
 			threads[i] = new std::thread(m_rt_worker, this, cam, std::ref(scene), i);
 
-		for (int i = 0; i < m_settings.thread_count; i++)
+		for (int i = 0; i < m_settings->m_thread_count; i++)
 		{
 			threads[i]->join();
 			delete threads[i];
@@ -142,10 +148,10 @@ namespace CHR
 		}
 		if (m_rendered_image->IsHDR())
 		{
-			if (m_settings.ldr_post_process == IM_POST_PROC_T::tone_map)
+			if (m_settings->m_ldr_post_process == IM_POST_PROC_T::tone_map)
 				m_rendered_image->ToneMap(cam->m_key_val, cam->m_burn_perc,
 					cam->m_saturation, cam->m_gamma);
-			else if(m_settings.ldr_post_process == IM_POST_PROC_T::clamp)
+			else if(m_settings->m_ldr_post_process == IM_POST_PROC_T::clamp)
 				m_rendered_image->Clamp(0, 255);
 		}
 		//while (progress_pers != 1.0f)
@@ -159,7 +165,7 @@ namespace CHR
 				"\n\tResolution: (" + std::to_string(cam->GetResolution().x) + ", " + std::to_string(cam->GetResolution().y)
 				+")\n\tSample per pixel: " + std::to_string(cam->GetNumberOfSamples()) + 
 				"\n\tRendered in " + std::to_string(fs.count()) + "s" 
-				+ "\n\tThreads: " + std::to_string(m_settings.thread_count));
+				+ "\n\tThreads: " + std::to_string(m_settings->m_thread_count));
 		}
 	}
 
@@ -179,19 +185,19 @@ namespace CHR
 		//const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
 		//Ray primary_ray(cam_pos);
 
-		//const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
-		//const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
+		//const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings->m_resolution.x;
+		//const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings->m_resolution.y;
 
 		//IntersectionData isect_data;
 		//IntersectionData shadow_data;
 
-		//int col_start = (float)idx / (float)m_settings.thread_count * m_settings.resolution.x;
-		//int col_end = idx == m_settings.thread_count -1 ? m_settings.resolution.x :
-		//	(float)(idx + 1) / (float)m_settings.thread_count * m_settings.resolution.x;
+		//int col_start = (float)idx / (float)m_settings->m_thread_count * m_settings->m_resolution.x;
+		//int col_end = idx == m_settings->m_thread_count -1 ? m_settings->m_resolution.x :
+		//	(float)(idx + 1) / (float)m_settings->m_thread_count * m_settings->m_resolution.x;
 
 		//for (int i = col_start; i < col_end; i++)
 		//{
-		//	for (int j = 0; j < m_settings.resolution.y; j++)
+		//	for (int j = 0; j < m_settings->m_resolution.y; j++)
 		//	{
 		//		glm::vec3 color = scene.m_sky_color;
 
@@ -210,10 +216,10 @@ namespace CHR
 
 		//				//Shadow calculation	
 		//				bool shadowed = false;
-		//				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
+		//				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
 		//				shadow_ray.direction = glm::normalize(pl->position - shadow_ray.origin);
 		//					
-		//				shadowed = m_settings.calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
+		//				shadowed = m_settings->m_calc_shadows && (scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
 		//					shadow_data.t < glm::distance(isect_data.position, pl->position));
 
 		//				if (!shadowed)
@@ -237,8 +243,8 @@ namespace CHR
 		//		m_rendered_image->SetPixel(i, j, color);
 		//	}
 
-		//	progress_pers = progress_pers + (1.0f) / ((float)(m_settings.resolution.x));
-		//	/*if(idx == m_settings.thread_count - 1)
+		//	progress_pers = progress_pers + (1.0f) / ((float)(m_settings->m_resolution.x));
+		//	/*if(idx == m_settings->m_thread_count - 1)
 		//		CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
 		//}
 	}
@@ -261,14 +267,14 @@ namespace CHR
 		const glm::vec3 top_left_w = cam_pos + forward * dist + up * top_left.y + left * glm::abs(top_left.x);
 		Ray primary_ray(cam_pos);
 
-		const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings.resolution.x;
-		const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings.resolution.y;
+		const glm::vec3 right_step = (right)*glm::abs(top_left.x - bottom_right.x) / (float)m_settings->GetResolution().x;
+		const glm::vec3 down_step = (down)*glm::abs(top_left.y - bottom_right.y) / (float)m_settings->GetResolution().y;
 
 		IntersectionData intersection_data;
 		IntersectionData shadow_data;
 
-		const int tile_count_x = (m_settings.resolution.x + tile_size - 1) / tile_size;
-		const int tile_count_y = (m_settings.resolution.y + tile_size - 1) / tile_size;
+		const int tile_count_x = (m_settings->GetResolution().x + tile_size - 1) / tile_size;
+		const int tile_count_y = (m_settings->GetResolution().y + tile_size - 1) / tile_size;
 		const int max_job_index = tile_count_x * tile_count_y;
 
 		int idx = thread_idx;
@@ -279,7 +285,7 @@ namespace CHR
 			glm::ivec2 rect_min = glm::ivec2((idx % tile_count_x) * tile_size, (idx / tile_count_x) * tile_size);
 			glm::ivec2 rect_max = rect_min + glm::ivec2(tile_size, tile_size);
 
-			rect_max = (glm::min)(rect_max, m_settings.resolution);
+			rect_max = (glm::min)(rect_max, m_settings->GetResolution());
 
 			for (int j = rect_min.y; j < rect_max.y; j++)
 			{
@@ -311,9 +317,9 @@ namespace CHR
 						color += sample_color / (float)cam->GetNumberOfSamples();//Box Filter
 					}
 					m_rendered_image->SetPixel(i, j, color);
-					progress_pers = progress_pers + (1.0f) / ((float)(glm::compMul(m_settings.resolution)));
+					progress_pers = progress_pers + (1.0f) / ((float)(glm::compMul(m_settings->GetResolution())));
 				}
-				/*if (idx == m_settings.thread_count - 1)
+				/*if (idx == m_settings->m_thread_count - 1)
 					CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
 			}
 			idx = job_index++;
@@ -341,17 +347,17 @@ namespace CHR
 					return scene.m_sky_texture->SampleAt(t_coord)*255.0f;
 				}
 				else
-					return scene.m_sky_texture->SampleAt({ pixel_cood.x / (float)m_settings.resolution.x,
-						pixel_cood.y / (float)m_settings.resolution.y, 0 }) * 255.0f;
+					return scene.m_sky_texture->SampleAt({ pixel_cood.x / (float)m_settings->GetResolution().x,
+						pixel_cood.y / (float)m_settings->GetResolution().y, 0 }) * 255.0f;
 			}
 			else
 				return scene.m_sky_color;
 		}
-		else if (m_settings.calc_reflections && 
-			isect_data.material->type == MAT_TYPE::mirror && depth < m_settings.recur_depth) 
+		else if (m_settings->m_calc_reflections && 
+			isect_data.material->type == MAT_TYPE::mirror && depth < m_settings->m_recur_depth) 
 		{
 			// compute reflection
-			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
+			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
 
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
@@ -359,17 +365,17 @@ namespace CHR
 			CHR_UTILS::GenerateONB(r, u, v);
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
 				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
-			reflection_ray.intersect_eps = m_settings.intersection_eps;
+			reflection_ray.intersect_eps = m_settings->m_intersection_eps;
 			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
 			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
-		else if (m_settings.calc_reflections &&
-			isect_data.material->type == MAT_TYPE::conductor && depth < m_settings.recur_depth)
+		else if (m_settings->m_calc_reflections &&
+			isect_data.material->type == MAT_TYPE::conductor && depth < m_settings->m_recur_depth)
 		{
 			// compute reflection
-			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
+			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
 			//For glossy objects
 			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 			glm::vec3 u, v;
@@ -377,7 +383,7 @@ namespace CHR
 
 			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
-			reflection_ray.intersect_eps = m_settings.intersection_eps;
+			reflection_ray.intersect_eps = m_settings->m_intersection_eps;
 			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
@@ -386,7 +392,7 @@ namespace CHR
 				((Conductor*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
-		else if (isect_data.material->type == MAT_TYPE::dielectric && depth < m_settings.recur_depth)
+		else if (isect_data.material->type == MAT_TYPE::dielectric && depth < m_settings->m_recur_depth)
 		{
 			float cos_i = glm::dot(ray.direction, isect_data.normal);
 			float ni = 1.0f;
@@ -403,9 +409,9 @@ namespace CHR
 			float fr = ((Dielectric*)isect_data.material)->GetFr(cos_i);
 			cos_i = std::abs(cos_i);
 			glm::vec3 reflection_color = { 0,0,0 };
-			if (m_settings.calc_reflections)
+			if (m_settings->m_calc_reflections)
 			{
-				Ray reflection_ray(isect_data.position + proper_normal * m_settings.shadow_eps);
+				Ray reflection_ray(isect_data.position + proper_normal * m_settings->m_shadow_eps);
 				//For glossy objects
 				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
 				glm::vec3 u, v;
@@ -413,7 +419,7 @@ namespace CHR
 
 				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
 					(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
-				reflection_ray.intersect_eps = m_settings.intersection_eps;
+				reflection_ray.intersect_eps = m_settings->m_intersection_eps;
 				reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
 				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
@@ -421,11 +427,11 @@ namespace CHR
 
 
 			glm::vec3 refraction_color = { 0,0,0 };
-			if (fr < 1.0f && m_settings.calc_refractions)
+			if (fr < 1.0f && m_settings->m_calc_refractions)
 			{
-				Ray refraction_ray(isect_data.position - proper_normal * m_settings.shadow_eps);
+				Ray refraction_ray(isect_data.position - proper_normal * m_settings->m_shadow_eps);
 				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
-				refraction_ray.intersect_eps = m_settings.intersection_eps;
+				refraction_ray.intersect_eps = m_settings->m_intersection_eps;
 				refraction_ray.jitter_t = CHR_UTILS::RandFloat();
 
 				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
@@ -457,7 +463,7 @@ namespace CHR
 				glm::vec3 param = li->m_li_type != LIGHT_T::environment ? 
 					isect_data.position : glm::normalize(isect_data.normal);
 				glm::vec3 l_vec = li->SampleLightDirection(param);
-				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings.shadow_eps);
+				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
 				shadow_ray.direction = l_vec;
 
 				if (!TestShadow(scene, &isect_data, li, shadow_ray))
@@ -474,16 +480,21 @@ namespace CHR
 
 	void RayTracer::SetResoultion(const glm::ivec2& resolution)
 	{
-		if (m_settings.resolution == resolution)
+		if (m_settings->GetResolution() == resolution)
 			return;
 
-		m_settings.resolution = resolution;
+		//m_settings->SetAndNotifyResolution(resolution, NULL, NULL);
 
+		ResetImage();
+	}
+
+	void RayTracer::ResetImage()
+	{
 		delete m_rendered_image;
 
-		m_rendered_image = new Image(m_settings.resolution.x, m_settings.resolution.y, m_settings.ldr_post_process);
-		for (int i = 0; i < m_settings.resolution.x; i++)
-			for (int j = 0; j < m_settings.resolution.y; j++)
+		m_rendered_image = new Image(m_settings->GetResolution().x, m_settings->GetResolution().y, m_settings->m_ldr_post_process);
+		for (int i = 0; i < m_settings->GetResolution().x; i++)
+			for (int j = 0; j < m_settings->GetResolution().y; j++)
 				m_rendered_image->SetPixel(i, j, glm::vec3(0.0f, 0.0f, 0.0f));
 	}
 

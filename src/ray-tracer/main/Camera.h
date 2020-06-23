@@ -1,6 +1,7 @@
 #pragma once
 #include <ray-tracer/editor/Logger.h>
 #include <ray-tracer/editor/ImGuiDrawable.h>
+#include <ray-tracer/editor/Settings.h>
 
 #include <thirdparty/glm/glm/glm.hpp>
 
@@ -8,7 +9,7 @@
 
 namespace CHR
 {
-	class Camera : public ImGuiDrawable
+	class Camera : public ImGuiDrawable, public Observer
 	{
 	public:
 		Camera(float width = 1280, float height = 720, 
@@ -123,6 +124,10 @@ namespace CHR
 			flag = false;
 		}
 
+		inline void GetNotified()
+		{
+			m_res = Settings::GetInstance()->GetResolution();
+		}
 
 		float m_gamma = 2.2f;
 		float m_saturation = 1.0f;

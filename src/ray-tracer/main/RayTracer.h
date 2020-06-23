@@ -8,13 +8,17 @@
 namespace CHR
 {
 	enum RT_MODE{ray_cast=0, recursive_trace, size};
-	class RayTracer
+	class RayTracer : public Observer
 	{
 	public:
 		RayTracer();
 
+		void GetNotified();
+
 		void Render(Camera* cam, Scene& scene, bool print_progress = true);
 		void SetResoultion(const glm::ivec2& resolution);
+		void ResetImage();
+
 
 		void SetRenderMode(RT_MODE mode);
 
@@ -23,7 +27,7 @@ namespace CHR
 		friend class Editor;
 		Image* m_rendered_image ;
 
-		Settings m_settings;
+		Settings* m_settings;
 		std::atomic<int> job_index{ 0 };
 
 		void(RayTracer::* m_rt_worker)(Camera* cam, Scene& scene, int idx);
