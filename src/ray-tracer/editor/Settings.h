@@ -7,7 +7,7 @@
 
 namespace CHR
 {
-	enum IM_POST_PROC_T{none=0, clamp = 1, tone_map=2 };//none means already ldr
+	enum IM_POST_PROC_T{none = 0, clamp = 1, tone_map = 2 };//none means already ldr
 	class Settings : public Subject
 	{
 	public:
