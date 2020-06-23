@@ -2,6 +2,7 @@
 
 #include <future>
 #include <limits>
+#include "ObjectLight.h"
 
 #include <thirdparty\glm\glm\glm.hpp>
 #include <thirdparty\glm\glm\gtx\norm.hpp>
@@ -67,13 +68,21 @@ namespace CHR
 		case LIGHT_T::environment:
 			distance = INFINITY;
 			break;
+		case LIGHT_T::mesh:
+			//Transform intersenction position to object space
+			IntersectionData data;
+			dynamic_cast<LightSphere*>(li.get())->Intersect(shadow_ray, &data);
+			glm::vec3 pos = data.position;
+
+			distance = glm::distance(isect_data->position, data.position);
+			break;
 		/*default:
 			break;*/
 		}
 		IntersectionData shadow_data;
 		bool shadowed = m_settings.calc_shadows &&
 			(scene.m_accel_structure->Intersect(shadow_ray, &shadow_data) &&
-			(glm::distance(isect_data->position, shadow_data.position) - distance < 0.0f));
+			(glm::distance(isect_data->position, shadow_data.position) - distance < -0.1f));
 		return shadowed;
 	}
 
@@ -304,8 +313,6 @@ namespace CHR
 					m_rendered_image->SetPixel(i, j, color);
 					progress_pers = progress_pers + (1.0f) / ((float)(glm::compMul(m_settings.resolution)));
 				}
-
-
 				/*if (idx == m_settings.thread_count - 1)
 					CH_TRACE(std::to_string(progress_pers * 100.0f) + std::string("% complete"));*/
 			}
