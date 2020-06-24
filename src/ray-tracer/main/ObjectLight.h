@@ -53,8 +53,8 @@ namespace CHR
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			bool hit = Sphere::Intersect(ray, data);
-			data->t = -INFINITY;
-			data->radiance = m_inten;
+			if(hit)
+				data->radiance = m_inten;
 
 			return hit;
 		}

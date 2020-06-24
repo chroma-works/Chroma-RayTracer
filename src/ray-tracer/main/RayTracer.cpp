@@ -70,17 +70,17 @@ namespace CHR
 			break;
 		case LIGHT_T::object:
 			IntersectionData data;
-			dynamic_cast<LightSphere*>(li.get())->Intersect(shadow_ray, &data);
+			dynamic_cast<LightSphere*>(li.get())->Intersect(shadow_ray, &data) - 0.00001f;
 
-			li_distance = glm::distance(isect_data->position, data.position) - 0.00001f;
+			li_distance = data.t;
 			break;
 		/*default:
 			break;*/
 		}
 		IntersectionData shadow_data;
 		bool shadowed = m_settings->m_calc_shadows &&
-			(scene.Intersect(shadow_ray, &shadow_data) && /*shadow_data.t != -INFINITY &&*/
-			(glm::distance(isect_data->position, shadow_data.position) - li_distance < 0.0f));
+			(scene.Intersect(shadow_ray, &shadow_data) && glm::compAdd(shadow_data.radiance) <= 0.0f &&
+			(glm::distance(isect_data->position, shadow_data.position) - li_distance <= 0.0f));
 		return shadowed;
 	}
 
@@ -446,7 +446,7 @@ namespace CHR
 		// point is illuminated
 		if (isect_data.hit && !inside)
 		{
-			if (isect_data.t == -INFINITY)
+			if (glm::compAdd(isect_data.radiance) > 0.0f)
 				return isect_data.radiance;
 
 			bool replace_all = ((isect_data.tex_map) &&
