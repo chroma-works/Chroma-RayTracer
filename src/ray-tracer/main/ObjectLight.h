@@ -12,7 +12,7 @@ namespace CHR
 			:Sphere(mat, visible)
 		{
 			m_inten = radiance;
-			m_li_type = LIGHT_T::mesh;
+			m_li_type = LIGHT_T::object;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
