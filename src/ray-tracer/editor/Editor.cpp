@@ -216,6 +216,10 @@ namespace CHR
 
 		ImGui::Image((ImTextureID)(intptr_t)rendered_frame_texture_id, 
 			ImVec2(cw, cw * m_settings->GetResolution().y / m_settings->GetResolution().x));
+		if (ImGui::IsItemHovered())
+		{
+			DrawPixelInfo(cw);
+		}
 		ImGui::SameLine();
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
@@ -477,6 +481,49 @@ namespace CHR
 		}
 
 		ImGui::End();
+	}
+	void Editor::DrawPixelInfo(float cw)
+	{
+		const ImVec2 mouse_pos = ImGui::GetMousePos();
+
+		glm::vec2 pixel_coords(
+			int(ImGui::GetMousePos().x - ImGui::GetItemRectMin().x),
+			int(ImGui::GetMousePos().y - ImGui::GetItemRectMin().y));
+		glm::vec2 image_size(cw, cw * (float)m_settings->GetResolution().y / m_settings->GetResolution().x);
+		pixel_coords /= image_size;
+		pixel_coords *= m_settings->GetResolution();
+
+		const glm::u8vec3 ldr_pixel_color = ray_tracer->m_rendered_image->GetPixels()[(int)pixel_coords.x + (int)pixel_coords.y * m_settings->GetResolution().x];
+		//const glm::vec3 hdr_pixel_color = //TODO
+
+		const std::string text = std::string("Pixel: (") + std::to_string((int)pixel_coords.x) + ", " + std::to_string((int)pixel_coords.y) + ")\n" +
+			"LDR color: (" + std::to_string(ldr_pixel_color.x) + ", " + std::to_string(ldr_pixel_color.y) + ", " + std::to_string(ldr_pixel_color.z) + ")";
+
+		const ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
+
+		const int padding = 5;
+
+		ImVec2 text_pos = mouse_pos;
+		text_pos.x += 20;
+
+		ImVec2 popup_top_left = text_pos;
+		popup_top_left.x -= padding;
+		popup_top_left.y -= padding;
+
+		ImVec2 popup_bottom_right = popup_top_left, color_box_tl, color_box_br;
+		popup_bottom_right.x += text_size.x + padding * 5;
+		popup_bottom_right.y += text_size.y + padding * 2;
+
+		color_box_tl = color_box_br = popup_bottom_right;
+		color_box_br.x -= padding;
+		color_box_br.y -= padding * 3;
+		color_box_tl.x -= padding * 3;
+		color_box_tl.y -= padding;
+		
+		ImGui::GetOverlayDrawList()->AddRectFilled(popup_top_left, popup_bottom_right, ImColor(0, 0, 0, 200));
+		ImGui::GetOverlayDrawList()->AddRect(popup_top_left, popup_bottom_right, ImColor(128, 128, 128, 255));
+		ImGui::GetOverlayDrawList()->AddText(text_pos, ImColor(255, 255, 255, 255), text.c_str());
+		ImGui::GetOverlayDrawList()->AddRectFilled(color_box_tl, color_box_br, ImColor(ldr_pixel_color.x, ldr_pixel_color.y, ldr_pixel_color.z, 255));
 	}
 	void Editor::DrawEditorInfo()
 	{
