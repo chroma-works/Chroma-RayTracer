@@ -39,6 +39,8 @@ namespace CHR
 		Material* material;
 		TextureMap* tex_map = nullptr;
 
+		glm::vec3 radiance = { 0,0,0 };
+
 		bool hit = false;
 
 		glm::vec3 Shade(std::shared_ptr<Light> light,
