@@ -43,11 +43,20 @@ namespace CHR
 
 			Ray ray(isect_pos, l_vec);//p_world, l_world
 			IntersectionData isect_data;
-			Intersect(ray, &isect_data);
+			Sphere::Intersect(ray, &isect_data);
 			glm::vec3 pos = isect_data.position;
 
 			float d = glm::distance(pos, isect_pos);
-			return m_inten / (d * d) / ((float)CHR_UTILS::PI * 2.0f * (1.0f - cos_t_max));
+			return m_inten / (d * d) * ((float)CHR_UTILS::PI * 2.0f * (1.0f - cos_t_max));
+		}
+		
+		bool Intersect(const Ray ray, IntersectionData* data) const
+		{
+			bool hit = Sphere::Intersect(ray, data);
+			data->t = -INFINITY;
+			data->radiance = m_inten;
+
+			return hit;
 		}
 
 		void DrawGUI()
