@@ -521,7 +521,7 @@ namespace CHR
 		color_box_tl.y -= padding;
 		
 		ImGui::GetOverlayDrawList()->AddRectFilled(popup_top_left, popup_bottom_right, ImColor(0, 0, 0, 200));
-		ImGui::GetOverlayDrawList()->AddRect(popup_top_left, popup_bottom_right, ImColor(128, 128, 128, 255));
+		ImGui::GetOverlayDrawList()->AddRect(popup_top_left, popup_bottom_right, ImColor(CHR_COLOR::DARK_ORANGE.x, CHR_COLOR::DARK_ORANGE.y, CHR_COLOR::DARK_ORANGE.z, 255.0f));
 		ImGui::GetOverlayDrawList()->AddText(text_pos, ImColor(255, 255, 255, 255), text.c_str());
 		ImGui::GetOverlayDrawList()->AddRectFilled(color_box_tl, color_box_br, ImColor(ldr_pixel_color.x, ldr_pixel_color.y, ldr_pixel_color.z, 255));
 	}
