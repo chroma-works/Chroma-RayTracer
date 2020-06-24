@@ -45,7 +45,7 @@ namespace CHR
 			 glm::vec3 e_vec, glm::vec3 l_vec)
 		{
 			glm::vec3 kd = material->m_diffuse;
-			bool no_shading = false;
+			bool shade = true;
 
 			if (tex_map)
 			{
@@ -63,13 +63,13 @@ namespace CHR
 					break;
 
 				case DECAL_M::re_all:
-					no_shading = true;
+					shade = false;
 					break;
 				default:
 					break;
 				}
 			}
-			if (!no_shading)
+			if (shade)
 			{
 				Material mat(*material);
 				mat.m_diffuse = kd;
