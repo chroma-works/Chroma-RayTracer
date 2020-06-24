@@ -21,10 +21,6 @@ namespace CHR
 			:m_material(mat), m_visible(visible)
 		{}
 		virtual bool Intersect(const Ray ray, IntersectionData* data) const = 0;
-		/*{
-			return false;
-		}*/
-
 		inline void SetTransform(glm::mat4* transform, glm::mat4* inv_transform)
 		{
 			m_transform = transform;
@@ -32,11 +28,7 @@ namespace CHR
 		}
 
 		virtual Bounds3 GetWorldBounds() const = 0;
-		/*{
-			return Bounds3(glm::vec3(), glm::vec3());
-		}*/
 		virtual Bounds3 GetLocalBounds() const = 0;
-
 		virtual glm::vec3 ObjectSpaceNormalAt(glm::vec3 p, glm::vec3 normal, glm::vec2 uv) const = 0;
 
 		bool m_visible = true;
@@ -44,6 +36,7 @@ namespace CHR
 		std::shared_ptr<TextureMap> m_tex_maps[2] = {nullptr, nullptr};		//0 = shading, 1 = normal perturbation
 		SHAPE_T m_shape_type = SHAPE_T::none;
 		glm::vec3 m_motion_blur = { 0,0,0 };
+
 	protected:
 		friend class Instance;
 		glm::mat4* m_transform = nullptr;
