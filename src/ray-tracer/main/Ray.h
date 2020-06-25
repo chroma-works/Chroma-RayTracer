@@ -39,13 +39,15 @@ namespace CHR
 		Material* material;
 		TextureMap* tex_map = nullptr;
 
+		glm::vec3 radiance = { 0,0,0 };
+
 		bool hit = false;
 
 		glm::vec3 Shade(std::shared_ptr<Light> light,
 			 glm::vec3 e_vec, glm::vec3 l_vec)
 		{
 			glm::vec3 kd = material->m_diffuse;
-			bool no_shading = false;
+			bool shade = true;
 
 			if (tex_map)
 			{
@@ -63,13 +65,13 @@ namespace CHR
 					break;
 
 				case DECAL_M::re_all:
-					no_shading = true;
+					shade = false;
 					break;
 				default:
 					break;
 				}
 			}
-			if (!no_shading)
+			if (shade)
 			{
 				Material mat(*material);
 				mat.m_diffuse = kd;

@@ -20,7 +20,7 @@ const unsigned int SCR_HEIGHT = 1440;
 
 int main()
 {
-	CHR::Logger::Init("1.18.2");
+	CHR::Logger::Init("1.18.7");
 
 	CHR::Window window = CHR::Window(-1, -1, "Chroma Ray Tracer");
 	//Chroma::RayTracer* rt = new Chroma::RayTracer();
@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<CHR::Scene> scene;
 	auto s = CHR::Settings::GetInstance();
-	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw7/directLighting/cornellbox_jaroslav_diffuse.xml")));
+	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw7/directLighting/cornellbox_jaroslav_glossy_area_ellipsoid.xml")));
 	//init editor
 	CHR::Editor editor(&window, scene.get());
 

@@ -56,6 +56,7 @@ namespace CHR
 		void DrawInspector();
 		void DrawRayTracedFrame();
 		void DrawSceneInfo();
+		void DrawPixelInfo(float cw);
 		void DrawEditorInfo();
 		void HandleKeyBoardNavigation();
 	};

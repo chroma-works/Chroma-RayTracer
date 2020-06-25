@@ -5,6 +5,7 @@
 #include <thirdparty/glm/glm/gtx/quaternion.hpp>
 #include <thirdparty/glm/glm/gtx/string_cast.hpp>
 #include <ray-tracer/editor/AssetImporter.h>
+#include <ray-tracer/main/ObjectLight.h>
 
 #define MK_SHRD(X) std::make_shared<glm::vec3>(X)
 
@@ -117,7 +118,7 @@ namespace CHR
 
 
 	SceneObject::SceneObject(std::shared_ptr<Mesh> mesh, std::string name, glm::vec3 pos, glm::vec3 rot, 
-		glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds)
+		glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds, glm::vec3 radiance)
 		: m_mesh(mesh), m_position(pos), m_rotation(rot), m_scale(scale), m_shape_t(t)
 	{
 		m_name = name;
@@ -168,7 +169,9 @@ namespace CHR
 				//    shape.uvs[2] = mesh->uvs[j + 2];
 				//}
 
-				m_mesh->m_shapes.push_back(std::make_shared<Triangle>(tri));
+				m_mesh->m_shapes.push_back(glm::compAdd(radiance) > 0.0f ? 
+					std::make_shared<Triangle>(tri) : 
+					std::make_shared<LightTriangle>(radiance, std::make_shared<Triangle>(tri))); // Insert Lighttriangle
 			}
 			m_mesh->m_shapes.shrink_to_fit();
 			//For editor preview render
@@ -176,9 +179,10 @@ namespace CHR
 		}
 	}
 
-	SceneObject::SceneObject(Mesh* mesh, std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds)
+	SceneObject::SceneObject(Mesh* mesh, std::string name, glm::vec3 pos, glm::vec3 rot, 
+		glm::vec3 scale, SHAPE_T t, std::vector<unsigned int> tex_inds, glm::vec3 radiance)
 	{
-		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t);
+		SceneObject(std::make_shared<Mesh>(*mesh), name, pos, rot, scale, t, tex_inds, radiance);
 	}
 
 	SceneObject* SceneObject::CreateSphere(std::string name, std::shared_ptr<Sphere> s, glm::vec3 pos, glm::vec3 rot,

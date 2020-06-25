@@ -84,12 +84,14 @@ namespace CHR
 			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f), 
-			SHAPE_T t = SHAPE_T::triangle, std::vector<unsigned int> tex_inds = std::vector<unsigned int>());
+			SHAPE_T t = SHAPE_T::triangle, std::vector<unsigned int> tex_inds = std::vector<unsigned int>(), 
+			glm::vec3 radiance = { 0,0,0 });
 		SceneObject(Mesh* mesh, std::string name,
 			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 rot = glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f),
-			SHAPE_T t = SHAPE_T::triangle, std::vector<unsigned int> tex_inds = std::vector<unsigned int>());
+			SHAPE_T t = SHAPE_T::triangle, std::vector<unsigned int> tex_inds = std::vector<unsigned int>(), 
+			glm::vec3 radiance = {0,0,0});
 		//~SceneObject();
 
 		static SceneObject* CreateSphere(std::string name, std::shared_ptr<Sphere> s, glm::vec3 pos, glm::vec3 rot,

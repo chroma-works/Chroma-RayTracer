@@ -41,18 +41,18 @@ namespace CHR
 	bool RayTracer::TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> li, const Ray shadow_ray)
 	{
 		//shadow_ray.jitter_t = ray.jitter_t; // Uncomment if problems occur
-		float distance = 0.0f;
+		float li_distance = 0.0f;
 		float prod1, prod2, prod3;
 		switch (li->m_li_type)
 		{
 		case LIGHT_T::point:
-			distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->m_position);
+			li_distance = glm::distance(isect_data->position, dynamic_cast<PointLight*>(li.get())->m_position);
 			break;
 		case LIGHT_T::directional:
-			distance = INFINITY;
+			li_distance = INFINITY;
 			break;
 		case LIGHT_T::spot:
-			distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->m_position);
+			li_distance = glm::distance(isect_data->position, dynamic_cast<SpotLight*>(li.get())->m_position);
 			break;
 		case LIGHT_T::area:
 			//recalculate light sample position from light vector
@@ -63,26 +63,24 @@ namespace CHR
 
 			glm::vec3 sample_l_point = isect_data->position - shadow_ray.direction * prod3;
 
-			distance = glm::distance(isect_data->position, sample_l_point);
+			li_distance = glm::distance(isect_data->position, sample_l_point);
 			break;
 		case LIGHT_T::environment:
-			distance = INFINITY;
+			li_distance = INFINITY;
 			break;
-		case LIGHT_T::mesh:
-			//Transform intersenction position to object space
+		case LIGHT_T::object:
 			IntersectionData data;
-			dynamic_cast<LightSphere*>(li.get())->Intersect(shadow_ray, &data);
-			glm::vec3 pos = data.position;
+			dynamic_cast<Shape*>(li.get())->Intersect(shadow_ray, &data) - 0.00001f;
 
-			distance = glm::distance(isect_data->position, data.position);
+			li_distance = data.t;
 			break;
 		/*default:
 			break;*/
 		}
 		IntersectionData shadow_data;
 		bool shadowed = m_settings->m_calc_shadows &&
-			(scene.Intersect(shadow_ray, &shadow_data) &&
-			(glm::distance(isect_data->position, shadow_data.position) - distance < -0.1f));
+			(scene.Intersect(shadow_ray, &shadow_data) && glm::compAdd(shadow_data.radiance) <= 0.0f &&
+			(glm::distance(isect_data->position, shadow_data.position) - li_distance <= 0.0f));
 		return shadowed;
 	}
 
@@ -448,6 +446,9 @@ namespace CHR
 		// point is illuminated
 		if (isect_data.hit && !inside)
 		{
+			if (glm::compAdd(isect_data.radiance) > 0.0f)
+				return isect_data.radiance;
+
 			bool replace_all = ((isect_data.tex_map) &&
 				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
 			//Ka * Ia
@@ -482,8 +483,6 @@ namespace CHR
 	{
 		if (m_settings->GetResolution() == resolution)
 			return;
-
-		//m_settings->SetAndNotifyResolution(resolution, NULL, NULL);
 
 		ResetImage();
 	}

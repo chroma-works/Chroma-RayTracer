@@ -16,7 +16,7 @@
 
 namespace CHR
 {
-	enum class LIGHT_T {point, directional, spot, environment, area, mesh};
+	enum class LIGHT_T {point, directional, spot, environment, area, object};
 	class Light : public ImGuiDrawable
 	{
 	public:
