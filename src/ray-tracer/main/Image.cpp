@@ -120,7 +120,8 @@ namespace CHR
 		//Calculate L_w_hat
 		for (int i = 0; i < m_width * m_height; i++)
 		{
-			tmp += std::logf( 0.00001f + luminosity(m_hdr_pixels[i]));
+			if(!glm::any(glm::isnan(m_hdr_pixels[i])))
+				tmp += std::log(0.00001f + luminosity(m_hdr_pixels[i]));
 		}
 		float l_w_hat = expf(tmp / ((float)m_width * m_height));
 
