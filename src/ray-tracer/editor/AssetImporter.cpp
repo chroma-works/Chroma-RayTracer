@@ -49,6 +49,7 @@ namespace CHR
 	const std::string INTEN = "Intensity";
 	const std::string LIGS = "Lights";
 	const std::string L_SPHR = "LightSphere";
+	const std::string L_MESH = "LightMesh";
 	const std::string MAT = "Material";
 	const std::string MATS = "Materials";
 	const std::string MAX_RECUR = "MaxRecursionDepth";
@@ -1546,6 +1547,153 @@ namespace CHR
 							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
 						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
 						scene->AddLight(name, s);
+					}
+					else if (std::string(child_node->Value()).compare(L_MESH) == 0)
+					{
+						tinyxml2::XMLNode* object_prop = child_node->FirstChild();
+						std::string name = "light_mesh_" + std::string(child_node->ToElement()->FindAttribute("id")->Value());
+						std::shared_ptr<Mesh> mesh = nullptr;
+						int mat_ind = 0, tex_map_ind_1 = -1, tex_map_ind_2 = -1;
+						auto shading_mode = child_node->ToElement()->FindAttribute(SHADING_M.c_str());
+						bool smooth_normals = (shading_mode ? (std::string(shading_mode->Value()).compare(SMOOTH) == 0 ?
+							true : false) : false);
+						std::string().compare(SMOOTH) == 0;
+						glm::mat4 transform = glm::mat4(1.0f);
+
+						glm::vec3 m_b = { 0,0,0 };
+						glm::vec3 rad = { 0,0,0 };
+
+						bool has_tex = false;
+						std::vector<unsigned int> tex_inds(0);
+
+						while (object_prop)
+						{
+							if (std::string(object_prop->Value()).compare(MAT) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d", &mat_ind);
+								mat_ind--;
+							}
+							else if (std::string(object_prop->Value()).compare("Radiance") == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &rad.x, &rad.y, &rad.z);
+							}
+							else if (std::string(object_prop->Value()).compare(TEX) == 0)
+							{
+								has_tex = true;
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%d %d", &tex_map_ind_1, &tex_map_ind_2);
+								tex_map_ind_1--; tex_map_ind_2--;;
+							}
+							else if (std::string(object_prop->Value()).compare(FACES) == 0)
+							{
+								auto ply_file_path = object_prop->ToElement()->FindAttribute("plyFile");
+								if (ply_file_path)
+								{
+									mesh = std::shared_ptr<Mesh>(LoadMeshFromPly(file_path.substr(0, found + 1) + std::string(ply_file_path->Value())));
+									//mesh = new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<glm::vec3>(), mesh_indices);
+								}
+								else
+								{
+									std::string data = object_prop->FirstChild()->Value();
+									std::vector<std::shared_ptr<glm::vec3>> mesh_verts;
+									std::vector<std::shared_ptr<glm::vec2>> mesh_uvs;
+									std::vector<std::shared_ptr<glm::vec3>> mesh_normals;
+									std::vector<unsigned int> mesh_indices;
+
+									int t_off = 0, v_off = 0;
+
+									auto vertex_offset = object_prop->ToElement()->FindAttribute("vertexOffset");
+									auto texture_offset = object_prop->ToElement()->FindAttribute("textureOffset");
+
+									if (vertex_offset != NULL)
+										v_off = vertex_offset->IntValue();
+
+									if (texture_offset != NULL)
+										t_off = texture_offset->IntValue();
+
+									std::string line;
+									std::istringstream stream(data);
+									mesh_verts = vertices;
+									if (has_tex)
+									{
+										mesh_uvs = texture_coords;
+									}
+									mesh_normals.reserve(vertices.size());
+									mesh_normals.resize(vertices.size());
+
+
+									while (std::getline(stream, line)) //read faces line by line
+									{
+										unsigned int ind[3];
+										std::istringstream iss(line);
+										iss >> ind[0] >> ind[1] >> ind[2];
+
+										if (iss) {
+
+											glm::vec3 a = (*vertices[ind[0] - 1 + v_off] - *vertices[ind[1] - 1 + v_off]);
+											glm::vec3 b = (*vertices[ind[0] - 1 + v_off] - *vertices[ind[2] - 1 + v_off]);
+
+											glm::vec3 normal = glm::vec3(0.0f, 0.0f, 0.0f);//glm::normalize(glm::cross(a, b));//calculate face normal
+
+											normal = (glm::cross(-a, -b));
+
+											for (int j = 0; j < 3; j++)
+											{
+												mesh_indices.push_back(ind[j] - 1 + v_off);
+												mesh_normals[ind[j] - 1 + v_off] = std::make_shared<glm::vec3>(glm::normalize(normal));
+												if (has_tex)
+												{
+													if (v_off != 0)
+													{
+														tex_inds.push_back(ind[j] - 1 + t_off);
+													}
+												}
+											}
+										}
+									}
+
+									mesh = std::shared_ptr<Mesh>
+										(new Mesh(mesh_verts, mesh_normals, mesh_uvs, std::vector<std::shared_ptr<glm::vec3>>(), mesh_indices));
+								}
+
+							}
+							else if (std::string(object_prop->Value()).compare(TRANSFORMS) == 0)
+							{
+								transform = CalculateTransforms(translations, rotations, scalings, composites, object_prop);
+							}
+							else if (std::string(object_prop->Value()).compare(MOTION_B) == 0)
+							{
+								std::string data = object_prop->FirstChild()->Value();
+								sscanf(data.c_str(), "%f %f %f", &m_b.x, &m_b.y, &m_b.z);
+							}
+							object_prop = object_prop->NextSibling();
+						}
+						auto scene_obj = std::shared_ptr<SceneObject>
+							(new SceneObject(mesh, name, glm::vec3(), glm::vec3(), glm::vec3(1.0, 1.0, 1.0), SHAPE_T::triangle, tex_inds, rad));
+						scene_obj->SetMaterial(materials[mat_ind]);
+						scene_obj->SetTransforms(transform);
+						scene_obj->SetMotionBlur(m_b);
+						if (tex_map_ind_1 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_1]);
+						if (tex_map_ind_2 > -1)
+							scene_obj->SetTextureMap(texturemaps[tex_map_ind_2]);
+
+						if (smooth_normals)
+						{
+							scene_obj->SmoothNormals();
+						}
+						//Add as sceneobject
+						scene->AddSceneObject(scene_obj->GetName(), scene_obj);
+						std::vector<std::shared_ptr<LightTriangle>> tmp;
+						for (auto tri : scene_obj->m_mesh->m_shapes)
+						{
+							tmp.push_back(std::make_shared<LightTriangle>(rad, std::dynamic_pointer_cast<Triangle>(tri))); //TODO: DUPLICATES DATA
+						}
+						//Add as LightMesh
+						auto li_mesh = std::make_shared<LightMesh>(rad, tmp);
+						scene->AddLight(name, li_mesh);
 					}
 					child_node = child_node->NextSibling();
 				}
