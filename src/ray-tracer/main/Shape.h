@@ -50,6 +50,24 @@ namespace CHR
 		{
 			m_shape_type = SHAPE_T::triangle;
 		}
+
+		/*Triangle(const Triangle& othr)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				m_vertices[i] = othr.m_vertices[i];
+				m_normals[i] = othr.m_normals[i];
+				m_uvs[i] = othr.m_uvs[i];
+			}
+			m_shading_mode = othr.m_shading_mode;
+			m_shape_type = SHAPE_T::triangle;
+			m_material = othr.m_material;
+			m_tex_maps[0] = othr.m_tex_maps[0];
+			m_tex_maps[1] = othr.m_tex_maps[1];
+			m_visible = othr.m_visible;
+			m_motion_blur = othr.m_motion_blur;
+		}*/
+
 		Triangle(std::vector<std::shared_ptr<glm::vec3>>verts,
 			std::vector<std::shared_ptr<glm::vec3>> norms,
 			std::vector<std::shared_ptr<glm::vec2>> uvs,
