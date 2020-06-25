@@ -39,6 +39,12 @@ namespace CHR_UTILS
 		return dis(s_gen);
 	}
 
+	inline float RandInt(int l = 0, int u = 100)
+	{
+		std::uniform_int_distribution<int> dis(l, u);
+		return dis(s_gen);
+	}
+
 	inline glm::vec3 CalculateNonColinearTo(glm::vec3 r)
 	{
 		glm::vec3 r_abs = glm::abs(r);
@@ -57,5 +63,12 @@ namespace CHR_UTILS
 
 		u = glm::normalize(glm::cross(r, r_prime));
 		v = glm::normalize(glm::cross(r, u));
+	}
+
+	inline float CalculateTriangleArea(const glm::vec3 a, const glm::vec3 b, const glm::vec3 c)
+	{
+		float d = (glm::length(b - a) * glm::length(c - a));
+		float cos_t = glm::dot(b - a, c - a) / d;
+		return glm::abs(0.5 * d * sqrt(1 - cos_t * cos_t));
 	}
 }
