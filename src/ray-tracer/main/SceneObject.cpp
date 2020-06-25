@@ -169,7 +169,7 @@ namespace CHR
 				//    shape.uvs[2] = mesh->uvs[j + 2];
 				//}
 
-				m_mesh->m_shapes.push_back(glm::compAdd(radiance) > 0.0f ? 
+				m_mesh->m_shapes.push_back(glm::compAdd(radiance) < 0.0f ? 
 					std::make_shared<Triangle>(tri) : 
 					std::make_shared<LightTriangle>(radiance, std::make_shared<Triangle>(tri))); // Insert Lighttriangle
 			}
