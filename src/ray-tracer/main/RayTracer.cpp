@@ -70,7 +70,7 @@ namespace CHR
 			break;
 		case LIGHT_T::object:
 			IntersectionData data;
-			dynamic_cast<LightSphere*>(li.get())->Intersect(shadow_ray, &data) - 0.00001f;
+			dynamic_cast<Shape*>(li.get())->Intersect(shadow_ray, &data) - 0.00001f;
 
 			li_distance = data.t;
 			break;
