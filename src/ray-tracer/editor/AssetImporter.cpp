@@ -1689,7 +1689,7 @@ namespace CHR
 						std::vector<std::shared_ptr<LightTriangle>> tmp;
 						for (auto tri : scene_obj->m_mesh->m_shapes)
 						{
-							tmp.push_back(std::make_shared<LightTriangle>(rad, std::dynamic_pointer_cast<Triangle>(tri))); //TODO: DUPLICATES DATA
+							tmp.push_back(std::dynamic_pointer_cast<LightTriangle>(tri));
 						}
 						//Add as LightMesh
 						auto li_mesh = std::make_shared<LightMesh>(rad, tmp);
