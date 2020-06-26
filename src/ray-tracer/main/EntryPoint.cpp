@@ -32,7 +32,7 @@ int main()
 
 	std::shared_ptr<CHR::Scene> scene;
 	auto s = CHR::Settings::GetInstance();
-	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw7/directLighting/cornellbox_jaroslav_glossy_area_ellipsoid.xml")));
+	scene = std::make_shared<CHR::Scene>(*(CHR::AssetImporter::LoadSceneFromXML(shader, "../../assets/scenes/hw7/directLighting/cornellbox_jaroslav_glossy_area.xml")));
 	//init editor
 	CHR::Editor editor(&window, scene.get());
 
