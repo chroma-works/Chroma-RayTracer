@@ -111,7 +111,7 @@ namespace CHR
 			float cos_t = abs(glm::dot(l_vec, normal));
 
 			float d = glm::distance(isect_pos, data.position);
-			return m_inten * m_area * cos_t / (d * d);
+			return m_inten * m_area * cos_t / (d * d);//TODO:Fix
 		}
 
 		bool Intersect(const Ray ray, IntersectionData* data) const
@@ -158,12 +158,12 @@ namespace CHR
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
 			//Select random triangle based on their surface area
-			float r = CHR_UTILS::RandFloat(0.0f, m_surface_area);
+			float r = CHR_UTILS::RandFloat(0.0f, m_surface_area - 0.0001f);
 			int i;
 			for (i = 0; i < m_triangles.size(); i++)
 				if (r < m_area_totals[i])
 					break;
-			
+
 			return m_triangles[i]->SampleLightDirection(isect_pos);
 		}
 
@@ -176,9 +176,9 @@ namespace CHR
 			for (i = 0; i < m_triangles.size(); i++)
 				if (m_triangles[i]->Intersect(ray, &probe_data))
 					break;
-			int j = glm::min(i, (int)m_triangles.size() - 1);	//TODO:FIX!!!!!
+			//int j = glm::min(i, (int)m_triangles.size() - 1);	//TODO:FIX!!!!!
 			if (probe_data.hit)
-				return m_triangles[j]->RadianceAt(isect_pos, l_vec) * m_surface_area / m_triangles[j]->GetArea();
+				return m_triangles[i]->RadianceAt(isect_pos, l_vec) * m_surface_area / m_triangles[i]->GetArea();
 			else
 				return { 0, 0, 0 };
 		}
