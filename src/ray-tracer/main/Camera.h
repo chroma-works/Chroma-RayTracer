@@ -28,6 +28,9 @@ namespace CHR
 		inline unsigned int GetNumberOfSamples() { return m_num_samples; }
 		inline float GetFocalDistance() { return m_focal_dist; }
 		inline float GetApertureSize() { return m_aperture_size; }
+		inline bool IsImportanceSamplingOn() { return m_render_params[0]; }
+		inline bool IsNextEventEstimationOn() { return m_render_params[1]; }
+		inline bool IsRussianRouletteOn() { return m_render_params[2]; }
 
 		const glm::mat4& GetProjectionMatrix() const { return m_projection_matrix; }
 		const glm::mat4& GetViewMatrix() const { return m_view_matrix; }
@@ -58,6 +61,10 @@ namespace CHR
 		}
 		inline void SetFocalDistance(float focal_dist) { m_focal_dist = focal_dist; }
 		inline void SetApertureSize(float aperture_size) { m_aperture_size = aperture_size; }
+
+		inline void SetImportanceSampling( bool is) { m_render_params[0] = is; }
+		inline void SetNextEventEstimation( bool nee) { m_render_params[1] = nee; }
+		inline void SetRussianRoulette(bool rr) { m_render_params[2] = rr; }
 
 		inline void DrawGUI()
 		{
@@ -136,6 +143,7 @@ namespace CHR
 
 		bool m_left_handed = false;
 
+
 	private:
 		unsigned int m_id;
 		glm::vec3 m_pos;
@@ -148,9 +156,10 @@ namespace CHR
 		unsigned int m_num_samples = 1;
 
 		float m_focal_dist = 20.0f;
-		float m_aperture_size = 0.0f;
+		float m_aperture_size = 0.0f; 
 
-		std::string m_img_name = "not_set";
+		std::string m_img_name = "not set";
+		bool m_render_params[3] = { false, false, false };
 
 		void RecalculateViewMatrix();
 		void RecalculateProjectionMatrix();

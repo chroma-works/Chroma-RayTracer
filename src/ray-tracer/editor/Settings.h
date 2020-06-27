@@ -8,6 +8,7 @@
 namespace CHR
 {
 	enum IM_POST_PROC_T{none = 0, clamp = 1, tone_map = 2 };//none means already ldr
+
 	class Settings : public Subject
 	{
 	public:
@@ -37,6 +38,7 @@ namespace CHR
 		bool m_calc_refractions = true;
 		int m_recur_depth = 6;
 		IM_POST_PROC_T m_ldr_post_process = none;
+
 	private:
 		Settings(){}
 		static Settings* s_instance;
