@@ -520,6 +520,27 @@ namespace CHR
 				sscanf(data.c_str(), "%f", &d);
 				cam->SetApertureSize(d);
 			}
+			//---------------Render params-----------------
+			else if (std::string(cam_prop->Value()).compare("RendererParams") == 0)
+			{
+				std::string data;
+				if(cam_prop->FirstChild())
+					 data = cam_prop->FirstChild()->Value();
+
+				std::vector<std::string> v;
+				if(data.length() > 0)
+					Split(data, v, ' ');
+
+				for (auto s : v)
+				{
+					if (s.compare("NextEventEstimation") == 0)
+						cam->SetNextEventEstimation(true);
+					else if (s.compare("RussianRoulette") == 0)
+						cam->SetRussianRoulette(true);
+					else if (s.compare("ImportanceSampling") == 0)
+						cam->SetImportanceSampling(true);
+				}
+			}
 			//---------------Tone Map params-----------------
 			else if (std::string(cam_prop->Value()).compare("Tonemap") == 0)
 			{
