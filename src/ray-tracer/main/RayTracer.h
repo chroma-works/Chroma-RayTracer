@@ -7,7 +7,7 @@
 
 namespace CHR
 {
-	enum RT_MODE{ray_cast=0, recursive_trace, size};
+	enum RT_MODE{ray_cast=0, recursive_trace, path_trace, rt_size};
 	class RayTracer : public Observer
 	{
 	public:
@@ -34,7 +34,9 @@ namespace CHR
 
 		void RayCastWorker(Camera* cam, Scene& scene, int idx);
 		void RecursiveTraceWorker(Camera* cam, Scene& scene, int idx);
-		bool TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> l, const Ray shadow_ray);
+		void PathTraceWorker(Camera* cam, Scene& scene, int idx);
 		glm::vec3 RecursiveTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood);
+		glm::vec3 PathTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood);
+		bool TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> l, const Ray shadow_ray);
 	};
 }
