@@ -224,13 +224,15 @@ namespace CHR
 
 		ImGui::BeginChild("Settings", ImVec2(0, 0));
 
-		static std::string rt_mode_names[] = { "Ray Casting", "Recursive RT" };
+		ImGui::TextColored(CHR_COLOR::DARK_ORANGE, std::string("Settings").c_str());
+
+		static std::string rt_mode_names[] = { "Ray Casting", "RT w\\ Direct Lighting", "Path Tracing" };
 		static RT_MODE selected_rt_method = RT_MODE::recursive_trace;
 
 
 		if (ImGui::BeginCombo("RT Mode", rt_mode_names[selected_rt_method].c_str(), ImGuiComboFlags_None))
 		{
-			for (int i = 0; i < RT_MODE::size; i++)
+			for (int i = 0; i < RT_MODE::rt_size; i++)
 			{
 				if (ImGui::Selectable(rt_mode_names[i].c_str(), static_cast<RT_MODE>(i) == selected_rt_method))
 				{
@@ -241,6 +243,23 @@ namespace CHR
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
+		}
+
+		if (selected_rt_method == RT_MODE::path_trace)//draw check boxes for path tracer
+		{
+			ImGui::Separator();
+			bool tmp = m_scene->GetCamera(m_settings->m_act_rt_cam_name)->IsImportanceSamplingOn();
+			ImGui::Checkbox("Importance Sampling", &tmp);
+			m_scene->GetCamera(m_settings->m_act_rt_cam_name)->SetImportanceSampling(tmp);
+
+			tmp = m_scene->GetCamera(m_settings->m_act_rt_cam_name)->IsNextEventEstimationOn();
+			ImGui::Checkbox("Next Event Estimation", &tmp);
+			m_scene->GetCamera(m_settings->m_act_rt_cam_name)->SetNextEventEstimation(tmp);
+
+			tmp = m_scene->GetCamera(m_settings->m_act_rt_cam_name)->IsRussianRouletteOn();
+			ImGui::Checkbox("Russian Roulette", &tmp);
+			m_scene->GetCamera(m_settings->m_act_rt_cam_name)->SetRussianRoulette(tmp);
+			ImGui::Separator();
 		}
 
 		if (ImGui::BeginCombo("RT Camera", m_settings->m_act_rt_cam_name.c_str(), ImGuiComboFlags_None))
@@ -398,8 +417,6 @@ namespace CHR
 		ImGui::EndChild();
 		ImGui::End();
 
-		//ray_tracer->SetResoultion(m_settings->GetResolution());
-		//ray_tracer->m_settings = m_settings;
 	}
 	void Editor::DrawSceneInfo()
 	{
