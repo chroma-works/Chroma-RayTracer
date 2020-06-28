@@ -185,6 +185,7 @@ namespace CHR
 	}
 	void Editor::DrawRayTracedFrame()
 	{
+		m_settings->SetResolution(m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetResolution());
 		static bool flag = true;
 		if (flag)
 		{
