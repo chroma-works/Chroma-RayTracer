@@ -77,6 +77,7 @@ namespace CHR
 			m_inten = radiance;
 			m_li_type = LIGHT_T::object;
 			m_area = CHR_UTILS::CalculateTriangleArea(*m_vertices[0], *m_vertices[1], *m_vertices[2]);
+			m_shading_mode = SHADING_MODE::smooth;
 		}
 
 		LightTriangle(glm::vec3 radiance,
@@ -86,6 +87,7 @@ namespace CHR
 			m_inten = radiance;
 			m_li_type = LIGHT_T::object;
 			m_area = CHR_UTILS::CalculateTriangleArea(*m_vertices[0], *m_vertices[1], *m_vertices[2]);
+			m_shading_mode = SHADING_MODE::smooth;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
