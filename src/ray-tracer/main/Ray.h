@@ -79,7 +79,7 @@ namespace CHR
 				glm::vec3 param = light->m_li_type != LIGHT_T::environment ? position : glm::normalize(normal);
 				glm::vec3 radiance = light->RadianceAt(param, l_vec);
 
-				return mat.Shade(l_vec, e_vec, normal) * radiance;
+				return mat.Shade(l_vec, e_vec, normal) * radiance * glm::max(0.0f, glm::dot(normal, l_vec));
 			}
 			else
 				return tex_map->SampleAt(glm::vec3(uv, NAN));

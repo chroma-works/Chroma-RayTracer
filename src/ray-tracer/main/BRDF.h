@@ -36,17 +36,22 @@ namespace CHR
 	protected:
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
-		{
-			//cos(theta)  
-			return glm::max(glm::dot(normal, l_vec), 0.0f);
+		{ 
+			return glm::dot(normal, l_vec) > 0.0f ?
+				1.0f : 0.0f;
 		}
 
 		float CalculateSpecular(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			//max(0, h . n)^s 
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			return	glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), m_exponent);
+			//max(0, h . n)^s / cos(theta)
+			float cos_t;
+			if (cos_t = glm::dot(normal, l_vec) > 0.0f)
+			{
+				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+				return	glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), m_exponent) / cos_t;
+			}
+			return 0.0f;
 		}
 	};
 
@@ -62,16 +67,22 @@ namespace CHR
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			//cos(theta)  
-			return glm::max(glm::dot(normal, l_vec), 0.0f);
+			return glm::dot(normal, l_vec) > 0.0f ?
+				1.0f : 0.0f;
 		}
 
 		float CalculateSpecular(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			//max(0, r . n)^s 
-			glm::vec3 r = glm::normalize(glm::reflect(-l_vec, normal));
-			return	glm::pow(glm::max(0.0f, glm::dot(r, glm::normalize(e_vec))), m_exponent);
+			//max(0, r . n)^s
+			float cos_t;
+			if (cos_t = glm::dot(normal, l_vec) > 0.0f)
+			{
+				glm::vec3 r = glm::normalize(glm::reflect(-l_vec, normal));
+				return	glm::pow(glm::max(0.0f, glm::dot(r, glm::normalize(e_vec))), m_exponent) / cos_t;
+			}
+			else
+				return 0.0f;
 		}
 	};
 
@@ -87,22 +98,30 @@ namespace CHR
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			if (m_normalized)// cos(theta) / pi
-				return glm::max(glm::dot(normal, l_vec), 0.0f) * 1.0f / CHR_UTILS::PI;
-			else//cos(theta)
-				return glm::max(glm::dot(normal, l_vec), 0.0f);
+			if (glm::dot(normal, l_vec) > 0.0f)
+			{
+				if (m_normalized)// 1.0f / pi
+					return 1.0f / CHR_UTILS::PI;
+				else
+					return 1.0f;
+			}
+			return 0.0f;
 		}
 
 		float CalculateSpecular(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-			if (m_normalized)
-				return glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), m_exponent) *
-					glm::max(glm::dot(normal, l_vec), 0.0f) * 0.125f * (m_exponent + 8.0f) / CHR_UTILS::PI;
-			else
-				return glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), m_exponent) *
-					glm::max(glm::dot(normal, l_vec), 0.0f);
+			float cos_t;
+			if (cos_t = glm::dot(normal, l_vec) > 0.0f)
+			{
+				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+				if (m_normalized)
+					return glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), m_exponent) *
+					0.125f * (m_exponent + 8.0f) / CHR_UTILS::PI / cos_t;
+				else
+					return glm::pow(glm::max(0.0f, glm::dot(h, glm::normalize(normal))), m_exponent) / cos_t;
+			}
+			return 0.0f;
 		}
 	};
 
@@ -118,22 +137,31 @@ namespace CHR
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			if (m_normalized)// cos(theta) / pi
-				return glm::max(glm::dot(normal, l_vec), 0.0f) * 1.0f / CHR_UTILS::PI;
-			else//cos(theta)
-				return glm::max(glm::dot(normal, l_vec), 0.0f);
+			if (glm::dot(normal, l_vec) > 0.0f)
+			{
+				if (m_normalized)// 1.0f/pi
+					return 1.0f / CHR_UTILS::PI;
+				else
+					return 1.0f;
+			}
+			return 0.0f;
 		}
 
 		float CalculateSpecular(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			glm::vec3 r = glm::normalize(glm::reflect(-l_vec, normal));
-			if (m_normalized)
-				return glm::pow(glm::max(0.0f, glm::dot(r, glm::normalize(e_vec))), m_exponent) *
-				glm::max(glm::dot(normal, l_vec), 0.0f) * 0.5f * (m_exponent + 2.0f) / CHR_UTILS::PI;
-			else
-				return glm::pow(glm::max(0.0f, glm::dot(r, glm::normalize(e_vec))), m_exponent) *
-				glm::max(glm::dot(normal, l_vec), 0.0f);
+			float cos_t;
+			if (cos_t = glm::dot(normal, l_vec) > 0.0f)
+			{
+				glm::vec3 r = glm::normalize(glm::reflect(-l_vec, normal));
+				if (m_normalized)
+					return glm::pow(glm::max(0.0f, glm::dot(r, glm::normalize(e_vec))), m_exponent) *
+					0.5f * (m_exponent + 2.0f) / CHR_UTILS::PI / cos_t;
+				else
+					return glm::pow(glm::max(0.0f, glm::dot(r, glm::normalize(e_vec))), m_exponent) *
+					glm::max(glm::dot(normal, l_vec), 0.0f) / cos_t;
+			}
+			return 0.0f;
 		}
 	};
 
@@ -154,29 +182,36 @@ namespace CHR
 		float CalculateDiffuse(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			//Kd * cos(theta) / pi
-			if (kd_fresnel)
+			if (glm::dot(normal, l_vec) > 0.0f)
 			{
-				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
-				return glm::max(glm::dot(normal, l_vec), 0.0f) * (1.0f-CalculateFresnell(glm::dot(h, e_vec))) / CHR_UTILS::PI;
+				if (kd_fresnel)
+				{
+					glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+					return (1.0f - CalculateFresnell(glm::dot(h, e_vec))) / CHR_UTILS::PI;
+				}
+				else
+					return 1.0f / CHR_UTILS::PI;
 			}
-			else
-				return glm::max(glm::dot(normal, l_vec), 0.0f) / CHR_UTILS::PI;
+			return 0.0f;
 		}
 
 		float CalculateSpecular(const glm::vec3 l_vec,
 			const glm::vec3 e_vec, const glm::vec3 normal) const
 		{
-			//specular
-			glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
+			float cos_t;
+			if (cos_t = glm::dot(normal, l_vec) > 0.0f)
+			{
+				glm::vec3 h = glm::normalize((e_vec + l_vec) / glm::length(e_vec + l_vec));
 
-			float g_term = glm::min(1.0f,
-				glm::min(2.0f * (glm::dot(normal, h) * glm::dot(normal, e_vec) / (glm::dot(e_vec, h))),
-					2.0f * (glm::dot(normal, h) * glm::dot(l_vec, normal) / (glm::dot(l_vec, h)))));
-			float d_term = (m_exponent + 2.0f) / (CHR_UTILS::PI) * 
-				glm::max(glm::pow(glm::dot(h, normal),m_exponent),0.0f);
-			float f_term = CalculateFresnell(glm::dot(h, e_vec));
-			return g_term * d_term * f_term / (4.0f * glm::dot(e_vec, normal) * glm::dot(l_vec, normal));
+				float g_term = glm::min(1.0f,
+					glm::min(2.0f * (glm::dot(normal, h) * glm::dot(normal, e_vec) / (glm::dot(e_vec, h))),
+						2.0f * (glm::dot(normal, h) * glm::dot(l_vec, normal) / (glm::dot(l_vec, h)))));
+				float d_term = (m_exponent + 2.0f) / (CHR_UTILS::PI) *
+					glm::max(glm::pow(glm::dot(h, normal), m_exponent), 0.0f);
+				float f_term = CalculateFresnell(glm::dot(h, e_vec));
+				return g_term * d_term * f_term / (4.0f * glm::dot(e_vec, normal) * cos_t);
+			}
+			return 0.0f;
 		}
 
 		float CalculateFresnell(float cos_i) const
