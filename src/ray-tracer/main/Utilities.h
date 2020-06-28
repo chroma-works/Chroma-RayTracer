@@ -70,5 +70,21 @@ namespace CHR_UTILS
 		float d = (glm::length(b - a) * glm::length(c - a));
 		float cos_t = glm::dot(b - a, c - a) / d;
 		return glm::abs(0.5 * d * sqrt(1 - cos_t * cos_t));
+	inline glm::vec3 UnifSampleUnitHemisphere(const glm::vec3 v)
+	{
+		glm::vec3 direction, u, w;
+		float rand1 = CHR_UTILS::RandFloat(), rand2 = CHR_UTILS::RandFloat();
+		CHR_UTILS::GenerateONB(v, u, w);
+		float lu, lv, lw;
+		lu = sqrt(1 - rand2 * rand2) * cos(2 * CHR_UTILS::PI * rand1);
+		lv = rand2;
+		lw = sqrt(1 - rand2 * rand2) * sin(2 * CHR_UTILS::PI * rand1);
+
+		direction = lu * u + lv * v + lw * w;
+
+		return glm::normalize(direction);
+	}
+
+		return glm::normalize(direction);
 	}
 }

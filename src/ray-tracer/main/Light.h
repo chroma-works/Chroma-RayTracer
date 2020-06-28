@@ -440,17 +440,8 @@ namespace CHR
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_normal) const // NOT POSITION. NORMAL!!!
 		{
-			//Randomly sample a direction. Random rejection sampling
-			glm::vec3 direction, u, w;
-			float rand1 = CHR_UTILS::RandFloat(), rand2 = CHR_UTILS::RandFloat();
-			CHR_UTILS::GenerateONB(isect_normal, u, w);
-			float lu, lv, lw;
-			lu = sqrt(1 - rand2 * rand2) * cos(2 * CHR_UTILS::PI * rand1);
-			lv = rand2;
-			lw = sqrt(1 - rand2 * rand2) * sin(2 * CHR_UTILS::PI * rand1);
-
-			direction = lu * u + lv * isect_normal + lw * w;
-			return glm::normalize(direction);
+			//Randomly sample a direction.
+			return CHR_UTILS::UnifSampleUnitHemisphere(isect_normal);
 		}
 		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
 		{
