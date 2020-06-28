@@ -14,14 +14,14 @@ namespace CHR_UTILS
 
 	const static double PI = glm::pi<double>();
 
-	inline glm::vec2 SampleUnitSquare()
+	inline glm::vec2 UnifSampleUnitSquare()
 	{
 		/*std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()*/
 		std::uniform_real_distribution<> dis(0.0, 1.0);
 		return { dis(s_gen), dis(s_gen) };
 	}
-	inline glm::vec2 SampleUnitDisk()
+	inline glm::vec2 UnifSampleUnitDisk()
 	{
 		/*std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()*/
@@ -55,7 +55,7 @@ namespace CHR_UTILS
 		return r_prime;
 	}
 
-	inline void GenerateONB(const glm::vec3 _r, glm::vec3& u, glm::vec3& v)
+	inline void GenerateONB(const glm::vec3 _r, glm::vec3& u, glm::vec3& v) // Generates an OrthoNormalBasis to _r
 	{
 		//create orthonormal basis
 		glm::vec3 r = glm::normalize(_r);
@@ -67,9 +67,10 @@ namespace CHR_UTILS
 
 	inline float CalculateTriangleArea(const glm::vec3 a, const glm::vec3 b, const glm::vec3 c)
 	{
-		float d = (glm::length(b - a) * glm::length(c - a));
-		float cos_t = glm::dot(b - a, c - a) / d;
-		return glm::abs(0.5 * d * sqrt(1 - cos_t * cos_t));
+		float mag = glm::length(glm::cross(b - a, c - a));
+		return glm::abs(0.5 * mag);
+	}
+
 	inline glm::vec3 UnifSampleUnitHemisphere(const glm::vec3 v)
 	{
 		glm::vec3 direction, u, w;
