@@ -745,5 +745,12 @@ namespace CHR
 				m_shapes.push_back(shape);
 			}
 		}
+		for (auto li : scene.m_lights)
+		{
+			if (li.second->m_li_type == LIGHT_T::object)
+			{
+				m_shapes.push_back(std::dynamic_pointer_cast<Shape>(li.second));
+			}
+		}
 	}
 }
