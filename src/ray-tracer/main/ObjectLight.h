@@ -53,8 +53,8 @@ namespace CHR
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			bool hit = Sphere::Intersect(ray, data);
-			if(hit)
-				data->radiance = m_inten;
+			if (hit)
+				data->radiance = m_inten; //RadianceAt(data->position, ray.direction);
 			return hit;
 		}
 
@@ -90,43 +90,51 @@ namespace CHR
 			m_shading_mode = SHADING_MODE::smooth;
 		}
 
+		float GetArea()
+		{
+			return m_area > 0.0f ? m_area : CHR_UTILS::CalculateTriangleArea(*m_vertices[0], *m_vertices[1], *m_vertices[2]);
+		}
+
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
 			float chi_1 = CHR_UTILS::RandFloat(), chi_2 = CHR_UTILS::RandFloat();
-			glm::vec3 p = (1.0f - chi_2) * *m_vertices[1] + chi_2 * *m_vertices[2];
-			glm::vec3 q = sqrt(chi_1) * p + (1.0f - sqrt(chi_1)) * *m_vertices[0];
+			glm::vec3 p = (1.0f - chi_2) * glm::vec3(*m_transform * glm::vec4(*m_vertices[1], 1.0f)) +
+				chi_2 * glm::vec3(*m_transform * glm::vec4(*m_vertices[2], 1.0f));
+			glm::vec3 q = sqrt(chi_1) * p + 
+				(1.0f - sqrt(chi_1)) * glm::vec3(*m_transform * glm::vec4(*m_vertices[0], 1.0f));
 
 			return glm::normalize(q - isect_pos);
 		}
 
 		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
 		{
-			Ray ray(isect_pos + l_vec * 0.00001f, l_vec);
+			Ray ray(isect_pos, l_vec);
 			IntersectionData data;
 			Triangle::Intersect(ray, &data);
 			glm::vec3 normal;
-			for (int i = 0; i < 3; i++)
+			if (data.hit)
 			{
-				normal += glm::distance(*m_vertices[i], data.position)* *m_normals[i];
-			}
-			normal = glm::normalize(normal);
-			float cos_t = abs(glm::dot(l_vec, normal));
+				/*for (int i = 0; i < 3; i++)
+				{
+					normal += glm::distance(glm::vec3(*m_transform * glm::vec4(*m_vertices[i], 1.0f)), data.position) *
+						glm::vec3(*m_transform * glm::vec4(*m_normals[i], 0.0f));
+				}*/
+				//normal = glm::normalize(normal);
+				float cos_t = abs(glm::dot(-l_vec, data.normal));
 
-			float d = glm::distance(isect_pos, data.position);
-			return m_inten * m_area * cos_t / (d * d);//TODO:Fix
+				float d = glm::distance(ray.origin, data.position);
+				return m_inten * cos_t / (d * d) * m_area;	//TODO:Fix
+			}
+			else
+				return { 0,0,0 };
 		}
 
 		bool Intersect(const Ray ray, IntersectionData* data) const
 		{
 			bool hit = Triangle::Intersect(ray, data);
 			if (hit)
-				data->radiance = m_inten;
+				data->radiance = m_inten; //RadianceAt(data->position, ray.direction);
 			return hit;
-		}
-
-		float GetArea()
-		{
-			return m_area > 0.0f ? m_area : CHR_UTILS::CalculateTriangleArea(*m_vertices[0], *m_vertices[1], *m_vertices[2]);
 		}
 
 		void DrawGUI()
@@ -146,43 +154,40 @@ namespace CHR
 		{
 			m_inten = radiance;
 			m_li_type = LIGHT_T::object;
-			m_area_totals.resize(m_triangles.size());
+			m_cumulative_areas;
 			float running_total = 0.0f;
 			int i = 0;
 			for (auto tri : m_triangles)
 			{
 				running_total += tri->GetArea();
-				m_area_totals[i++] = running_total;
+				m_cumulative_areas[running_total] = i++;
 			}
-			m_surface_area = m_area_totals[--i];
+			m_surface_area = running_total;
 		}
 
 		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
 		{
 			//Select random triangle based on their surface area
-			float r = CHR_UTILS::RandFloat(0.0f, m_surface_area - 0.0001f);
-			int i;
-			for (i = 0; i < m_triangles.size(); i++)
-				if (r < m_area_totals[i])
-					break;
-
-			return m_triangles[i]->SampleLightDirection(isect_pos);
+			float r = CHR_UTILS::RandFloat() * (m_surface_area - 0.00001f);
+			return m_triangles[m_cumulative_areas.upper_bound(r)->second]->SampleLightDirection(isect_pos);
 		}
 
 		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
 		{
 			//Find the triangle(or one that is on the same path)
 			IntersectionData probe_data;
+			IntersectionData hit_data;
+			glm::vec3 rad = {0,0,0};
 			Ray ray(isect_pos + l_vec * 0.00001f, l_vec);
-			int i;
-			for (i = 0; i < m_triangles.size(); i++)
+			int j = 0;
+			for (int i = 0; i < m_triangles.size(); i++)
 				if (m_triangles[i]->Intersect(ray, &probe_data))
-					break;
-			//int j = glm::min(i, (int)m_triangles.size() - 1);	//TODO:FIX!!!!!
-			if (probe_data.hit)
-				return m_triangles[i]->RadianceAt(isect_pos, l_vec) * m_surface_area / m_triangles[i]->GetArea();
-			else
-				return { 0, 0, 0 };
+				{
+					rad += m_triangles[i]->RadianceAt(isect_pos, l_vec) * m_surface_area / m_triangles[i]->GetArea();
+					j++;
+				}
+
+			return rad / (float)j;
 		}
 
 		bool Intersect(const Ray ray, IntersectionData* data) const //BRUTE FORCE! CALLING FREQUENTLY WILL CAUSE MAJOR PERF. LOSS
@@ -197,19 +202,33 @@ namespace CHR
 					*data = probe_data;
 			}
 
-			if(data->hit)
-				data->radiance = m_inten;
+			if (data->hit)
+				data->radiance = m_inten; //* glm::max(0.0f, -glm::dot(data->normal, ray.direction)); //RadianceAt(data->position, ray.direction);
 
 			return data->hit;
 		}
 
 		Bounds3 GetWorldBounds() const
 		{
-			return m_triangles[0]->GetWorldBounds();	//OBVIOUSLY WRONG
+			auto b_min = m_triangles[0]->GetWorldBounds().min;
+			auto b_max = m_triangles[0]->GetWorldBounds().max;
+			for (auto tri : m_triangles)
+			{
+				b_min = glm::min(b_min, tri->GetWorldBounds().min);
+				b_max = glm::max(b_max, tri->GetWorldBounds().max);
+			}
+			return Bounds3(b_min, b_max);
 		}
 		Bounds3 GetLocalBounds() const
 		{
-			return m_triangles[0]->GetLocalBounds();	//OBVIOUSLY WRONG
+			auto b_min = m_triangles[0]->GetLocalBounds().min;
+			auto b_max = m_triangles[0]->GetLocalBounds().max;
+			for (auto tri : m_triangles)
+			{
+				b_min = glm::min(b_min, tri->GetLocalBounds().min);
+				b_max = glm::max(b_max, tri->GetLocalBounds().max);
+			}
+			return Bounds3(b_min, b_max);
 		}
 		glm::vec3 ObjectSpaceNormalAt(glm::vec3 p, glm::vec3 normal, glm::vec2 uv) const
 		{
@@ -220,6 +239,6 @@ namespace CHR
 		{}
 
 	private:
-		std::vector<float> m_area_totals; //for random triangle selection
+		std::map<float, int> m_cumulative_areas; //for random triangle selection
 	};
 }
