@@ -37,6 +37,7 @@ namespace CHR
 		void PathTraceWorker(Camera* cam, Scene& scene, int idx);
 		glm::vec3 RecursiveTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood);
 		glm::vec3 PathTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood);
+		glm::vec3 CastLightRay(Scene& scene, IntersectionData isect_data, std::shared_ptr<Light> li, Ray ray);
 		bool TestShadow(const Scene& scene, const IntersectionData* isect_data, const std::shared_ptr<Light> l, const Ray shadow_ray);
 	};
 }

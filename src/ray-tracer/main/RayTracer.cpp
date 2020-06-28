@@ -70,9 +70,9 @@ namespace CHR
 			break;
 		case LIGHT_T::object:
 			IntersectionData data;
-			dynamic_cast<Shape*>(li.get())->Intersect(shadow_ray, &data) - 0.00001f;
+			dynamic_cast<Shape*>(li.get())->Intersect(shadow_ray, &data) - 0.0001f;
 
-			li_distance = data.t;
+			li_distance = glm::distance(data.position, shadow_ray.origin);
 			break;
 		/*default:
 			break;*/
@@ -82,6 +82,22 @@ namespace CHR
 			(scene.Intersect(shadow_ray, &shadow_data) && glm::compAdd(shadow_data.radiance) <= 0.0f &&
 			(glm::distance(isect_data->position, shadow_data.position) - li_distance <= 0.0f));
 		return shadowed;
+	}
+
+	glm::vec3 RayTracer::CastLightRay(Scene& scene, IntersectionData isect_data, std::shared_ptr<Light> li, Ray ray)
+	{
+		glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
+
+		glm::vec3 param = li->m_li_type != LIGHT_T::environment ?
+			isect_data.position : glm::normalize(isect_data.normal);
+		glm::vec3 l_vec = li->SampleLightDirection(param);
+		Ray shadow_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
+		shadow_ray.direction = l_vec;
+
+		if (!TestShadow(scene, &isect_data, li, shadow_ray))
+			return isect_data.Shade(li, e_vec, l_vec);
+		else
+			return { 0,0,0 };
 	}
 
 	RayTracer::RayTracer()
@@ -285,13 +301,14 @@ namespace CHR
 
 			for (int j = rect_min.y; j < rect_max.y; j++)
 			{
-				for (int i = rect_min.x; i < rect_max.x; i++)
+				for (int i = rect_min.x; i < rect_max.x ; i++)
 				{
 					glm::vec3 color = scene.m_sky_color;
+					//if(j > 105 && j < 121 && i > 349 && i < 366)
 					for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 					{
-						auto offset = CHR_UTILS::SampleUnitSquare();
-						auto lens_offset = CHR_UTILS::SampleUnitDisk();
+						auto offset = CHR_UTILS::UnifSampleUnitSquare();
+						auto lens_offset = CHR_UTILS::UnifSampleUnitDisk();
 						//DoF Lens calculation
 						glm::vec3 lens_point = cam_pos +
 							cam->GetApertureSize() * (lens_offset.x * right + lens_offset.y * up);
@@ -366,8 +383,8 @@ namespace CHR
 					glm::vec3 color = scene.m_sky_color;
 					for (int n = 0; n < cam->GetNumberOfSamples(); n++)
 					{
-						auto offset = CHR_UTILS::SampleUnitSquare();
-						auto lens_offset = CHR_UTILS::SampleUnitDisk();
+						auto offset = CHR_UTILS::UnifSampleUnitSquare();
+						auto lens_offset = CHR_UTILS::UnifSampleUnitDisk();
 						//DoF Lens calculation
 						glm::vec3 lens_point = cam_pos +
 							cam->GetApertureSize() * (lens_offset.x * right + lens_offset.y * up);
@@ -396,161 +413,6 @@ namespace CHR
 			}
 			idx = job_index++;
 		}
-	}
-
-	glm::vec3 RayTracer::PathTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood)
-	{
-		IntersectionData isect_data;
-		scene.Intersect(ray, &isect_data);
-
-		glm::vec3 color = { 0,0,0 };
-		bool inside = false;
-
-		if (!isect_data.hit)
-		{
-			if (scene.m_sky_texture)
-			{
-				if (scene.m_map_texture_to_sphere)
-				{
-					auto dir = glm::normalize(ray.direction);
-					float u = 0.5f - atan2(dir.z, dir.x) * (0.5f / CHR_UTILS::PI);
-					float v = acosf(dir.y)  / CHR_UTILS::PI;
-					auto t_coord = glm::vec3(u, v, NAN);
-					return scene.m_sky_texture->SampleAt(t_coord)*255.0f;
-				}
-				else
-					return scene.m_sky_texture->SampleAt({ pixel_cood.x / (float)m_settings->GetResolution().x,
-						pixel_cood.y / (float)m_settings->GetResolution().y, 0 }) * 255.0f;
-			}
-			else
-				return scene.m_sky_color;
-		}
-		else if (m_settings->m_calc_reflections && 
-			isect_data.material->type == MAT_TYPE::mirror && depth < m_settings->m_recur_depth) 
-		{
-			// compute reflection
-			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
-
-			//For glossy objects
-			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-			glm::vec3 u, v;
-			CHR_UTILS::GenerateONB(r, u, v);
-			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
-				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
-			reflection_ray.intersect_eps = m_settings->m_intersection_eps;
-			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
-
-			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * ((Mirror*)(isect_data.material))->m_mirror_reflec;
-			color += reflection_color;
-		}
-		else if (m_settings->m_calc_reflections &&
-			isect_data.material->type == MAT_TYPE::conductor && depth < m_settings->m_recur_depth)
-		{
-			// compute reflection
-			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
-			//For glossy objects
-			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-			glm::vec3 u, v;
-			CHR_UTILS::GenerateONB(r, u, v);
-
-			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
-			reflection_ray.intersect_eps = m_settings->m_intersection_eps;
-			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
-
-			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
-
-			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * ((Conductor*)isect_data.material)->GetFr(cos_theta) *
-				((Conductor*)(isect_data.material))->m_mirror_reflec;
-			color += reflection_color;
-		}
-		else if (isect_data.material->type == MAT_TYPE::dielectric && depth < m_settings->m_recur_depth)
-		{
-			float cos_i = glm::dot(ray.direction, isect_data.normal);
-			float ni = 1.0f;
-			float nt = ((Dielectric*)(isect_data.material))->m_refraction_ind;
-
-			glm::vec3 proper_normal = isect_data.normal;
-
-			if (inside = (cos_i > 0.0f))
-			{
-				std::swap(ni, nt);
-				proper_normal = -isect_data.normal;
-			}
-
-			float fr = ((Dielectric*)isect_data.material)->GetFr(cos_i);
-			cos_i = std::abs(cos_i);
-			glm::vec3 reflection_color = { 0,0,0 };
-			if (m_settings->m_calc_reflections)
-			{
-				Ray reflection_ray(isect_data.position + proper_normal * m_settings->m_shadow_eps);
-				//For glossy objects
-				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
-				glm::vec3 u, v;
-				CHR_UTILS::GenerateONB(r, u, v);
-
-				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
-					(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
-				reflection_ray.intersect_eps = m_settings->m_intersection_eps;
-				reflection_ray.jitter_t = CHR_UTILS::RandFloat();
-
-				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
-			}
-
-
-			glm::vec3 refraction_color = { 0,0,0 };
-			if (fr < 1.0f && m_settings->m_calc_refractions)
-			{
-				Ray refraction_ray(isect_data.position - proper_normal * m_settings->m_shadow_eps);
-				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
-				refraction_ray.intersect_eps = m_settings->m_intersection_eps;
-				refraction_ray.jitter_t = CHR_UTILS::RandFloat();
-
-				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
-			}
-
-			color += (reflection_color + refraction_color);
-			if (inside)
-			{
-				glm::vec3 absorbance = -((Dielectric*)(isect_data.material))->m_absorption_coeff *
-					glm::distance(ray.origin, isect_data.position) * 1.0f;
-				color *= exp(absorbance);
-			}
-		}
-		// point is illuminated
-		if (isect_data.hit && !inside)
-		{
-			if (glm::compAdd(isect_data.radiance) > 0.0f)
-				return isect_data.radiance;
-
-			bool replace_all = ((isect_data.tex_map) &&
-				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
-			//Ka * Ia
-			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
-			color += ambient;
-
-			//lighting calculation
-			for (auto it = scene.m_lights.begin(); it != scene.m_lights.end(); it++)
-			{
-				std::shared_ptr<Light> li = it->second;
-				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
-
-				glm::vec3 param = li->m_li_type != LIGHT_T::environment ? 
-					isect_data.position : glm::normalize(isect_data.normal);
-				glm::vec3 l_vec = li->SampleLightDirection(param);
-				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
-				shadow_ray.direction = l_vec;
-
-				if (!TestShadow(scene, &isect_data, li, shadow_ray))
-				{
-					if(replace_all)
-						color = isect_data.Shade(li, e_vec, l_vec);
-					else
-						color += isect_data.Shade(li, e_vec, l_vec);
-				}
-			}
-		}
-		return color;
 	}
 
 	glm::vec3 RayTracer::RecursiveTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood)
@@ -675,34 +537,217 @@ namespace CHR
 		// point is illuminated
 		if (isect_data.hit && !inside)
 		{
-			if (glm::compAdd(isect_data.radiance) > 0.0f)
-				return isect_data.radiance;
-
-			bool replace_all = ((isect_data.tex_map) &&
-				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
 			//Ka * Ia
 			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
 			color += ambient;
+
+			if (depth == 0 && glm::compAdd(isect_data.radiance) > 0.0f)
+				return color + isect_data.radiance;// distance2(ray.origin, isect_data.position);
+
+			bool replace_all = ((isect_data.tex_map) &&
+				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
 
 			//lighting calculation
 			for (auto it = scene.m_lights.begin(); it != scene.m_lights.end(); it++)
 			{
 				std::shared_ptr<Light> li = it->second;
+				glm::vec3 shaded_color = CastLightRay(scene, isect_data, li, ray);
+
+				if (replace_all)
+					color = shaded_color; //isect_data.Shade(li, e_vec, l_vec);
+				else
+					color += shaded_color; //isect_data.Shade(li, e_vec, l_vec);
+			}
+		}
+		return color;
+	}
+
+	glm::vec3 RayTracer::PathTrace(const Ray& ray, Scene& scene, int depth, glm::ivec2 pixel_cood)
+	{
+		bool nee = scene.GetCamera(m_settings->m_act_rt_cam_name)->IsNextEventEstimationOn();
+		bool rr = scene.GetCamera(m_settings->m_act_rt_cam_name)->IsRussianRouletteOn();
+		bool is = scene.GetCamera(m_settings->m_act_rt_cam_name)->IsImportanceSamplingOn();
+
+		IntersectionData isect_data;
+		scene.Intersect(ray, &isect_data);
+
+		glm::vec3 color = { 0,0,0 };
+		bool inside = false;
+		float chi_1 = CHR_UTILS::RandFloat();
+
+		if (!isect_data.hit)
+		{
+			if (scene.m_sky_texture)
+			{
+				if (scene.m_map_texture_to_sphere)
+				{
+					auto dir = glm::normalize(ray.direction);
+					float u = 0.5f - atan2(dir.z, dir.x) * (0.5f / CHR_UTILS::PI);
+					float v = acosf(dir.y)  / CHR_UTILS::PI;
+					auto t_coord = glm::vec3(u, v, NAN);
+					return scene.m_sky_texture->SampleAt(t_coord)*255.0f;
+				}
+				else
+					return scene.m_sky_texture->SampleAt({ pixel_cood.x / (float)m_settings->GetResolution().x,
+						pixel_cood.y / (float)m_settings->GetResolution().y, 0 }) * 255.0f;
+			}
+			else
+				return scene.m_sky_color;
+		}
+		else if (m_settings->m_calc_reflections && 
+			isect_data.material->type == MAT_TYPE::mirror && 
+			(depth < m_settings->m_recur_depth)) 
+		{
+			// compute reflection
+			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
+
+			//For glossy objects
+			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
+			glm::vec3 u, v;
+			CHR_UTILS::GenerateONB(r, u, v);
+			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness * 
+				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
+			reflection_ray.intersect_eps = m_settings->m_intersection_eps;
+			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
+
+			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * 
+				((Mirror*)(isect_data.material))->m_mirror_reflec;
+			color += reflection_color;
+		}
+		else if (m_settings->m_calc_reflections &&
+			isect_data.material->type == MAT_TYPE::conductor &&
+			(depth < m_settings->m_recur_depth))
+		{
+			// compute reflection
+			Ray reflection_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
+			//For glossy objects
+			glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
+			glm::vec3 u, v;
+			CHR_UTILS::GenerateONB(r, u, v);
+
+			reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
+				(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
+			reflection_ray.intersect_eps = m_settings->m_intersection_eps;
+			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
+
+			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
+
+			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * 
+				((Conductor*)isect_data.material)->GetFr(cos_theta) *
+				((Conductor*)(isect_data.material))->m_mirror_reflec;
+			color += reflection_color;
+		}
+		else if (isect_data.material->type == MAT_TYPE::dielectric &&
+			(depth < m_settings->m_recur_depth))
+		{
+			float cos_i = glm::dot(ray.direction, isect_data.normal);
+			float ni = 1.0f;
+			float nt = ((Dielectric*)(isect_data.material))->m_refraction_ind;
+
+			glm::vec3 proper_normal = isect_data.normal;
+
+			if (inside = (cos_i > 0.0f))
+			{
+				std::swap(ni, nt);
+				proper_normal = -isect_data.normal;
+			}
+
+			float fr = ((Dielectric*)isect_data.material)->GetFr(cos_i);
+			cos_i = std::abs(cos_i);
+			glm::vec3 reflection_color = { 0,0,0 };
+			if (m_settings->m_calc_reflections)
+			{
+				Ray reflection_ray(isect_data.position + proper_normal * m_settings->m_shadow_eps);
+				//For glossy objects
+				glm::vec3 r = glm::normalize(glm::reflect(ray.direction, isect_data.normal));
+				glm::vec3 u, v;
+				CHR_UTILS::GenerateONB(r, u, v);
+
+				reflection_ray.direction = glm::normalize(r + isect_data.material->m_roughness *
+					(CHR_UTILS::RandFloat(-0.5, 0.5) * u + CHR_UTILS::RandFloat(-0.5, 0.5) * v));
+				reflection_ray.intersect_eps = m_settings->m_intersection_eps;
+				reflection_ray.jitter_t = CHR_UTILS::RandFloat();
+
+				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
+			}
+
+
+			glm::vec3 refraction_color = { 0,0,0 };
+			if (fr < 1.0f && m_settings->m_calc_refractions)
+			{
+				Ray refraction_ray(isect_data.position - proper_normal * m_settings->m_shadow_eps);
+				refraction_ray.direction = glm::normalize(glm::refract(ray.direction, proper_normal, ni / nt));
+				refraction_ray.intersect_eps = m_settings->m_intersection_eps;
+				refraction_ray.jitter_t = CHR_UTILS::RandFloat();
+
+				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
+			}
+
+			color += (reflection_color + refraction_color);
+			if (inside)
+			{
+				glm::vec3 absorbance = -((Dielectric*)(isect_data.material))->m_absorption_coeff *
+					glm::distance(ray.origin, isect_data.position) * 1.0f;
+				color *= exp(absorbance);
+			}
+		}
+		// point is illuminated
+		if (isect_data.hit && !inside)
+		{
+			//Ka * Ia
+			glm::vec3 ambient = scene.m_ambient_l * isect_data.material->m_ambient;
+			color += ambient;
+
+			//-----------------------------------------------------------------------
+
+			if ((depth == 0 || !nee) && glm::compAdd(isect_data.radiance) > 0.0f) //light source hit
+				return color + isect_data.radiance; // glm::distance2(ray.origin, isect_data.position);
+
+			//-----------------------------------------------------------------------
+
+			if (depth < m_settings->m_recur_depth || rr)
+			{
+				//Sample random direction
+				glm::vec3 rand_dir;
+				float p_wi;
+				float cos_theta;
+				if (is) //Importance sampling
+				{
+					rand_dir = CHR_UTILS::CosSampleUnitHemisphere(isect_data.normal);
+					cos_theta = abs(glm::dot(isect_data.normal, rand_dir));
+					p_wi = 1 / (CHR_UTILS::PI) * cos_theta; //* sqrt(1.0f- cos_theta * cos_theta);
+				}
+				else
+				{
+					rand_dir = CHR_UTILS::UnifSampleUnitHemisphere(isect_data.normal);
+					p_wi = 1 / (2.0f * CHR_UTILS::PI); //* sqrt(1.0f - cos_theta * cos_theta);
+				}
+
+				Ray random_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps, rand_dir);
+				glm::vec3 radiance = { 0,0,0 };
+				if (depth < m_settings->m_recur_depth || (rr && (chi_1 < 1.0f - cos_theta)))
+					radiance = depth < m_settings->m_recur_depth ?
+					PathTrace(random_ray, scene, depth + 1, pixel_cood) :
+					PathTrace(random_ray, scene, depth + 1, pixel_cood) / (1.0f - cos_theta);
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
 
-				glm::vec3 param = li->m_li_type != LIGHT_T::environment ?
-					isect_data.position : glm::normalize(isect_data.normal);
-				glm::vec3 l_vec = li->SampleLightDirection(param);
-				Ray shadow_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
-				shadow_ray.direction = l_vec;
+				color += radiance * isect_data.material->Shade(rand_dir, e_vec, isect_data.normal) / abs(glm::dot(isect_data.normal, rand_dir)) / p_wi; // L * BRDF * cos(th) / p_w
+			}
 
-				if (!TestShadow(scene, &isect_data, li, shadow_ray))
-				{
-					if (replace_all)
-						color = isect_data.Shade(li, e_vec, l_vec);
-					else
-						color += isect_data.Shade(li, e_vec, l_vec);
-				}
+			//-----------------------------------------------------------------------
+
+			bool replace_all = ((isect_data.tex_map) &&
+				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
+			//direct lighting calculation
+			for (auto it = scene.m_lights.begin(); nee && it != scene.m_lights.end(); it++)
+			{
+				std::shared_ptr<Light> li = it->second;
+				glm::vec3 shaded_color = CastLightRay(scene, isect_data, li, ray);
+
+				if (replace_all)
+					color = shaded_color; //isect_data.Shade(li, e_vec, l_vec);
+				else
+					color += shaded_color; //isect_data.Shade(li, e_vec, l_vec);
 			}
 		}
 		return color;
@@ -735,6 +780,9 @@ namespace CHR
 			break;
 		case CHR::recursive_trace:
 			m_rt_worker = &RayTracer::RecursiveTraceWorker;
+			break;
+		case CHR::path_trace:
+			m_rt_worker = &RayTracer::PathTraceWorker;
 			break;
 		case CHR::rt_size:
 			break;
