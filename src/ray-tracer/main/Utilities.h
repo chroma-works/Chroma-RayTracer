@@ -86,6 +86,17 @@ namespace CHR_UTILS
 		return glm::normalize(direction);
 	}
 
+	inline glm::vec3 CosSampleUnitHemisphere(const glm::vec3 v)
+	{
+		glm::vec3 direction, u, w;
+		float rand1 = CHR_UTILS::RandFloat(), rand2 = CHR_UTILS::RandFloat();
+		CHR_UTILS::GenerateONB(v, u, w);
+		float lu, lv, lw;
+		lu = sqrt(rand2) * cos(2 * CHR_UTILS::PI * rand1);
+		lv = sqrt(1.0f - rand2);
+		lw = sqrt(1.0f - rand2) * sin(2 * CHR_UTILS::PI * rand1);
+
+		direction = lu * u + lv * v + lw * w;
 		return glm::normalize(direction);
 	}
 }
