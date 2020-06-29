@@ -1705,20 +1705,15 @@ namespace CHR
 						{
 							scene_obj->SmoothNormals();
 						}
-						//smooth normals
-						scene_obj->SmoothNormals();
 						std::vector<std::shared_ptr<LightTriangle>> tmp;
 						int i = 0;
 						for (auto tri : scene_obj->m_mesh->m_shapes)
 						{
-							//scene->AddLight("Light Triangle " + std::to_string(i++), std::dynamic_pointer_cast<LightTriangle>(tri));
 							tmp.push_back(std::dynamic_pointer_cast<LightTriangle>(tri));
 						}
-						//scene_obj->m_mesh->m_shapes.clear();
 						//Add as LightMesh
 						auto li_mesh = std::make_shared<LightMesh>(rad, tmp);
 						scene->AddLight(name, li_mesh);
-						//scene_obj->m_mesh->m_shapes.push_back(li_mesh);
 					}
 					child_node = child_node->NextSibling();
 				}
