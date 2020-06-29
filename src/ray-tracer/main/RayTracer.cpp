@@ -724,12 +724,15 @@ namespace CHR
 					p_wi = 1 / (2.0f * CHR_UTILS::PI); //* sqrt(1.0f - cos_theta * cos_theta);
 				}
 
-				Ray random_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps, rand_dir);
+				Ray global_ilum_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps, rand_dir);
+				global_ilum_ray.throughput = ray.throughput *
+					glm::compAdd(isect_data.material->Shade(rand_dir, glm::normalize(ray.origin - isect_data.position), isect_data.normal)) / 3.0f;
+				float q = 1.0f - global_ilum_ray.throughput;//cos_theta
 				glm::vec3 radiance = { 0,0,0 };
-				if (depth < m_settings->m_recur_depth || (rr && (chi_1 < 1.0f - cos_theta)))
+				if (depth < m_settings->m_recur_depth || (rr && (chi_1 < q)))
 					radiance = depth < m_settings->m_recur_depth ?
-					PathTrace(random_ray, scene, depth + 1, pixel_cood) :
-					PathTrace(random_ray, scene, depth + 1, pixel_cood) / (1.0f - cos_theta);
+					PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood) :
+					PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood) / q;
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
 
 				color += radiance * isect_data.material->Shade(rand_dir, e_vec, isect_data.normal) / abs(glm::dot(isect_data.normal, rand_dir)) / p_wi; // L * BRDF * cos(th) / p_w
@@ -745,7 +748,7 @@ namespace CHR
 				std::shared_ptr<Light> li = it->second;
 				glm::vec3 shaded_color = CastLightRay(scene, isect_data, li, ray);
 
-				if (replace_all)
+				color += (isect_data.Shade(radiance, e_vec, rand_dir)) / p_wi; /// 2.0f; // L * BRDF * cos(th) / p_w
 					color = shaded_color; //isect_data.Shade(li, e_vec, l_vec);
 				else
 					color += shaded_color; //isect_data.Shade(li, e_vec, l_vec);
