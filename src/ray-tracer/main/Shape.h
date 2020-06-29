@@ -186,6 +186,7 @@ namespace CHR
 
 			inverse_ray.direction = inverse_transform * glm::vec4(ray.direction, 0.0f);
 			inverse_ray.origin = inverse_transform * glm::vec4(ray.origin, 1.0f);
+			inverse_ray.intersect_eps = ray.intersect_eps;
 
 			data->t = std::numeric_limits<float>().max();
 
@@ -200,7 +201,7 @@ namespace CHR
 			float det = glm::dot(v0v1, pvec);
 
 			data->hit = true;
-			if (fabs(det) < inverse_ray.intersect_eps) data->hit = false;
+			if (fabs(det) <= inverse_ray.intersect_eps) data->hit = false;
 
 			float invDet = 1 / det;
 
