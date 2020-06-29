@@ -23,8 +23,7 @@ namespace CHR
 
 		SET_INTENSITY(m_ambient, m_diffuse, m_specular, m_inten)
 
-		virtual glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const = 0;				//Samples a point over the light. USE ISEC. NORMAL FOR ENV. LIGHT
-		virtual glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const = 0;	// Calculates radiance at given point
+		virtual glm::vec3 SampleRadianceAt(const glm::vec3 isect_pos, glm::vec3& l_vec) const = 0;	//Returns radiance at given point.Samples a point to construct a direction to the light.USE ISEC. NORMAL FOR ENV. LIGHT
 
 		std::string m_shader_var_name;
 		glm::vec3 m_ambient = {0,0,0};
@@ -62,12 +61,9 @@ namespace CHR
 			m_li_type = LIGHT_T::directional;
 		}
 
-		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
+		glm::vec3 SampleRadianceAt(const glm::vec3 isect_pos, glm::vec3& l_vec) const
 		{
-			return glm::normalize(-m_direction);
-		}
-		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
-		{
+			l_vec = glm::normalize(-m_direction);
 			return m_inten;
 		}
 
@@ -149,14 +145,11 @@ namespace CHR
 			m_li_type = LIGHT_T::point;
 		}
 
-		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
-		{
-			return glm::normalize(m_position - isect_pos);
-		}
-		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
+		glm::vec3 SampleRadianceAt(const glm::vec3 isect_pos, glm::vec3& l_vec) const
 		{
 			float d = glm::distance(m_position, isect_pos);
-			return m_inten / (d*d);
+			l_vec = glm::normalize(m_position - isect_pos);
+			return m_inten / (d * d);
 		}
 
 		void DrawGUI()
@@ -250,12 +243,10 @@ namespace CHR
 			m_li_type = LIGHT_T::spot;
 		}
 
-		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
+		glm::vec3 SampleRadianceAt(const glm::vec3 isect_pos, glm::vec3& l_vec) const
 		{
-			return glm::normalize(m_position - isect_pos);
-		}
-		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
-		{
+			l_vec = glm::normalize(m_position - isect_pos);
+
 			float d = glm::distance(m_position, isect_pos);
 			glm::vec3 intensity = m_inten;
 			float theta = acos(glm::dot(l_vec, normalize(-m_direction)));
@@ -348,29 +339,19 @@ namespace CHR
 			m_li_type = LIGHT_T::area;
 		}
 
-		glm::vec3 SampleLightDirection(const glm::vec3 isect_pos) const
+		glm::vec3 SampleRadianceAt(const glm::vec3 isect_pos, glm::vec3& l_vec) const
 		{
 			glm::vec3 u, v;
 			CHR_UTILS::GenerateONB(m_normal, u, v);
 			glm::vec3 sample_pos = m_position + (CHR_UTILS::RandFloat(-m_size / 2.0f, m_size / 2.0f) * u +
 				CHR_UTILS::RandFloat(-m_size / 2.0f, m_size / 2.0f) * v);
 
-			return glm::normalize(sample_pos - isect_pos);
-		}
-		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
-		{
-			//recalculate light sample position from light vector
-			glm::vec3 difference = isect_pos - m_position;
-			float prod1 = glm::dot(difference, m_normal);
-			float prod2 = glm::dot(l_vec, m_normal);
-			float prod3 = prod1/prod2;
-
-			glm::vec3 sample_l_point = isect_pos - l_vec * prod3;
+			l_vec = glm::normalize(sample_pos - isect_pos);
 
 			float cos_t = abs(glm::dot(l_vec, glm::normalize(m_normal)));
 
-			float d = glm::distance(sample_l_point, isect_pos);
-			return m_inten *cos_t * m_size * m_size / (d * d);
+			float d = glm::distance(sample_pos, isect_pos);
+			return m_inten * cos_t * m_size * m_size / (d * d);
 		}
 
 		void DrawGUI()
@@ -438,19 +419,15 @@ namespace CHR
 			m_li_type = LIGHT_T::environment;
 		}
 
-		glm::vec3 SampleLightDirection(const glm::vec3 isect_normal) const // NOT POSITION. NORMAL!!!
+		glm::vec3 SampleRadianceAt(const glm::vec3 isect_normal, glm::vec3& l_vec) const  // NOT POSITION. NORMAL!!!
 		{
-			//Randomly sample a direction.
-			return CHR_UTILS::UnifSampleUnitHemisphere(isect_normal);
-		}
-		glm::vec3 RadianceAt(const glm::vec3 isect_pos, const glm::vec3 l_vec) const
-		{
+			l_vec = CHR_UTILS::UnifSampleUnitHemisphere(isect_normal);
+
 			float u, v;
-			u = (0.5f - atan2f(l_vec.z, l_vec.x) * (0.5f / CHR_UTILS::PI))* m_tex->GetWidth();
+			u = (0.5f - atan2f(l_vec.z, l_vec.x) * (0.5f / CHR_UTILS::PI)) * m_tex->GetWidth();
 			v = acosf(l_vec.y) / CHR_UTILS::PI * m_tex->GetHeigth();
 			auto t_coord = glm::vec3(u, v, NAN);
-			glm::vec3 radiance = m_tex->SampleAt(t_coord) ;
-			//radiance = glm::vec3({ radiance.b, radiance.g, radiance.r });
+			glm::vec3 radiance = m_tex->SampleAt(t_coord);
 
 			return radiance * 2.0f * (float)CHR_UTILS::PI;
 		}

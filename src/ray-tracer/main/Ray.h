@@ -43,7 +43,7 @@ namespace CHR
 
 		bool hit = false;
 
-		glm::vec3 Shade(std::shared_ptr<Light> light,
+		glm::vec3 Shade(glm::vec3 radiance,
 			 glm::vec3 e_vec, glm::vec3 l_vec)
 		{
 			glm::vec3 kd = material->m_diffuse;
@@ -76,10 +76,7 @@ namespace CHR
 				Material mat(*material);
 				mat.m_diffuse = kd;
 
-				glm::vec3 param = light->m_li_type != LIGHT_T::environment ? position : glm::normalize(normal);
-				glm::vec3 radiance = light->RadianceAt(param, l_vec);
-
-				return mat.Shade(l_vec, e_vec, normal) * radiance * glm::max(0.0f, glm::dot(normal, l_vec));
+				return radiance * mat.Shade(l_vec, e_vec, normal) * glm::dot(normal, l_vec); // L * BRDF * cos_theta
 			}
 			else
 				return tex_map->SampleAt(glm::vec3(uv, NAN));

@@ -90,12 +90,13 @@ namespace CHR
 
 		glm::vec3 param = li->m_li_type != LIGHT_T::environment ?
 			isect_data.position : glm::normalize(isect_data.normal);
-		glm::vec3 l_vec = li->SampleLightDirection(param);
+		glm::vec3 l_vec = {0,0,0};
+		glm::vec3 radiance = li->SampleRadianceAt(param, l_vec);
 		Ray shadow_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps);
 		shadow_ray.direction = l_vec;
 
 		if (!TestShadow(scene, &isect_data, li, shadow_ray))
-			return isect_data.Shade(li, e_vec, l_vec);
+			return isect_data.Shade(radiance, e_vec, l_vec);
 		else
 			return { 0,0,0 };
 	}
