@@ -701,8 +701,32 @@ namespace CHR
 
 			//-----------------------------------------------------------------------
 
+			bool replace_all = ((isect_data.tex_map) &&
+				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
+			//direct lighting calculation
+			for (auto it = scene.m_lights.begin(); nee && it != scene.m_lights.end(); it++)
+			{
+				std::shared_ptr<Light> li = it->second;
+				glm::vec3 shaded_color = CastLightRay(scene, isect_data, li, ray);
+
+				if (replace_all)
+					color = shaded_color; //isect_data.Shade(li, e_vec, l_vec);
+				else
+					color += shaded_color; //isect_data.Shade(li, e_vec, l_vec);
+			}
+			//-----------------------------------------------------------------------
+
 			if ((depth == 0 || !nee) && glm::compAdd(isect_data.radiance) > 0.0f) //light source hit
-				return color + isect_data.radiance; // glm::distance2(ray.origin, isect_data.position);
+			{
+				if (glm::dot(-isect_data.normal, ray.direction) > 0.0f)
+					return color + isect_data.radiance;
+				else
+					return { 0,0,0 };
+			}
+			else if (glm::compAdd(isect_data.radiance) > 0.0f && !nee)
+			{
+				return { 0,0,0 };
+			}
 
 			//-----------------------------------------------------------------------
 
@@ -715,8 +739,7 @@ namespace CHR
 				if (is) //Importance sampling
 				{
 					rand_dir = CHR_UTILS::CosSampleUnitHemisphere(isect_data.normal);
-					cos_theta = abs(glm::dot(isect_data.normal, rand_dir));
-					p_wi = 1 / (CHR_UTILS::PI) * cos_theta; //* sqrt(1.0f- cos_theta * cos_theta);
+					p_wi = 1 / (CHR_UTILS::PI); //* cos_theta; //* sqrt(1.0f- cos_theta * cos_theta);
 				}
 				else
 				{
@@ -735,25 +758,12 @@ namespace CHR
 					PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood) / q;
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
 
-				color += radiance * isect_data.material->Shade(rand_dir, e_vec, isect_data.normal) / abs(glm::dot(isect_data.normal, rand_dir)) / p_wi; // L * BRDF * cos(th) / p_w
-			}
-
-			//-----------------------------------------------------------------------
-
-			bool replace_all = ((isect_data.tex_map) &&
-				(isect_data.tex_map[0].GetDecalMode() == DECAL_M::re_all));
-			//direct lighting calculation
-			for (auto it = scene.m_lights.begin(); nee && it != scene.m_lights.end(); it++)
-			{
-				std::shared_ptr<Light> li = it->second;
-				glm::vec3 shaded_color = CastLightRay(scene, isect_data, li, ray);
 
 				color += (isect_data.Shade(radiance, e_vec, rand_dir)) / p_wi; /// 2.0f; // L * BRDF * cos(th) / p_w
-					color = shaded_color; //isect_data.Shade(li, e_vec, l_vec);
-				else
-					color += shaded_color; //isect_data.Shade(li, e_vec, l_vec);
 			}
 		}
+		if (glm::any(glm::isnan(color)))
+			printf("NAN\n");
 		return color;
 	}
 
