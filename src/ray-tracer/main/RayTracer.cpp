@@ -69,10 +69,10 @@ namespace CHR
 			li_distance = INFINITY;
 			break;
 		case LIGHT_T::object:
-			IntersectionData data;
-			dynamic_cast<Shape*>(li.get())->Intersect(shadow_ray, &data) - 0.0001f;
+			/*IntersectionData data;
+			dynamic_cast<Shape*>(li.get())->Intersect(shadow_ray, &data) - 0.0001f;*/
 
-			li_distance = glm::distance(data.position, shadow_ray.origin);
+			li_distance = INFINITY;
 			break;
 		/*default:
 			break;*/
