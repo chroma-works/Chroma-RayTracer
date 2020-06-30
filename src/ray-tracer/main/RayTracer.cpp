@@ -735,11 +735,10 @@ namespace CHR
 				//Sample random direction
 				glm::vec3 rand_dir;
 				float p_wi;
-				float cos_theta;
 				if (is) //Importance sampling
 				{
 					rand_dir = CHR_UTILS::CosSampleUnitHemisphere(isect_data.normal);
-					p_wi = 1 / (CHR_UTILS::PI); //* cos_theta; //* sqrt(1.0f- cos_theta * cos_theta);
+					p_wi = 1 / (CHR_UTILS::PI) * glm::abs(glm::dot(rand_dir, isect_data.normal)) + 0.0000001f; // to avoid NAN values TODO
 				}
 				else
 				{
@@ -748,22 +747,23 @@ namespace CHR
 				}
 
 				Ray global_ilum_ray(isect_data.position + isect_data.normal * m_settings->m_shadow_eps, rand_dir);
-				global_ilum_ray.throughput = ray.throughput *
-					glm::compAdd(isect_data.material->Shade(rand_dir, glm::normalize(ray.origin - isect_data.position), isect_data.normal)) / 3.0f;
-				float q = 1.0f - global_ilum_ray.throughput;//cos_theta
 				glm::vec3 radiance = { 0,0,0 };
-				if (depth < m_settings->m_recur_depth || (rr && (chi_1 < q)))
-					radiance = depth < m_settings->m_recur_depth ?
-					PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood) :
-					PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood) / q;
+				if (depth < m_settings->m_recur_depth)
+					radiance = PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood);
+				else if (rr)
+				{
+					global_ilum_ray.throughput = ray.throughput *
+						glm::compAdd(isect_data.material->Shade(rand_dir, glm::normalize(ray.origin - isect_data.position), isect_data.normal)) / 3.0f;
+						float q = 1.0f - global_ilum_ray.throughput;
+					if(chi_1 > q)
+						radiance = PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood) / (1-q);
+				}
 				glm::vec3 e_vec = glm::normalize(ray.origin - isect_data.position);
 
 
-				color += (isect_data.Shade(radiance, e_vec, rand_dir)) / p_wi; /// 2.0f; // L * BRDF * cos(th) / p_w
+				color += (isect_data.Shade(radiance, e_vec, rand_dir)) / p_wi; // L * BRDF * cos(th) / p_w
 			}
 		}
-		if (glm::any(glm::isnan(color)))
-			printf("NAN\n");
 		return color;
 	}
 
