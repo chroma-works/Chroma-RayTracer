@@ -466,7 +466,7 @@ This last homeworks topic was Path Tracing. The problem was fairly fundamental a
 
 To begin with the problems I faced. My previous implementation of the light abstraction caused biased sampling for mesh light types thus resulting nasty artifacts(see **Figure 41**).  
 
-<img src= "resources/mesh_li_artifact.png" width = "400">  
+<img src= "resources/mesh_li_artif.png" width = "400">  
 **Figure 41:** Lighting artifact due to biased sampling of mesh lights.
 
 **So what caused the problem?**  
@@ -484,7 +484,7 @@ The problem was when you try to sample a direction using the surface(just like t
 
 After rewriting whole damn lighting abstraction to fit inside a singular function called *SampleRadianceAt(vec3 isect_point, vec3 &l_vec)*. I was able to calculate radiance for the face picked along-side calculating a light direction that can be used as shadow ray direction. This fixed all of the noise issues even for the path tracer. **Figure 42** illustrates the noise difference after I solved the issue.    
 
-<img src= "resources/diffuse_next_noisy.png" width = "400"> <img src= "resources/pathTracing/diffuse_next.png" width = "400">  
+<img src= "resources/diffuse_next_noise.png" width = "400"> <img src= "resources/pathTracing/diffuse_next.png" width = "400">  
 **Figure 42:** Noise in the path tracer due to biased sampling of the light source vs proper render with sample per pixel = 100.  
 
 Another minor problem I faced was mistakenly calling RecursiveTrace function in the PathTrace function as "recursion" I though I swapped all the function calls after I copied the method but I was wronng... As it turns out calls for dielectric/conductor materials were still RecursiveTrace calls.Whic caused inside of glass objects to be traced using direct lighting. One can observe this in **Figure 43.**  
