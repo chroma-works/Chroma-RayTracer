@@ -38,6 +38,11 @@ namespace CHR
 			sample -= glm::vec3(0.5, 0.5, 0.5);
 			sample = glm::normalize(sample);
 		}
+		if (m_degamma)
+		{
+			glm::vec3 g = { 2.2, 2.2, 2.2 };
+			sample = glm::pow(sample, g);
+		}
 		return sample;
 	}
 

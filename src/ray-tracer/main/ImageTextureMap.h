@@ -13,14 +13,17 @@ namespace CHR
 		glm::vec3 BumpAt(glm::vec3 p) const;
 
 		inline bool IsInterpolated() { return m_interpolated; }
+		inline bool IsDegammaOn() { return m_degamma; }
 		inline unsigned int GetNormalizer() { return m_normalizer; }
 
 		inline void SetInterpolation(bool interp) { m_interpolated = interp; }
+		inline void SetDegamma(bool degamm) { m_degamma = degamm; }
 		inline void SetNormalizer(unsigned int n) { m_normalizer = n; }
 
 
 		std::shared_ptr<Texture> m_texture;
 	private:
+		bool m_degamma = false;
 		bool m_interpolated;
 		unsigned int m_normalizer = 255;
 
