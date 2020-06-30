@@ -9,7 +9,7 @@
             <GazePoint>-4.29809 1.34399 -3.4641</GazePoint>
             <Up>0 1 0</Up>
             <FovY>35.983398</FovY>
-            <NearDistance>1.7321</NearDistance>
+            <NearDistance>1.0321</NearDistance>
             <ImageResolution>1280 720</ImageResolution>
             <ImageName>VeachAjar.exr</ImageName>
             <NumSamples>6400</NumSamples>
@@ -43,7 +43,7 @@
             <Size>3</Size>
             <Radiance>1000 1000 1000</Radiance>
         </AreaLight>
-        
+
         <!--
         <PointLight id="1">
             <Position> -4.4391 1.50656 -4.44377</Position>
