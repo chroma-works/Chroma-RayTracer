@@ -94,7 +94,7 @@ namespace CHR_UTILS
 		float lu, lv, lw;
 		lu = sqrt(rand2) * cos(2 * CHR_UTILS::PI * rand1);
 		lv = sqrt(1.0f - rand2);
-		lw = sqrt(1.0f - rand2) * sin(2 * CHR_UTILS::PI * rand1);
+		lw = sqrt(rand2) * sin(2 * CHR_UTILS::PI * rand1);
 
 		direction = lu * u + lv * v + lw * w;
 		return glm::normalize(direction);
