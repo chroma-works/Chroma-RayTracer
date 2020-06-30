@@ -155,6 +155,9 @@ namespace CHR
 			else if (std::string(node->Value()).compare(TEX_MAP) == 0)
 			{
 				std::string type = node->ToElement()->FindAttribute("type")->Value();
+				bool degamma = false;
+				if (node->ToElement()->FindAttribute("degamma"))
+					degamma = node->ToElement()->FindAttribute("degamma")->BoolValue();
 
 				if (type.compare("image") == 0)
 				{
@@ -212,6 +215,7 @@ namespace CHR
 					if(normalizer !=-1)
 						tm->SetNormalizer(normalizer);
 					tm->SetBumpFactor(bump_f);
+					tm->SetDegamma(degamma);
 					texture_maps.push_back(tm);
 				}
 				else if (type.compare("perlin") == 0)
