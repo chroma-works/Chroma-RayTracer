@@ -611,7 +611,7 @@ namespace CHR
 			reflection_ray.intersect_eps = m_settings->m_intersection_eps;
 			reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
-			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * 
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1, pixel_cood) * 
 				((Mirror*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
 		}
@@ -633,7 +633,7 @@ namespace CHR
 
 			float cos_theta = glm::dot(-ray.direction, isect_data.normal);
 
-			glm::vec3 reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * 
+			glm::vec3 reflection_color = PathTrace(reflection_ray, scene, depth + 1, pixel_cood) * 
 				((Conductor*)isect_data.material)->GetFr(cos_theta) *
 				((Conductor*)(isect_data.material))->m_mirror_reflec;
 			color += reflection_color;
@@ -669,7 +669,7 @@ namespace CHR
 				reflection_ray.intersect_eps = m_settings->m_intersection_eps;
 				reflection_ray.jitter_t = CHR_UTILS::RandFloat();
 
-				reflection_color = RecursiveTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
+				reflection_color = PathTrace(reflection_ray, scene, depth + 1, pixel_cood) * fr;
 			}
 
 
@@ -681,7 +681,7 @@ namespace CHR
 				refraction_ray.intersect_eps = m_settings->m_intersection_eps;
 				refraction_ray.jitter_t = CHR_UTILS::RandFloat();
 
-				refraction_color = RecursiveTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
+				refraction_color = PathTrace(refraction_ray, scene, depth + 1, pixel_cood) * (1.0f - fr);
 			}
 
 			color += (reflection_color + refraction_color);
@@ -753,7 +753,7 @@ namespace CHR
 				else if (rr)
 				{
 					global_ilum_ray.throughput = ray.throughput *
-						glm::compAdd(isect_data.material->Shade(rand_dir, glm::normalize(ray.origin - isect_data.position), isect_data.normal)) / 3.0f;
+						(glm::compAdd(isect_data.material->Shade(rand_dir, glm::normalize(ray.origin - isect_data.position), isect_data.normal)) / 3.0f);
 						float q = 1.0f - global_ilum_ray.throughput;
 					if(chi_1 > q)
 						radiance = PathTrace(global_ilum_ray, scene, depth + 1, pixel_cood) / (1-q);
