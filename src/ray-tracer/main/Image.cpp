@@ -120,8 +120,8 @@ namespace CHR
 		//Calculate L_w_hat
 		for (int i = 0; i < m_width * m_height; i++)
 		{
-			if(!glm::any(glm::isnan(m_hdr_pixels[i])))
-				tmp += std::log(0.00001f + luminosity(m_hdr_pixels[i]));
+			if (!glm::any(glm::isnan(m_hdr_pixels[i])))
+				tmp += std::logf(0.00001f + luminosity(m_hdr_pixels[i]));
 		}
 		float l_w_hat = expf(tmp / ((float)m_width * m_height));
 
@@ -132,7 +132,8 @@ namespace CHR
 
 		//sort luminaces to find L_white
 		std::sort(luminances.begin(), luminances.end());
-		float l_white = luminances[(m_width * m_height) * (1.0f - burn_per / 100.0f)];
+		float l_white = luminances[glm::clamp((int)round((m_width * m_height) * (1.0f - burn_per / 100.0f)), 
+			0, (int)luminances.size()-1)];
 
 		for (int i = 0; i < m_width * m_height; i++)
 		{
