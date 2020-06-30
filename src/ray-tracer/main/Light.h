@@ -348,7 +348,7 @@ namespace CHR
 
 			l_vec = glm::normalize(sample_pos - isect_pos);
 
-			float cos_t = abs(glm::dot(l_vec, glm::normalize(m_normal)));
+			float cos_t = glm::max(0.0f, glm::dot(l_vec, glm::normalize(m_normal)));
 
 			float d = glm::distance(sample_pos, isect_pos);
 			return m_inten * cos_t * m_size * m_size / (d * d);
