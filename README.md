@@ -460,6 +460,72 @@ I can finally demonstrate some preliminary results concerning render times for v
 <img src= "resources/render_t_types_CPU.png" width = "400"> <img src= "resources/render_t_types_GPU.png" width = "400">  
 **Figure 40:** (Left) CPU render times; (Right) GPU render times for various TetMesh sizes over various scenes(increasing in complexity).  
 
+## Weeks 18-20  
+
+This last homeworks topic was Path Tracing. The problem was fairly fundamental after writing a working recursive ray tracer. The big problem I faced was the mesh lights and the Light abstraction I previously had. Yet after fixing that everything worked out fine.  
+
+To begin with the problems I faced. My previous implementation of the light abstraction caused biased sampling for mesh light types thus resulting nasty artifacts(see **Figure 41**).  
+
+<img src= "resources/mesh_li_artifact.png" width = "400">  
+**Figure 41:** Lighting artifact due to biased sampling of mesh lights.
+
+**So what caused the problem?**  
+Short answer:  
+I had a biased sampler for the mesh light source.  
+  
+Long answer:  
+So basically my Light abstract class has two important functions:  
+**SampleDirection(...)** // samples a uniform random direction over the light source.  
+**RadianceAt(...)** // calculates the radiance at the given point using the light direction as a parameter from the first function.    
+
+My "genius" idea was to have the radiance calculated after the shadow tests thus gaining performance by not calling an O(1) function for every light source that needs to be sampled. Yet this started becoming problematic when I started working on area lights and mesh lights altogether.  
+
+The problem was when you try to sample a direction using the surface(just like the lecture videos) you can sample a point on the mesh where it is not visible to that point (a back face). And afterward, if you don't keep that face for that ray you end up recalculating that face however accurately recalculating the sampled face is impossible. What I was doing was getting the closest face to the intersection point which **MAY or MAY NOT** be the face sampled in the SampleDirection(...) function. Thus causing bias in the selection, therefore, increasing the noise altogether.  
+
+After rewriting whole damn lighting abstraction to fit inside a singular function called *SampleRadianceAt(vec3 isect_point, vec3 &l_vec)*. I was able to calculate radiance for the face picked along-side calculating a light direction that can be used as shadow ray direction. This fixed all of the noise issues even for the path tracer. **Figure 42** illustrates the noise difference after I solved the issue.    
+
+<img src= "resources/diffuse_next_noisy.png" width = "400"> <img src= "resources/pathTracing/diffuse_next.png" width = "400">  
+**Figure 42:** Noise in the path tracer due to biased sampling of the light source vs proper render with sample per pixel = 100.  
+
+Another minor problem I faced was mistakenly calling RecursiveTrace function in the PathTrace function as "recursion" I though I swapped all the function calls after I copied the method but I was wronng... As it turns out calls for dielectric/conductor materials were still RecursiveTrace calls.Whic caused inside of glass objects to be traced using direct lighting. One can observe this in **Figure 43.**  
+
+<img src= "resources/glass_wrong_funct.png" width = "400">  
+**Figure 43:** Inside of glass sphere is directly lit instead of path traced.  
+
+After swapping out function calls and implementing some simple techniques like:  
+* Russian roulette(RR) with throughput as the stopping condition,  
+* Importance sampling(IS),   
+* Next event estimation(NEE) for less noisy results  
+
+Final renders were ready. So here they are.   
+**NOTE:** There are 2 scenes for path tracing the combination of various techniques applied thus giving us 16 images. The order of these techniques in **Figure 45** is:
+* NEE  
+* NEE + RR  
+* IS + RR  
+* NEE + IS + RR  
+* none  
+* RR  
+* IS  
+* IS + RR  
+
+<img src= "resources/directLighting/cornellbox_jaroslav_diffuse.png" width = "300"> <img src= "resources/directLighting/cornellbox_jaroslav_diffuse_area.png" width = "300"> 
+<img src= "resources/directLighting/cornellbox_jaroslav_glossy.png" width = "300"> <img src= "resources/directLighting/cornellbox_jaroslav_glossy_area.png" width = "300"> <img src= "resources/directLighting/cornellbox_jaroslav_glossy_area_ellipsoid.png" width = "300"> 
+<img src= "resources/directLighting/cornellbox_jaroslav_glossy_area_small.png" width = "300"> <img src= "resources/directLighting/cornellbox_jaroslav_glossy_area_sphere.png" width = "300">  
+**Figure 44:** Cornellbox scenes with direct lighting raytracing  
+  
+<img src= "resources/pathTracing/diffuse_next.png" width = "300"> <img src= "resources/pathTracing/diffuse_next_russian.png" width = "300"> <img src= "resources/pathTracing/diffuse_importance_russian.png" width = "300"> <img src= "resources/pathTracing/diffuse_next_importance_russian.png" width = "300"> <img src= "resources/pathTracing/diffuse.png" width = "300"> <img src= "resources/pathTracing/diffuse_russian.png" width = "300"> <img src= "resources/pathTracing/diffuse_importance.png" width = "300"> <img src= "resources/pathTracing/diffuse_importance_russian.png" width = "300">  
+<img src= "resources/pathTracing/glass_next_importance_russian.png" width = "300"> <img src= "resources/pathTracing/glass_next_russian.png" width = "300"> <img src= "resources/pathTracing/glass_importance_russian.png" width = "300"> <img src= "resources/pathTracing/glass_next_importance_russian.png" width = "300"> <img src= "resources/pathTracing/glass.png" width = "300"> <img src= "resources/pathTracing/glass_russian.png" width = "300"> <img src= "resources/pathTracing/glass_importance.png" width = "300"> <img src= "resources/pathTracing/glass_importance_russian.png" width = "300">  
+**Figure 45:** Cornellbox scenes with path tracing.  
+
+<img src= "resources/pathTracing/VeachAjar.png">
+**Figure 46:** Veach Ajar scene path traced with 1024 samples per pixel.  
+
+I also found some time to work on GUI tools that came in hand such as this little pop up that tells the information about the pixel the mouse is currently on.  
+<img src= "resources/pix_info.PNG">  
+**Figure 47:** Pixel info gadget.  
+
+*As for possibly the last entry to this blog I want to thank Associate Professor Ahmet Oğuz Akyüz(instructor for the CENG795 course) and Aytek Aman(PhD student at Bilkent Uni.) for teaching me so much about ray tracing and computer graphics in general.*
+
 ## References
 <a id="1">[1]</a>
 Chroma-Works, “chroma-works/Chroma-Engine,” GitHub, 15-Aug-2019. [Online]. Available: https://github.com/chroma-works/Chroma-Engine. [Accessed: 07-Feb-2020].  
