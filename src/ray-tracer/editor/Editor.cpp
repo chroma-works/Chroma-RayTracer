@@ -185,7 +185,6 @@ namespace CHR
 	}
 	void Editor::DrawRayTracedFrame()
 	{
-		m_settings->SetResolution(m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetResolution());
 		static bool flag = true;
 		if (flag)
 		{
@@ -194,6 +193,7 @@ namespace CHR
 			//ray_tracer->m_settings->m_resolution = { -1.0f, -1.0f };
 			ImGui::SetNextWindowSize(ImVec2(820, 480));
 			ray_tracer->ResetImage();
+			m_settings->SetResolution(m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetResolution());
 			glGenTextures(1, &rendered_frame_texture_id);
 			glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -273,6 +273,7 @@ namespace CHR
 					m_settings->Detach(m_scene->GetCamera(m_settings->m_act_rt_cam_name));
 					m_settings->m_act_rt_cam_name = it->first;
 					m_settings->Attach(m_scene->GetCamera(m_settings->m_act_rt_cam_name));
+					m_settings->SetResolution(m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetResolution());
 				}
 				if (is_selected)
 					ImGui::SetItemDefaultFocus();
@@ -306,45 +307,6 @@ namespace CHR
 		ImGui::PopItemWidth();
 		ImGui::Separator();
 
-		bool chng_color = false;
-		if (m_render)
-		{
-			chng_color = true;
-			ImGui::PushStyleColor(ImGuiCol_Button, CHR_COLOR::DARK_PURPLE);
-		}
-		if (ImGui::Button("Toggle Render"))
-		{
-			if(m_scene->m_accel_structure)
-				m_render = !m_render;
-			else
-				CH_FATAL("Acceleration structure is NOT initialized");
-		}
-		if (chng_color)
-		{
-			ImGui::PopStyleColor();
-			chng_color = false;
-		}
-		ImGui::SameLine();
-
-		if (ImGui::Button("Render once & Save"))
-		{
-			if (m_scene->m_accel_structure)
-			{
-				ray_tracer->Render(m_scene->m_cameras[m_settings->m_act_rt_cam_name], *m_scene);
-				std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetImageName();
-				ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
-				glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings->GetResolution().x, m_settings->GetResolution().y, GL_RGB,
-					GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
-			}
-			else
-				CH_FATAL("Acceleration structure is NOT initialized");
-		}
-		if (ImGui::Button("Save Frame"))
-		{
-			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetImageName();
-			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
-		}
 		static bool save_exr = m_settings->m_ldr_post_process;
 		static int e = m_settings->m_ldr_post_process;
 		if (ImGui::Checkbox("Save HDR Image(.exr)", &save_exr))
@@ -414,6 +376,46 @@ namespace CHR
 		}
 
 		ImGui::Separator();
+
+		bool chng_color = false;
+		if (m_render)
+		{
+			chng_color = true;
+			ImGui::PushStyleColor(ImGuiCol_Button, CHR_COLOR::DARK_PURPLE);
+		}
+		if (ImGui::Button("Toggle Render"))
+		{
+			if (m_scene->m_accel_structure)
+				m_render = !m_render;
+			else
+				CH_FATAL("Acceleration structure is NOT initialized");
+		}
+		if (chng_color)
+		{
+			ImGui::PopStyleColor();
+			chng_color = false;
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("Render once & Save"))
+		{
+			if (m_scene->m_accel_structure)
+			{
+				ray_tracer->Render(m_scene->m_cameras[m_settings->m_act_rt_cam_name], *m_scene);
+				std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetImageName();
+				ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+				glBindTexture(GL_TEXTURE_2D, rendered_frame_texture_id);
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_settings->GetResolution().x, m_settings->GetResolution().y, GL_RGB,
+					GL_UNSIGNED_BYTE, ray_tracer->m_rendered_image->GetPixels());
+			}
+			else
+				CH_FATAL("Acceleration structure is NOT initialized");
+		}
+		if (ImGui::Button("Save Frame"))
+		{
+			std::string file_name = "../../assets/screenshots/" + m_scene->GetCamera(m_settings->m_act_rt_cam_name)->GetImageName();
+			ray_tracer->m_rendered_image->SaveToDisk(file_name.c_str());
+		}
 
 		ImGui::EndChild();
 		ImGui::End();
